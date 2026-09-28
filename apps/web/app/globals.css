@@ -64,3 +64,29 @@
 @utility safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* Motion: 200–320 ms ease-out, things settle by fading up 8 px; nothing bounces. */
+@keyframes fh-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fh-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fh-shimmer {
+  50% {
+    opacity: 0.55;
+  }
+}

@@ -1,5 +1,5 @@
 <!--
-PR title format: <TASK-ID>: <task title>        e.g. AUTH-001: Employer sign-in
+PR title format: <type>(<branch-name>): <task title>   e.g. feature(auth-creation): Employer sign-in
 Base branch: develop (feature/fix/refactor/… branches). Release PRs use docs/process/templates/RELEASE_PR_TEMPLATE.md.
 Fill in every section. Write "None" instead of deleting a section.
 -->

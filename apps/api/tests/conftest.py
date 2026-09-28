@@ -1,4 +1,4 @@
-"""Integration tests run against local Supabase (`make db-start`, then `make db-reset`).
+"""Tests that need local Supabase (`make db-start`, then `make db-reset`).
 
 They skip when the database isn't reachable, unless FASTHYR_REQUIRE_DB=1 (CI), which makes a
 missing database a failure instead.
@@ -47,3 +47,7 @@ def supabase() -> Supabase:
         anon_key=os.environ.get("SUPABASE_ANON_KEY", LOCAL_PUBLISHABLE_KEY),
         secret_key=settings.supabase_service_role_key or LOCAL_SECRET_KEY,
     )
+
+
+# The tenancy harness (two workspaces, every role) for any test folder: see tests/tenancy.
+pytest_plugins = ["tests.tenancy.harness"]

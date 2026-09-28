@@ -90,7 +90,7 @@ Run one app at a time with `make web` or `make api`. Web changes reload in the b
 #### One-word shortcut (optional)
 Add an alias to your shell once, then type `fasthyr` in any Terminal window to start everything:
 ```bash
-echo "alias fasthyr='cd ~/Documents/GitHub/fasthyr-v2.0 && make dev'" >> ~/.zshrc
+echo "alias fasthyr='cd ~/Documents/GitHub/FastHyr-v2.0 && make dev'" >> ~/.zshrc
 source ~/.zshrc
 ```
 Change the path if your checkout lives somewhere else.

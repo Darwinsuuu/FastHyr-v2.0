@@ -5,7 +5,7 @@ Each long-lived branch deploys to its own environment ([`process/GIT_CONVENTIONS
 
 | Env | Branch | Web | API / worker / Redis | Supabase | Stripe | OpenAI | Resend |
 |---|---|---|---|---|---|---|---|
-| **local** | any | `pnpm dev` (localhost:3000, app.localhost:3000) | `make api` / `make worker`, Redis via Docker | Supabase CLI (`supabase start`) | test mode + Stripe CLI forwarding | real key with low limits, or fakes (`AI_FAKE=1`) | test key / console |
+| **local** | any | `pnpm dev` (fasthyr.localhost:3000, app.fasthyr.localhost:3000) | `make api` / `make worker`, Redis via Docker | Supabase CLI (`supabase start`) | test mode + Stripe CLI forwarding | real key with low limits, or fakes (`AI_FAKE=1`) | test key / console |
 | **development** | `develop` | `dev.fasthyr.com`, `app.dev.fasthyr.com` | Render services `-dev` | project `fasthyr-dev` | test mode | real key, low spend limit | restricted to allow-listed recipients |
 | **release (QA)** | `release` | `qa.fasthyr.com`, `app.qa.fasthyr.com` | Render services `-qa` | project `fasthyr-qa` | test mode | real key, spend limit | restricted to allow-listed recipients |
 | **production** | `master` | `fasthyr.com`, `app.fasthyr.com` | Render production services | project `fasthyr-prod` (Pro, PITR) | live mode | production key | production domain |
@@ -21,6 +21,8 @@ One Supabase project per environment: `fasthyr-dev`, `fasthyr-qa`, `fasthyr-prod
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | web | Project Settings → API Keys → publishable (or legacy `anon`) key |
 | `SUPABASE_SERVICE_ROLE_KEY` | API, worker | Project Settings → API Keys → secret (or legacy `service_role`) key; server only, never in the web app |
 | `DATABASE_URL` | API, worker | Connect → Session pooler connection string, with user `fasthyr_api.<project-ref>` and that role's password (below) |
+| `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` | web | The environment's two hosts, e.g. `https://dev.fasthyr.com` and `https://app.dev.fasthyr.com` (FND-005) |
+| `NEXT_PUBLIC_COOKIE_DOMAIN` | web | The hosts' shared parent so one sign-in covers both: `dev.fasthyr.com`, `qa.fasthyr.com`, `fasthyr.com`; locally `fasthyr.localhost` |
 | `SUPABASE_JWKS_URL` | API | `https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json` (FND-004) |
 
 **API database role.** The API and worker connect as `fasthyr_api` (created by the first migration: not a superuser, bypasses RLS, table privileges only; ADR-006). Migrations still run as `postgres`. After the first migration reaches a hosted project, turn on its login once in the SQL editor with a new random password kept in your password manager, then use it in `DATABASE_URL`:

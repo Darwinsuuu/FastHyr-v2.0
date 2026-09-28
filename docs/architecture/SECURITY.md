@@ -4,7 +4,7 @@
 - **Supabase Auth** issues JWTs; the API verifies signature (JWKS, cached), `exp`, `aud`, and `iss` on every request.
 - TA users: Google, Microsoft (Azure), email + password (min 8 chars, breached-password check enabled in Supabase, email verification required).
 - Candidates: Google, Microsoft only (ADR-014). The API treats a user as a candidate only on `/candidate/*` routes; being a candidate grants no TA access.
-- Sessions: Supabase refresh tokens in secure, httpOnly cookies via `@supabase/ssr`; access token lifetime 1 h.
+- Sessions: Supabase session cookies via `@supabase/ssr`: Secure (off localhost), SameSite=Lax, shared by the site and app hosts through `NEXT_PUBLIC_COOKIE_DOMAIN`; access token lifetime 1 h. They are not httpOnly: the browser reads the access token to send it to FastAPI as a bearer token (FND-005). XSS is therefore the main session risk, so no `dangerouslySetInnerHTML` with user content and a strict CSP (REL tasks).
 - Interview links carry a random 32-byte token (stored hashed); the page also requires the signed-in user to match the application's candidate.
 - Invite and review-request tokens: random, hashed at rest, single-use, expiring.
 

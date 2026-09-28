@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-003](../FND/FND-003-core-schema-identity-workspaces-members-department.md) |
 | Requirements | NFR-01, NFR-02 |
@@ -67,3 +67,4 @@ Branch: `feature/api-skeleton` from `develop`. Also sets FND-003 to Done on the 
 - Verified by hand against local Supabase: no token and a tampered token → 401 problem+json with `X-Request-Id`; `/v1/me` returns the signed-in user; `/v1/me/workspaces` lists only the user's active memberships with member counts; unknown route → 404 problem+json; `/v1/openapi.json` lists the endpoints; `make api-client` regenerates the TypeScript types.
 - Tests: `tests/unit/test_auth.py`, `test_permissions.py` (hand-written table from SECURITY.md), `test_errors.py`; `tests/tenancy/harness.py` (the `tenancy` fixture) and `test_request_context.py`; `tests/integration/test_me.py`. The shared `supabase` fixture moved to `tests/conftest.py`.
 - Additions beyond the plan: `app/schemas/` for Pydantic response models; `workspace_required` error code.
+- 2026-09-28: merged into `develop` via PR #5.

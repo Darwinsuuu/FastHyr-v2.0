@@ -11,6 +11,13 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/FRONTEND.md
 - Candidates never see scores, signals or flags.
 - TypeScript strict, no new `any` or ignores.
 
+## Where things go (FND-005)
+- Pages for the public site go in `app/site/`, TA app pages in `app/ta/` (`proxy.ts` maps the hosts; URLs never include `site` or `ta`).
+- Style with token classes (`bg-surface`, `text-ink-muted`, `border-line-strong`, `type-heading`…); never raw hex. Change tokens in `docs/design/tokens.json`, then `pnpm --filter web tokens`.
+- Data: `api` + `unwrap()` from `lib/api/client.ts` inside TanStack Query hooks; keys from `lib/api/keys.ts`.
+- Copy: `t()` / `plural()` from `lib/i18n.ts` with keys in `messages/en.json`.
+- Auth: `lib/supabase/` clients are for sign-in and the session only.
+
 ## Commands (from the repo root)
 `make web` · `make lint-web` · `make test-web`
 

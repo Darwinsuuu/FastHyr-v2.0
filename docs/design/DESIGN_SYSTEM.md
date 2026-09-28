@@ -14,7 +14,7 @@ The brand book lives in the Claude Design artifact (DESIGN_SOURCES.md). This fil
 `persimmon` appears on TA screens only inside the Turn mark and when quoting a candidate; `evergreen` appears on candidate screens only in the mark and header.
 
 ## 2. Tokens
-Generated into CSS variables (`styles/tokens.css`) for two themes: **Paper** (light, default) and **Night** (dark, `[data-theme="dark"]`). Tailwind's theme maps to the variables (`bg-surface`, `text-ink`, `text-ink-muted`, `bg-evergreen`, `text-on-evergreen`, `border-line`, …).
+Generated into CSS variables (`apps/web/styles/tokens.css`, by `pnpm --filter web tokens` from `tokens.json`; `make lint` fails if it is stale) for two themes: **Paper** (light, default) and **Night** (dark, `[data-theme="dark"]`, or the system setting when no `data-theme` is set). Tailwind v4's theme maps to the variables (`bg-surface`, `text-ink`, `text-ink-muted`, `bg-evergreen`, `text-on-evergreen`, `border-line`, `rounded-md`, `shadow-raised`, `font-display`, `text-body-sm`, …). Full text styles, family included, are `type-*` utilities (`type-question`, `type-label`, `type-heading`…). Spacing uses Tailwind's default 4 px scale, which equals the `space-*` tokens (`p-4` = `space-4` = 16 px). Fonts load through `next/font` (`apps/web/app/fonts.ts`).
 
 | Group | Tokens |
 |---|---|

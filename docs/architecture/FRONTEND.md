@@ -1,10 +1,12 @@
 # Frontend (`apps/web`)
 
 ## 1. Hosts and routing
-One Next.js app serves two hosts. `middleware.ts` rewrites by host:
-- `fasthyr.com` → route group `(site)` (marketing, apply, interview, demo, auth).
-- `app.fasthyr.com` → route group `(app)` (TA app). Unauthenticated requests redirect to `fasthyr.com/login`.
-Locally: `localhost:3000` (site) and `app.localhost:3000` (app).
+One Next.js app serves two hosts. `proxy.ts` (Next 16's name for middleware) rewrites by host into a folder, because two route groups can't both own `/`:
+- `fasthyr.com` → `app/site/` (marketing, apply, interview, demo, auth).
+- `app.fasthyr.com` → `app/ta/` (TA app). Signed-out requests go to `fasthyr.com/login?next=<path>` through the `app/ta/sign-in-required` route handler (a redirect returned from the proxy is shortened to a relative path when both hosts share an origin, as they do in dev).
+- The host is decided in `lib/hosts.ts`: the app host is whatever matches `NEXT_PUBLIC_APP_URL`.
+- Locally: `fasthyr.localhost:3000` (site) and `app.fasthyr.localhost:3000` (app). Plain `localhost` can't share a cookie with a subdomain, so the session wouldn't reach the app host.
+- The Supabase session cookie is set on `NEXT_PUBLIC_COOKIE_DOMAIN` (the hosts' shared parent) so signing in on the site signs you in on the app.
 
 ### Route map
 | Route | Screen (frame / spec) | Auth |
@@ -46,9 +48,9 @@ Rules:
 ```
 apps/web/
 ├── app/
-│   ├── (site)/…                 # public + candidate routes
-│   ├── (app)/…                  # TA app routes, shared AppShell layout
-│   └── api/                     # route handlers only for auth callback / health (no business logic)
+│   ├── site/…                   # public + candidate routes (site host), incl. /login and /auth/callback
+│   ├── ta/…                     # TA app routes (app host), shared AppShell layout
+│   └── fonts.ts · globals.css   # next/font families; Tailwind + tokens + base styles
 ├── components/
 │   ├── ui/                      # design-system primitives (Button, Input, Select, Dialog, Menu, Tabs, Table, Badge, Signal, Stepper, Toast, JobProgressDialog…)
 │   ├── app-shell/               # sidebar, workspace switcher, user menu, account modal
@@ -66,7 +68,8 @@ apps/web/
 
 ## 3. Conventions
 - **Server vs client components:** pages are server components that render layout and static copy; data that changes (lists, dashboards) is fetched client-side with TanStack Query so polling and optimistic updates are simple. Marketing pages are fully static.
-- **API calls** only through the generated client; never `fetch` business endpoints by hand. Query keys are defined in `lib/api/keys.ts`.
+- **API calls** only through the generated client (`api` from `lib/api/client.ts`, wrapped in `unwrap()` so failures throw an `ApiError` with the problem+json `code`); never `fetch` business endpoints by hand. It adds the Supabase access token and the `fh_ws` workspace automatically. Query keys are defined in `lib/api/keys.ts`; workspace-scoped keys start with `["ws", id]`. `useSwitchWorkspace()` (`lib/api/provider.tsx`) swaps the cookie and clears the cache.
+- **Copy:** `t("key")` and `plural("key", count)` from `lib/i18n.ts`; formatting from `lib/format` (workspace time zone).
 - **Polling:** application stages and job progress poll every 3–5 s while something is processing; stop when idle.
 - **Forms:** React Hook Form + Zod schemas that mirror API validation; show the API's field errors verbatim.
 - **Long jobs (PDFs):** `JobProgressDialog` implements the design's "Please don't close or refresh this window" pattern by polling `GET /jobs/{id}`.

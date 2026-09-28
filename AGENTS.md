@@ -65,7 +65,7 @@ Design: Claude Design canvas "FastHyr — Product Design" (https://claude.ai/art
 ## How to work on a task
 1. Open [`docs/tasks/BOARD.md`](docs/tasks/BOARD.md); pick a `Ready` task (dependencies done).
 2. Read the task file and **only** the docs it links. Write the "Implementation plan" section; get approval for M/L tasks.
-3. **Always** create the branch from `develop` (never `release` or `master`): `git checkout develop && git pull && git checkout -b feature/<short-name>`; one commit or a few meaningful ones, e.g. `feature(auth-creation): Supabase auth integration`, **each with a What / Why / Task description** ([`docs/process/GIT_CONVENTIONS.md`](docs/process/GIT_CONVENTIONS.md)).
+3. **Always** create the branch from `develop` (never `release` or `master`): `git checkout develop && git pull && git checkout -b feature/<short-name>`; one commit or a few meaningful ones, e.g. `feature(auth-creation): Supabase auth integration`, **each with a What / Why / Task description and no AI co-author lines** (AI tools are credited only in the PR description they create) ([`docs/process/GIT_CONVENTIONS.md`](docs/process/GIT_CONVENTIONS.md)).
 4. Build and **test by hand** until the acceptance criteria pass; **then** write unit tests for the important functional behaviour only ([`docs/process/TESTING_STRATEGY.md`](docs/process/TESTING_STRATEGY.md)). Meet [`docs/process/DEFINITION_OF_DONE.md`](docs/process/DEFINITION_OF_DONE.md); update docs in the same PR; open the PR into `develop` with the **full standard description** from [`.github/pull_request_template.md`](.github/pull_request_template.md).
 5. A fresh session reviews and writes `docs/reviews/<TASK-ID>-r<N>.md`. Full loop: [`docs/process/DEV_WORKFLOW.md`](docs/process/DEV_WORKFLOW.md).
 

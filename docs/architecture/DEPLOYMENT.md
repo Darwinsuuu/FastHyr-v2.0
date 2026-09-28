@@ -28,7 +28,8 @@ Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/
 ## 2. Local development
 ```
 make setup        # pnpm install, uv sync, supabase start (applies migrations + seed)
-make dev          # web + api + worker + redis (honcho/overmind)
+make dev          # opens Docker if needed, supabase start, then web + api (+ worker, redis later)
+make stop         # supabase stop
 make api-client   # regenerate packages/api-client from the running API's OpenAPI
 make test         # web + api tests
 make lint         # eslint, prettier --check, ruff, mypy

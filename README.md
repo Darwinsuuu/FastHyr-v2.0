@@ -64,10 +64,11 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 Do the same for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `apps/web/.env.local`, then restart `make dev`. Never put hosted keys in `.env.example` or any committed file.
 
-### 4. Start the apps
+### 4. Start everything
 ```bash
-make dev     # web and API together; Ctrl+C stops both
+make dev     # opens Docker Desktop if needed, starts Supabase, then web and API; Ctrl+C stops the apps
 ```
+Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `make stop` stops Supabase too.
 | What | URL |
 |---|---|
 | Web app | http://localhost:3000 |
@@ -75,6 +76,14 @@ make dev     # web and API together; Ctrl+C stops both
 | API docs (Swagger) | http://localhost:8000/docs |
 
 Run one app at a time with `make web` or `make api`. Web changes reload in the browser and the API restarts on save.
+
+#### One-word shortcut (optional)
+Add an alias to your shell once, then type `fasthyr` in any Terminal window to start everything:
+```bash
+echo "alias fasthyr='cd ~/Documents/GitHub/fasthyr-v2.0 && make dev'" >> ~/.zshrc
+source ~/.zshrc
+```
+Change the path if your checkout lives somewhere else.
 
 ### 5. Test the UI at different screen sizes
 In Chrome, open DevTools (Cmd+Option+I / Ctrl+Shift+I), turn on the device toolbar (Cmd+Shift+M / Ctrl+Shift+M) and check 360, 768, 1024 and 1440 px wide, as the [Definition of Done](docs/process/DEFINITION_OF_DONE.md) requires.
@@ -90,7 +99,8 @@ make test    # Vitest (web) and pytest (API)
 |---|---|
 | `make api-client` | Regenerates the TypeScript client in `packages/api-client` from the API's OpenAPI schema |
 | `make worker` | Background worker (added in FND-008) |
-| `make db-start` / `make db-stop` | Starts or stops local Supabase (your data is kept) |
+| `make stop` | Stops local Supabase (your data is kept) |
+| `make db-start` / `make db-stop` | Starts or stops only local Supabase (your data is kept) |
 | `make db-status` | Prints local Supabase URLs and keys |
 | `make db-reset` | Recreates the local database from `supabase/migrations` and `supabase/seed.sql` (deletes local data) |
 
@@ -101,7 +111,8 @@ make test    # Vitest (web) and pytest (API)
 | `Unsupported engine` warning | Switch to Node 24 with `nvm use` |
 | `Address already in use` on :3000 or :8000 | Another dev server is running; stop it, or find it with `lsof -i :3000` |
 | Web shows old code after pulling | Stop `make dev`, run `make setup`, start again |
-| `Cannot connect to the Docker daemon` | Open Docker Desktop and wait until it says it is running, then `make db-start` |
+| `Docker is not running` or `Cannot connect to the Docker daemon` | Open Docker Desktop and wait until it says Engine running, then run the command again. `make dev` opens it for you when it is installed |
+| `docker: command not found` with Docker Desktop open | Open a new Terminal window; if it persists, Docker Desktop → Settings → Advanced → install CLI tools for the System |
 | Supabase port already allocated (543xx) | Another Supabase project is running; stop it with `pnpm supabase stop --project-id <its id>`, or `docker ps` to find it |
 | OAuth error `redirect_uri_mismatch` | The OAuth app is missing `http://127.0.0.1:54321/auth/v1/callback` as a redirect URI |
 

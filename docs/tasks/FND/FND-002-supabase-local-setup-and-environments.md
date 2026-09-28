@@ -78,6 +78,7 @@ Branch: `feature/local-supabase-xcwy54` from `develop`.
 - Also turned off Storage vector buckets (unused). The leaked-password check is a hosted-only setting, so it is on the owner checklist rather than in `config.toml`.
 - Verified here: `supabase start` from a clean state (images pulled, all services healthy); Google and Azure show as enabled; sign-up rejects a 7-character password; a new email account cannot sign in until confirmed and the confirmation email lands in Mailpit; `supabase/.env` values reach the Azure authorize URL after `make db-stop db-start`; `make db-status` and `make db-reset` work. Google and Microsoft sign-in end to end needs the owner's OAuth apps (checklist below).
 - 2026-09-28: owner ran `make db-start` on his Mac (Apple silicon, Docker Desktop): all services started; Studio and Mailpit open. `make db-start` now explains a missing Docker, and README covers switching the `.env` files between local and the hosted `fasthyr-dev` project.
+- Owner asked for one command: `make dev` now runs `scripts/ensure-docker.sh` (opens Docker Desktop on macOS and waits for its engine), starts Supabase (a no-op when it is already running), then web and API. `make stop` stops Supabase. README shows a `fasthyr` shell alias.
 - Added an empty `supabase/seed.sql` so `db reset` doesn't warn; FND-014 fills it.
 - Deviation: `config.toml` holds the redirect URLs for every environment, but pushing it to the remote projects (`supabase config push`) is left to FND-007; until then the owner applies the auth settings in the dashboard (checklist below).
 

@@ -1,0 +1,32 @@
+# Env files (only .env.example is committed)
+.env*
+!.env.example
+
+# Node
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+next-env.d.ts
+
+# Next.js
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated
+apps/api/openapi.json
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

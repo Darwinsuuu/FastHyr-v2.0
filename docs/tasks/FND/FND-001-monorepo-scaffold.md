@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In progress |
+| Status | In review |
 | Size | M |
 | Depends on | — |
 | Requirements | — |
@@ -29,10 +29,10 @@ The repository has the target layout with an empty-but-running Next.js app, Fast
 - Database, auth, UI (later FND tasks)
 
 ## Acceptance criteria
-- [ ] `make setup && make dev` starts web on :3000 and API on :8000
-- [ ] `GET /health` returns `{status: ok}`
-- [ ] `make lint` and `make test` run (with placeholder tests) and pass
-- [ ] Folder layout matches ARCHITECTURE.md §4
+- [x] `make setup && make dev` starts web on :3000 and API on :8000
+- [x] `GET /health` returns `{status: ok}`
+- [x] `make lint` and `make test` run (with placeholder tests) and pass
+- [x] Folder layout matches ARCHITECTURE.md §4
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
@@ -87,4 +87,6 @@ Branch: `feature/monorepo-scaffold` from `develop`.
 **Open questions:** none. `make lint test` passing is verified locally and pasted in the PR; CI runs it once FND-006 lands.
 
 ## Log
-- 2026-09-28: plan written, waiting for owner approval. Branch `feature/monorepo-scaffold`.
+- 2026-09-28: plan written and approved by the owner. Branch `feature/monorepo-scaffold`.
+- Deviation: `make lint` also runs `tsc --noEmit` for `packages/api-client`, and the API's test client uses `httpx2` (Starlette deprecates `httpx` for `TestClient`).
+- `apps/api` and `packages/api-client` exist, but the BACKEND.md sub-packages (`models/`, `services/`…) and `supabase/` contents are left for the tasks that need them; `supabase/` and `.github/workflows/` hold a `.gitkeep`.

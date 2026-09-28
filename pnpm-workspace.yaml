@@ -1,0 +1,7 @@
+packages:
+  - apps/web
+  - packages/*
+
+# Packages allowed to run install scripts.
+onlyBuiltDependencies:
+  - unrs-resolver

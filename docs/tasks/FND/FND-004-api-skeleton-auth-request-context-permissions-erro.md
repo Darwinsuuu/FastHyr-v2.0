@@ -59,7 +59,7 @@ Branch: `feature/api-skeleton` from `develop`. Also sets FND-003 to Done on the 
 - **New dependency:** `pyjwt[crypto]`.
 
 ## Log
-- 2026-09-28: plan approved by the owner; branch `feature/api-skeleton`.
+- 2026-09-28: plan approved by the owner; branch `feature/api-skeleton`; PR #5.
 - Local Supabase (CLI 2.118.0) signs access tokens with ES256 and publishes the key at `/auth/v1/.well-known/jwks.json`, so local and hosted use the same JWKS path. The HS256 fallback considered in the plan was not needed: shared-secret tokens are refused everywhere.
 - `email_verified` comes from the token's `user_metadata` (set by Supabase for email and OAuth sign-ups).
 - Missing `X-Workspace-Id` is `400 workspace_required`; a malformed or unknown one is `403 not_a_member` (same as a workspace the user isn't in).

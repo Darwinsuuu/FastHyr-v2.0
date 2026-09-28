@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [FND-001](../FND/FND-001-monorepo-scaffold.md) |
 | Requirements | — |
@@ -31,7 +31,7 @@ Developers run Supabase locally and the development, QA and production projects 
 - [x] Local Supabase starts from `make setup`
 - [ ] Google and Microsoft sign-in work locally with test OAuth apps
 - [x] Env var names documented in `.env.example` files
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - OAuth app creation in Google Cloud and Azure is a manual owner step — write the checklist in the task log
@@ -82,6 +82,7 @@ Branch: `feature/local-supabase-xcwy54` from `develop`.
 - `make down` (`scripts/stop-all.sh`) stops web, API and Supabase, then quits Docker Desktop. `docker info` checks time out after 5 s (`scripts/docker-ready.sh`) because it can hang while Docker Desktop is quitting or starting. Owner confirmed start and stop Spotlight shortcuts (Shortcuts app, `osascript` → Terminal → `make dev` / `make down`) work on his Mac.
 - Added an empty `supabase/seed.sql` so `db reset` doesn't warn; FND-014 fills it.
 - Deviation: `config.toml` holds the redirect URLs for every environment, but pushing it to the remote projects (`supabase config push`) is left to FND-007; until then the owner applies the auth settings in the dashboard (checklist below).
+- 2026-09-28: merged via PR #3; marked Done in the FND-003 PR. The Google and Microsoft sign-in check stays open until the owner creates the OAuth apps (checklist below); it is re-checked in AUTH-001.
 
 ### Owner checklist: OAuth apps and Supabase projects
 Do these once. Secrets go only into `supabase/.env` (local) and the Supabase dashboard (remote), never into the repository.

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | Backlog |
+| Status | In review |
 | Size | M |
 | Depends on | [FND-002](../FND/FND-002-supabase-local-setup-and-environments.md) |
 | Requirements | FR-AUTH-05, FR-WS-02, FR-WS-03 |
@@ -28,11 +28,11 @@ The first migration creates identity and tenancy tables with RLS locked down, an
 - Pipeline and later tables (added by their tasks)
 
 ## Acceptance criteria
-- [ ] `make db-reset` applies migrations cleanly
-- [ ] Anon key cannot select from any table (test)
-- [ ] Composite FKs `(workspace_id, id)` used between tenant tables
-- [ ] Model/migration drift check passes
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] `make db-reset` applies migrations cleanly
+- [x] Anon key cannot select from any table (test)
+- [x] Composite FKs `(workspace_id, id)` used between tenant tables
+- [x] Model/migration drift check passes
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - UUID v7 generated in API; DB default `gen_random_uuid()` only as fallback
@@ -76,4 +76,10 @@ Branch: `feature/core-schema-ho4ypt` from `develop`.
 **Docs:** `DATABASE.md` (conventions for composite FKs, append-only, API role), `MULTI_TENANCY.md` §3 (role name), `DEPLOYMENT.md` (hosted role password step, `DATABASE_URL` user), README (new `make db-drift`), `apps/api/AGENTS.md` models note, AGENTS.md status. Also mark FND-002 Done in BOARD.md and its task file, noting the Google/Microsoft sign-in check still waits on the OAuth apps.
 
 ## Log
-_(Branch name, decisions, deviations, PR links, review files.)_
+- 2026-09-28: plan approved by the owner; branch `feature/core-schema-ho4ypt`.
+- Migration `supabase/migrations/20260928210000_core_schema.sql`; models in `apps/api/app/models/`; `app/core/ids.py` (UUID v7); `scripts/check_schema_drift.py` behind `make db-drift`.
+- `BYPASSRLS` works for `fasthyr_api` (Supabase's `postgres` role has the attribute), so no per-table policies were needed.
+- Verified by hand on local Supabase: `make db-reset` applies cleanly; REST calls with the publishable key get `401 permission denied` on every table; a table created after the migration gets no `anon` privileges and full `fasthyr_api` privileges; `fasthyr_api` cannot update or delete `audit_log`, and the trigger stops `postgres` too; `make db-drift` passes, and reports an added column, a nullability change, a missing index, a changed index, a changed FK action and a changed default when the models are edited on purpose.
+- Tests: `tests/integration/test_core_schema.py` (anon key denied on every table, lockdown catalogue check, sign-up creates a profile, composite FK blocks a cross-workspace department link, audit log append-only) and `tests/unit/test_ids.py`. Integration tests skip when local Supabase isn't running unless `FASTHYR_REQUIRE_DB=1` (for FND-006 CI).
+- Additions beyond the plan: `database_url`, `supabase_url` and `supabase_service_role_key` added to `Settings` (the drift script and tests read them; FND-004 builds the session on them).
+- Deviation: check constraints are not mirrored in the models; Alembic can't compare them, so SQL is their only home.

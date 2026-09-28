@@ -2,7 +2,7 @@
 
 Source of truth: SQL migrations in `supabase/migrations/`. This document is the design; if they disagree, fix one of them in the same PR.
 
-Conventions: `id uuid primary key` (UUID v7 from the API), `created_at`/`updated_at timestamptz default now()`, snake_case, enums as Postgres `text` + `check` constraints (easier to evolve), JSONB only for AI outputs and snapshots. Every tenant table has `workspace_id` (see `MULTI_TENANCY.md`). RLS enabled everywhere with no client policies.
+Conventions: `id uuid primary key` (UUID v7 from the API), `created_at`/`updated_at timestamptz default now()`, snake_case, enums as Postgres `text` + `check` constraints (easier to evolve), JSONB only for AI outputs and snapshots. Every tenant table has `workspace_id` (see `MULTI_TENANCY.md`); parents referenced by other tenant tables carry `unique (workspace_id, id)` so children use composite FKs. RLS enabled everywhere with no client policies; the API connects as `fasthyr_api`. Append-only tables (`audit_log`, `credit_ledger`, `ai_decisions`) grant the API role only `select, insert` and have a trigger rejecting updates and deletes. SQLAlchemy models in `apps/api/app/models/` mirror the migrations; `make db-drift` fails when they differ (check constraints and triggers live only in SQL).
 
 ## 1. Entity overview
 
@@ -29,19 +29,19 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 ## 2. Tables
 
 ### Identity and workspaces
-**profiles** — `id` (= auth.users.id), `full_name`, `avatar_url`, `last_workspace_id`, `created_at`.
+**profiles** — `id` (= auth.users.id), `full_name`, `avatar_url`, `last_workspace_id`, `created_at`. Created by a trigger when an `auth.users` row is inserted, with name and avatar from the Google/Microsoft metadata.
 
 **workspaces** — `id`, `name`, `slug` (unique, used in apply links), `owner_id`, `timezone` (default from company profile), `stripe_customer_id`, `trial_granted_at`, `created_at`.
 
 **company_profiles** — `workspace_id` PK, `company_name`, `logo_path`, `banner_path`, `website`, `industry`, `company_size`, `hq_country`, `timezone`, `about` (≤600), `careers_url`, `updated_by`, `updated_at`.
 
-**departments** — `id`, `workspace_id`, `name` (unique per workspace, case-insensitive; "no department" reserved), `description`, `created_at`.
+**departments** — `id`, `workspace_id`, `name` (unique per workspace, case-insensitive; "no department" reserved), `description`, `created_at`. Deleting one cascades to `member_departments`; the service also removes its ID from pending `invites.department_ids`.
 
-**workspace_members** — `id`, `workspace_id`, `user_id`, `role` (`admin|recruiter|hiring_manager`), `is_owner`, `status` (`active|removed`), `last_active_at`, `created_at`. Unique `(workspace_id, user_id)`.
+**workspace_members** — `id`, `workspace_id`, `user_id`, `role` (`admin|recruiter|hiring_manager`), `is_owner`, `status` (`active|removed`), `last_active_at`, `created_at`. Unique `(workspace_id, user_id)`; one owner per workspace, and the owner is an Admin.
 
 **member_departments** — `workspace_id`, `member_id`, `department_id`. PK `(member_id, department_id)`.
 
-**invites** — `id`, `workspace_id`, `email`, `role`, `department_ids uuid[]`, `code` (short, e.g. `AB12-CD34`, unique), `token_hash`, `invited_by`, `status` (`pending|accepted|revoked|expired`), `expires_at` (+7 days), `accepted_by`, `created_at`.
+**invites** — `id`, `workspace_id`, `email`, `role`, `department_ids uuid[]`, `code` (short, e.g. `AB12-CD34`, unique), `token_hash`, `invited_by`, `status` (`pending|accepted|revoked|expired`), `expires_at` (+7 days), `accepted_by`, `created_at`. Email stored lowercase; one pending invite per email per workspace (resend rotates `code` and `token_hash` on the same row).
 
 ### Pipelines
 **pipelines**
@@ -121,7 +121,7 @@ A trigger rejects updates to setup columns when `locked_at is not null`.
 ### Compliance and ops
 **ai_decisions** (append-only) — `id`, `workspace_id`, `application_id`, `type` (`resume_screen|interview_score|integrity_flag`), `outcome`, `score`, `threshold`, `model`, `prompt_version`, `input_ref`, `output jsonb`, `created_at`.
 **ai_calls** — `id`, `workspace_id` (nullable), `purpose`, `entity_id`, `model`, `prompt_version`, `input_tokens`, `output_tokens`, `audio_seconds`, `cost_usd`, `latency_ms`, `status`, `created_at`.
-**audit_log** (append-only) — `id`, `workspace_id`, `actor_id`, `action`, `entity_type`, `entity_id`, `data jsonb`, `created_at`.
+**audit_log** (append-only) — `id`, `workspace_id`, `actor_id` (no FK, null for system actions), `action`, `entity_type`, `entity_id`, `data jsonb`, `created_at`.
 **deletion_requests** — `id`, `workspace_id`, `candidate_id`, `requested_by`, `reason`, `status`, `completed_at` (keeps only this minimal record after deletion).
 **demo_sessions** — `id`, `ip_hash`, `jd_text`, `resume_text` (redacted), `settings jsonb`, `status`, `talk_seconds`, `created_at`, `expires_at` (+24 h hard delete).
 **contact_requests** — `id`, `name`, `email`, `company`, `message`, `ip_hash`, `created_at`.

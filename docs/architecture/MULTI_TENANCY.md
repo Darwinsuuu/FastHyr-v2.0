@@ -23,7 +23,7 @@ Jobs use a **system context** bound to the workspace of the entity being process
 
 ## 3. Defence in depth
 - RLS enabled on every table, with **no** policies for `anon`/`authenticated` roles → the public Supabase keys can't read business data (ADR-006).
-- The API's DB role is not `postgres`/superuser; it has only the grants it needs.
+- The API's DB role, `fasthyr_api`, is not `postgres`/superuser; it has only table privileges (read and insert only on append-only tables) and bypasses RLS. Default privileges give it every new table and give `anon`/`authenticated` nothing, so later migrations only need `enable row level security`.
 - Storage paths start with `{workspace_id}/…`; signed URLs are issued only after the same permission check as the metadata.
 - Ava retrieval tools take the `RequestContext` and can only query through the same repositories.
 - Caches (TanStack Query on web, any Redis caches on API) are keyed by workspace; switching workspace clears the web cache.

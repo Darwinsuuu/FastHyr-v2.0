@@ -20,8 +20,14 @@ One Supabase project per environment: `fasthyr-dev`, `fasthyr-qa`, `fasthyr-prod
 | `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` | API / web | Project Settings → Data API → Project URL (`https://<project-ref>.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | web | Project Settings → API Keys → publishable (or legacy `anon`) key |
 | `SUPABASE_SERVICE_ROLE_KEY` | API, worker | Project Settings → API Keys → secret (or legacy `service_role`) key; server only, never in the web app |
-| `DATABASE_URL` | API, worker, migrations | Connect → connection string (session pooler for Render) |
+| `DATABASE_URL` | API, worker | Connect → Session pooler connection string, with user `fasthyr_api.<project-ref>` and that role's password (below) |
 | `SUPABASE_JWKS_URL` | API | `https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json` (FND-004) |
+
+**API database role.** The API and worker connect as `fasthyr_api` (created by the first migration: not a superuser, bypasses RLS, table privileges only; ADR-006). Migrations still run as `postgres`. After the first migration reaches a hosted project, turn on its login once in the SQL editor with a new random password kept in your password manager, then use it in `DATABASE_URL`:
+```sql
+alter role fasthyr_api with login password '<random password>';
+```
+Locally, `supabase/seed.sql` does this with the password `fasthyr_api_local`.
 
 Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/config.toml`. The OAuth client IDs and secrets go into each project's Authentication → Providers page, never into the repository. The one-time setup checklist is in the FND-002 task log.
 
@@ -34,6 +40,7 @@ make api-client   # regenerate packages/api-client from the running API's OpenAP
 make test         # web + api tests
 make lint         # eslint, prettier --check, ruff, mypy
 make db-reset     # supabase db reset (migrations + seed)
+make db-drift     # fail if app/models and the migrated database disagree
 ```
 `supabase/seed.sql` loads the "Acme Talent" sample workspace from the design.
 

@@ -8,16 +8,65 @@
 
 Stack: Next.js · FastAPI · Supabase · OpenAI · Stripe · Resend · Vercel · Render.
 
-## Quick start
-Needs Node 24 (`.nvmrc`), pnpm 10 and [uv](https://docs.astral.sh/uv/) (it installs Python 3.12 for you).
+## Run locally
 
+### 1. Install the tools (once)
+| Tool | Version | Install (macOS) |
+|---|---|---|
+| Node.js | 24 LTS (pinned in `.nvmrc`) | `brew install nvm`, then `nvm install 24 && nvm use 24` |
+| pnpm | 10 (pinned in `package.json`) | `corepack enable` (ships with Node), or `npm install -g pnpm@10` |
+| uv | latest | `brew install uv` (it downloads Python 3.12 by itself) |
+| make | any | included with Xcode Command Line Tools (`xcode-select --install`) |
+
+Check them with `node -v` (v24.x), `pnpm -v` (10.x) and `uv --version`. If `nvm` is not found after installing it, follow the shell setup lines that `brew info nvm` prints.
+
+### 2. Install dependencies
+From the repository root (run again after pulling changes that add packages):
 ```bash
-make setup   # install web and API dependencies
-make dev     # web on http://localhost:3000, API on http://localhost:8000 (GET /health)
-make lint    # ESLint, Prettier, tsc, ruff, mypy
-make test    # Vitest and pytest
+make setup   # pnpm install + uv sync in apps/api
 ```
 
-Other targets: `make web`, `make api`, `make api-client` (regenerate the TypeScript client from the API's OpenAPI schema). `make worker` and `make db-reset` arrive with FND-008 and FND-002.
+### 3. Environment variables (optional for now)
+Both apps run with defaults. To override, copy the examples; `.env` files are never committed.
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/api/.env.example apps/api/.env
+```
+
+### 4. Start the apps
+```bash
+make dev     # web and API together; Ctrl+C stops both
+```
+| What | URL |
+|---|---|
+| Web app | http://localhost:3000 |
+| API health check | http://localhost:8000/health → `{"status":"ok"}` |
+| API docs (Swagger) | http://localhost:8000/docs |
+
+Run one app at a time with `make web` or `make api`. Web changes reload in the browser and the API restarts on save.
+
+### 5. Test the UI at different screen sizes
+In Chrome, open DevTools (Cmd+Option+I / Ctrl+Shift+I), turn on the device toolbar (Cmd+Shift+M / Ctrl+Shift+M) and check 360, 768, 1024 and 1440 px wide, as the [Definition of Done](docs/process/DEFINITION_OF_DONE.md) requires.
+
+### 6. Lint and tests
+```bash
+make lint    # Prettier, ESLint, tsc, ruff, mypy
+make test    # Vitest (web) and pytest (API)
+```
+
+### Other commands
+| Command | What it does |
+|---|---|
+| `make api-client` | Regenerates the TypeScript client in `packages/api-client` from the API's OpenAPI schema |
+| `make worker` | Background worker (added in FND-008) |
+| `make db-reset` | Resets the local Supabase database (added in FND-002) |
+
+### Troubleshooting
+| Problem | Fix |
+|---|---|
+| `make: pnpm: No such file or directory` | Run `corepack enable` (or `npm install -g pnpm@10`), then `make setup` |
+| `Unsupported engine` warning | Switch to Node 24 with `nvm use` |
+| `Address already in use` on :3000 or :8000 | Another dev server is running; stop it, or find it with `lsof -i :3000` |
+| Web shows old code after pulling | Stop `make dev`, run `make setup`, start again |
 
 Status: monorepo scaffold in place (FND-001); see the task board for what's next.

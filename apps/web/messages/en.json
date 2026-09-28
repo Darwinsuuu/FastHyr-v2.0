@@ -54,7 +54,18 @@
     "jobFailed": "We couldn't finish that. Nothing was changed, so you can try again.",
     "tryAgain": "Try again",
     "done": "Done",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "previous": "Prev",
+    "next": "Next",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {page} of {count}",
+    "showing": "Showing {from}–{to} of {total} {noun}",
+    "goToPage": "Page {page}",
+    "pagination": "Pagination",
+    "actions": "Actions",
+    "stepOf": "Step {step} of {total}",
+    "completed": "Completed",
+    "current": "Current step"
   },
   "status": {
     "pipeline": {
@@ -78,5 +89,31 @@
       "advanced": "Advanced",
       "rejected": "Not moving forward"
     }
+  },
+  "signal": {
+    "strong": "Strong evidence",
+    "watch": "Worth probing",
+    "gap": "Not evidenced yet"
+  },
+  "insight": {
+    "fromResume": "From the résumé",
+    "becomesQuestion": "Becomes the question"
+  },
+  "prompt": {
+    "questionOf": "Question {step} of {total}"
+  },
+  "score": {
+    "howWeGot": "How we got to {total}",
+    "points": "= {points} points",
+    "rounded": "{value}, rounded",
+    "passMark": "Pass mark {value}",
+    "total": "Total",
+    "roundedTo": "{value}, rounded to {total}",
+    "outOf": "{value} out of {max}"
+  },
+  "charts": {
+    "value": "Value",
+    "candidates": "Candidates",
+    "score": "Score"
   }
 }

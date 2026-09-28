@@ -22,6 +22,7 @@ Generated into CSS variables (`apps/web/styles/tokens.css`, by `pnpm --filter we
 | Lines | `line` (dividers), `line-strong` (input/secondary-button borders, ≥3:1) |
 | Text | `ink`, `ink-muted` |
 | Brand | `evergreen` / `on-evergreen` / `evergreen-soft`; `persimmon` / `on-persimmon` / `persimmon-ink` (persimmon text) / `persimmon-soft`; `marigold` / `on-marigold` (highlighter only); `sage` (illustration only) |
+| Charts | `chart-2`, `chart-3`, `chart-muted`, `chart-amber`: extra series fills after `evergreen` (score tiles, funnels, below-pass-mark bins, free credits). Charts only, never text |
 | Signals | `signal-strong` (blue, filled disc), `signal-watch` (amber, half disc), `signal-gap` (red, ring) |
 | Focus | `focus` — 2px solid ring, 2px offset on every interactive element |
 | Type | families `display` (Fraunces), `sans` (Hanken Grotesk), `mono` (IBM Plex Mono); styles `display-xl` 56/60, `display-lg` 40/46, `question` 24/32 italic, `heading` 24/30 650, `title` 18/26 600, `body` 16/24, `body-sm` 14/20, `label` 12/16 650 uppercase 0.06em, `mono` 13/20 |
@@ -29,7 +30,7 @@ Generated into CSS variables (`apps/web/styles/tokens.css`, by `pnpm --filter we
 | Radius | `radius-sm` 6 (inputs) · `radius-md` 12 (buttons, cards) · `radius-lg` 24 (candidate stage, sheets) · `radius-pill` (signals, step dots) |
 | Shadow | `shadow-raised` (interview stage, popovers only; cards use a `line` border) |
 
-Frame hex → token mapping (frames use inline hex): `#F7F2EA` surface · `#FFFCF7` surface-raised · `#EDE5D8`/`#EFE7DA` surface-sunk · `#DDD3C3` line · `#8A7F70`/`#A89C88`/`#CFC4B2` line-strong (use token) · `#1E2A26` ink · `#5A625D` ink-muted · `#1F4D43` evergreen · `#D5E2D3` evergreen-soft · `#C4471F` persimmon · `#9E3818`/`#A8391A` persimmon-ink · `#F8DCCB` persimmon-soft · `#F2B84B` marigold · `#C9D9C4` sage · `#22668A` signal-strong/focus · `#B03E26` signal-gap/error.
+Frame hex → token mapping (frames use inline hex): `#F7F2EA` surface · `#FFFCF7` surface-raised · `#EDE5D8`/`#EFE7DA` surface-sunk · `#DDD3C3` line · `#8A7F70`/`#A89C88`/`#CFC4B2` line-strong (use token) · `#1E2A26` ink · `#5A625D` ink-muted · `#1F4D43` evergreen · `#D5E2D3` evergreen-soft · `#C4471F` persimmon · `#9E3818`/`#A8391A` persimmon-ink · `#F8DCCB` persimmon-soft · `#F2B84B` marigold · `#C9D9C4` sage · `#22668A` signal-strong/focus · `#B03E26` signal-gap/error · `#4F7F70` chart-2 · `#8FB3A3` chart-3 · `#B7AD9E` chart-muted · `#E8C98A` chart-amber.
 
 ## 3. Rules that are easy to get wrong
 - **Scores vs signals (updated by ADR-011):** TA screens show numeric scores with their calculation. Signals label evidence and sub-skills, always glyph + word (never colour alone). Never show scores, signals or flags to candidates. `signal-gap` never means "reject".
@@ -46,7 +47,7 @@ Frame hex → token mapping (frames use inline hex): `#F7F2EA` surface · `#FFFC
 All components and screens are mobile first — see [`RESPONSIVE.md`](RESPONSIVE.md) for breakpoints and how each desktop pattern adapts.
 
 ## 5. Components (`components/ui`)
-Built in FND-012. Every component, variant and state is shown at `/dev/ui` on the app host (local and development only). Overlays and controls use Radix primitives styled with token classes; icons are `@phosphor-icons/react`. Part 1 (core) is built; part 2 (data, signature pieces and charts) is next.
+Built in FND-012. Every component, variant and state is shown at `/dev/ui` on the app host (local and development only). Overlays and controls use Radix primitives styled with token classes; icons are `@phosphor-icons/react`. Charts are hand-built (HTML bars and SVG, no chart library) in `components/charts`; each renders a screen-reader table of its data.
 
 | Component | Notes / variants | File |
 |---|---|---|
@@ -54,15 +55,15 @@ Built in FND-012. Every component, variant and state is shown at `/dev/ui` on th
 | `Input`, `Textarea`, `Select`, `Checkbox`, `Toggle` (switch), `Slider` (rubric/pass mark), `NumberStepper` (credits), `ChipInput` (must-haves, skills), `PhoneInput` (country code + number), `FileDrop` (PDF/image), `SearchInput` | label + hint + error message pattern from frames | `field.tsx`, `input.tsx`, `select.tsx`, `checkbox.tsx`, `toggle.tsx`, `slider.tsx`, `number-stepper.tsx`, `chip-input.tsx`, `phone-input.tsx`, `file-drop.tsx` |
 | `SegmentedControl` | week/30 days, work setup, tabs-as-pills | `segmented-control.tsx` |
 | `Tabs` | underline tabs (pipeline, profile) | `tabs.tsx` |
-| `Table` + `Pagination` (+ rows-per-page) | TA density | part 2 |
+| `Table` + `Pagination` (+ rows-per-page) | TA density | `table.tsx` (a card list below `md`, `showFrom` hides lower-priority columns), `pagination.tsx` (Prev, "Page 2 of 9", Next on phones), helpers in `lib/pagination.ts` |
 | `Dialog` / `ConfirmDialog` / `TypeToConfirmDialog` ("I understand") | radius-lg sheets | `dialog.tsx`: full-screen sheet with sticky buttons on phones, centred from `md` |
 | `Menu` (row actions), `Popover`, `Tooltip` | Radix | `menu.tsx` (bottom sheet on phones), `popover.tsx`, `tooltip.tsx` (opens on tap and focus too) |
 | `Badge` / `StatusPill` | pipeline status, stage, fit | `badge.tsx`, `status-pill.tsx` (`PipelineStatusPill`, `StagePill`) |
-| `Signal` | strong/watch/gap glyph + word | part 2 |
-| `ScoreBar`, `WeightedCalc` ("How we got to 91") | | part 2 |
-| `InsightCard`, `QuestionPrompt` | from the design system | part 2 |
-| `Stepper` | wizard (vertical), demo (horizontal) | part 2 |
+| `Signal` | strong/watch/gap glyph + word | `signal.tsx` (`Signal`, `SignalCounts`) |
+| `ScoreBar`, `WeightedCalc` ("How we got to 91") | | `score-bar.tsx`, `weighted-calc.tsx` (tiles from `md`, stacked on phones, points bar with the pass mark) |
+| `InsightCard`, `QuestionPrompt` | from the design system | `insight-card.tsx`, `question-prompt.tsx` |
+| `Stepper` | wizard (vertical), demo (horizontal) | `stepper.tsx` (compact "Step 2 of 5" with a progress bar on phones) |
 | `JobProgressDialog` | report/PDF progress pattern | `job-progress-dialog.tsx` |
 | `EmptyState`, `Skeleton`, `Toast` | | `empty-state.tsx` (with the Turn, `components/brand/turn-mark.tsx`), `skeleton.tsx`, `toast.tsx` (`useToast`) |
 | `Avatar` (initials), `WorkspaceAvatar` | colour pairs from frames | `avatar.tsx` (`Avatar`, `WorkspaceAvatar`) |
-| Charts (`components/charts`) | Funnel/flow, stacked weekly bars, histogram with pass-mark line, horizontal bars, radar, line with pass-mark, split bar | part 2 |
+| Charts (`components/charts`) | Funnel/flow, stacked weekly bars, histogram with pass-mark line, horizontal bars, radar, line with pass-mark, split bar | `flow-band.tsx`, `bar-chart.tsx` (overlay or stacked bars, histogram marker, reference line), `horizontal-bars.tsx`, `split-bar.tsx`, `radar-chart.tsx`, `line-chart.tsx` |

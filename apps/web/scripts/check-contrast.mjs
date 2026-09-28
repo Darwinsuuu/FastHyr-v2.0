@@ -29,6 +29,7 @@ export const TEXT_PAIRS = [
   ["surface-raised", "signal-gap", "destructive primary button"],
   ["surface-raised", "ink", "tooltips and toasts"],
   ["on-marigold", "marigold", "highlighted résumé phrase"],
+  ["ink", "persimmon-soft", "question context on the candidate stage"],
 ];
 
 export const NON_TEXT_PAIRS = [

@@ -30,7 +30,7 @@ Write tests for **what the feature must do**, not for every line or case. Aim fo
 |---|---|
 | Manual testing | Every feature, before writing unit tests, at phone (360 px), tablet (768 px) and desktop (1440 px) widths; QA on the release environment before production, including a real phone |
 | AI evaluation (`tests/ai_eval/`) | When a prompt or model changes (fairness checks in `compliance/BIAS_FAIRNESS.md`) |
-| End-to-end (Playwright) | Only the few core journeys, added in REL-001 |
+| End-to-end (Playwright, `apps/web/e2e/`, `make e2e` against `make dev`) | Only the few core journeys: employer email sign-in (AUTH-001); the rest added in REL-001. Not in CI until FND-006 |
 
 ## 4. In the task file
 Each task's **Test plan** lists only the important functional tests. The reviewer checks that they exist and pass, not that coverage is high.

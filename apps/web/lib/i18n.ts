@@ -1,6 +1,6 @@
 import messages from "@/messages/en.json";
 
-// UI copy lives in messages/en.json (NFR-12). Keys are dotted paths: t("auth.signIn").
+// UI copy lives in messages/en.json (NFR-12). Keys are dotted paths: t("auth.continue").
 // Placeholders in braces are filled from `vars`; counted phrases use plural().
 
 type PluralForms = { one: string; other: string };

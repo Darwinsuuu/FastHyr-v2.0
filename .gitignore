@@ -22,6 +22,10 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Playwright output
+test-results/
+playwright-report/
+
 # Generated
 apps/api/openapi.json
 

@@ -21,6 +21,7 @@ One Next.js app serves two hosts. `proxy.ts` (Next 16's name for middleware) rew
 | `/reset-password` | Spec S-05 | recovery session |
 | `/verify-email` | Spec S-06 | signed in |
 | `/auth/callback` | OAuth/email callback handler | — |
+| `/auth/continue` | Picks where a user lands after sign-in (`next`, last active workspace, or `/workspaces`) | signed in |
 | `/workspaces` | WorkspaceSelect | TA signed in |
 | `/join/[code]` | Spec S-04 | TA signed in |
 | `/apply/[workspaceSlug]/[pipelineSlug]` | Apply | public; candidate sign-in to apply |

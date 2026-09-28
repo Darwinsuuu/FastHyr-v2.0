@@ -2,11 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { LogOutButton } from "@/components/auth/log-out-button";
 import { api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
-import { env } from "@/lib/env";
 import { plural, t } from "@/lib/i18n";
-import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export function MePanel() {
   const me = useQuery({
@@ -17,11 +16,6 @@ export function MePanel() {
     queryKey: keys.myWorkspaces(),
     queryFn: async () => unwrap(await api.GET("/v1/me/workspaces")),
   });
-
-  async function signOut() {
-    await supabaseBrowser().auth.signOut();
-    window.location.assign(new URL("/login", env.siteUrl).toString());
-  }
 
   if (me.isPending || workspaces.isPending) {
     return <p className="type-body-sm mt-6 text-ink-muted">{t("app.loading")}</p>;
@@ -68,13 +62,7 @@ export function MePanel() {
         )}
       </section>
 
-      <button
-        type="button"
-        onClick={signOut}
-        className="type-body min-h-11 self-start rounded-md border border-line-strong px-5 py-3 font-semibold"
-      >
-        {t("auth.signOut")}
-      </button>
+      <LogOutButton className="self-start" />
     </div>
   );
 }

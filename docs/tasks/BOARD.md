@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 1 |
+| M0 Foundation | 14 | 3 |
 | M1 Access | 12 | 0 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -26,8 +26,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 |---|---|---|---|---|---|
 | [FND-001](FND/FND-001-monorepo-scaffold.md) | Monorepo scaffold | M | — | Done | #2 |
 | [FND-002](FND/FND-002-supabase-local-setup-and-environments.md) | Supabase local setup and environments | S | FND-001 | Done | #3 |
-| [FND-003](FND/FND-003-core-schema-identity-workspaces-members-department.md) | Core schema: identity, workspaces, members, departments, invites | M | FND-002 | In review | |
-| [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | Backlog | |
+| [FND-003](FND/FND-003-core-schema-identity-workspaces-members-department.md) | Core schema: identity, workspaces, members, departments, invites | M | FND-002 | Done | #4 |
+| [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | In review | #5 |
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Backlog | |
 | [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | Backlog | |
 | [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Backlog | |
@@ -37,7 +37,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Backlog | |
 | [FND-012](FND/FND-012-ui-kit-design-system-components.md) | UI kit (design-system components) | L | FND-005 | Backlog | |
 | [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | Backlog | |
-| [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Backlog | |
+| [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Ready | |
 
 ## M1 Access
 
@@ -54,7 +54,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Backlog | |
 | [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Backlog | |
 | [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Backlog | |
-| [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Backlog | |
+| [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Ready | |
 
 ## M2 Pipelines
 

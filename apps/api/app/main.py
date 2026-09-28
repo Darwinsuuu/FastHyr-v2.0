@@ -1,31 +1,70 @@
 """FastAPI app factory. Routers and middleware are registered here."""
 
-from fastapi import FastAPI
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from app.api.routers import me
+from app.core.auth import TokenVerifier
 from app.core.config import Settings, get_settings
+from app.core.db import create_engine, create_sessionmaker
+from app.core.errors import register_error_handlers
+from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+
+API_PREFIX = "/v1"
 
 
 class HealthResponse(BaseModel):
     status: str
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, token_verifier: TokenVerifier | None = None
+) -> FastAPI:
     settings = settings or get_settings()
-    app = FastAPI(title="FastHyr API", version="0.1.0")
+    configure_logging()
 
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        engine = create_engine(settings)
+        app.state.sessionmaker = create_sessionmaker(engine)
+        yield
+        await engine.dispose()
+
+    app = FastAPI(
+        title="FastHyr API",
+        version="0.1.0",
+        lifespan=lifespan,
+        openapi_url=f"{API_PREFIX}/openapi.json",
+        docs_url=f"{API_PREFIX}/docs",
+        redoc_url=None,
+    )
+    app.state.settings = settings
+    app.state.token_verifier = token_verifier or TokenVerifier.from_settings(settings)
+
+    register_error_handlers(app)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.web_origins,
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["Authorization", "Content-Type", "X-Workspace-Id", "Idempotency-Key"],
+        expose_headers=[REQUEST_ID_HEADER],
     )
+    # Added last so it runs first: every response, CORS and errors included, carries the ID.
+    app.add_middleware(RequestIdMiddleware)
 
+    # Render's health check calls this; it stays outside /v1 and needs no sign-in.
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     async def health() -> HealthResponse:
         return HealthResponse(status="ok")
+
+    v1 = APIRouter(prefix=API_PREFIX)
+    v1.include_router(me.router)
+    app.include_router(v1)
 
     return app
 

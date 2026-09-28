@@ -74,7 +74,8 @@ Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `
 |---|---|
 | Web app | http://localhost:3000 |
 | API health check | http://localhost:8000/health → `{"status":"ok"}` |
-| API docs (Swagger) | http://localhost:8000/docs |
+| API docs (Swagger) | http://localhost:8000/v1/docs |
+| API schema (OpenAPI) | http://localhost:8000/v1/openapi.json |
 
 Run one app at a time with `make web` or `make api`. Web changes reload in the browser and the API restarts on save.
 
@@ -119,4 +120,4 @@ make test    # Vitest (web) and pytest (API)
 | Supabase port already allocated (543xx) | Another Supabase project is running; stop it with `pnpm supabase stop --project-id <its id>`, or `docker ps` to find it |
 | OAuth error `redirect_uri_mismatch` | The OAuth app is missing `http://127.0.0.1:54321/auth/v1/callback` as a redirect URI |
 
-Status: monorepo scaffold (FND-001) and local Supabase (FND-002) in place; see the task board for what's next.
+Status: monorepo scaffold (FND-001), local Supabase (FND-002), core schema (FND-003) and the API skeleton (FND-004: sign-in checks, workspace context, permissions, error format, `GET /v1/me`) in place; see the task board for what's next.

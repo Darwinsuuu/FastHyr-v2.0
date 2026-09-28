@@ -29,7 +29,7 @@ Jobs use a **system context** bound to the workspace of the entity being process
 - Caches (TanStack Query on web, any Redis caches on API) are keyed by workspace; switching workspace clears the web cache.
 
 ## 4. Testing
-- `tests/tenancy/` has a fixture with two workspaces (A, B) and members of each role. For **every** endpoint, a parametrised test asserts that a member of A gets `404` (not `403`, to avoid leaking existence) for B's resources and never sees B's rows in lists or aggregates.
+- `tests/tenancy/` has a fixture (`tenancy`, in `tests/tenancy/harness.py`) with two workspaces (A, B) and members of each role, signed in through Supabase Auth. For **every** endpoint, a parametrised test asserts that a member of A gets `404` (not `403`, to avoid leaking existence) for B's resources and never sees B's rows in lists or aggregates.
 - A CI check fails if a new router endpoint has no tenancy test entry.
 - Department-scope tests: a recruiter in Engineering cannot see Sales pipelines, candidates only in Sales pipelines, or No-department pipelines.
 

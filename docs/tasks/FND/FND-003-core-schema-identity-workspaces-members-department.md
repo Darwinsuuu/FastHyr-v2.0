@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-002](../FND/FND-002-supabase-local-setup-and-environments.md) |
 | Requirements | FR-AUTH-05, FR-WS-02, FR-WS-03 |
@@ -83,3 +83,4 @@ Branch: `feature/core-schema-ho4ypt` from `develop`.
 - Tests: `tests/integration/test_core_schema.py` (anon key denied on every table, lockdown catalogue check, sign-up creates a profile, composite FK blocks a cross-workspace department link, audit log append-only) and `tests/unit/test_ids.py`. Integration tests skip when local Supabase isn't running unless `FASTHYR_REQUIRE_DB=1` (for FND-006 CI).
 - Additions beyond the plan: `database_url`, `supabase_url` and `supabase_service_role_key` added to `Settings` (the drift script and tests read them; FND-004 builds the session on them).
 - Deviation: check constraints are not mirrored in the models; Alembic can't compare them, so SQL is their only home.
+- 2026-09-28: merged into `develop` via PR #4; board set to Done in the FND-004 PR.

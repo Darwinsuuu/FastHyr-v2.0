@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Stops everything `make dev` started: the web app and API, local Supabase, then Docker Desktop (macOS).
 set -uo pipefail
+source "$(dirname "$0")/docker-ready.sh"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -16,9 +17,9 @@ for port in 3000 8000; do
   fi
 done
 
-if docker info >/dev/null 2>&1; then
+if docker_ready; then
   echo "Stopping Supabase..."
-  pnpm supabase stop
+  pnpm supabase stop >/dev/null 2>&1 || true
 fi
 
 if [[ "$(uname)" == "Darwin" ]]; then

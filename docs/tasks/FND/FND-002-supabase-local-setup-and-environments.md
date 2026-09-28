@@ -29,7 +29,7 @@ Developers run Supabase locally and the development, QA and production projects 
 
 ## Acceptance criteria
 - [x] Local Supabase starts from `make setup`
-- [ ] Google and Microsoft sign-in work locally with test OAuth apps
+- [x] Google and Microsoft sign-in work locally with test OAuth apps
 - [x] Env var names documented in `.env.example` files
 - [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
@@ -83,7 +83,8 @@ Branch: `feature/local-supabase-xcwy54` from `develop`.
 - Added an empty `supabase/seed.sql` so `db reset` doesn't warn; FND-014 fills it.
 - Deviation: `config.toml` holds the redirect URLs for every environment, but pushing it to the remote projects (`supabase config push`) is left to FND-007; until then the owner applies the auth settings in the dashboard (checklist below).
 - 2026-09-28: owner reused the v1 Google OAuth client and Azure app for v2 (v1 callbacks removed, new secrets). Google sign-in verified locally by the owner. Azure only accepts `https` or `http://localhost` redirect URIs, so `[auth.external.azure] redirect_uri` is set to `http://localhost:54321/auth/v1/callback` for local. The Azure URL is the tenant URL `https://login.microsoftonline.com/common` without `/v2.0`: Supabase appends `/oauth2/v2.0/authorize`, and the `/v2.0` suffix produced a 404 at Microsoft.
-- 2026-09-28: merged via PR #3; marked Done in the FND-003 PR. The Google and Microsoft sign-in check stays open until the owner creates the OAuth apps (checklist below); it is re-checked in AUTH-001.
+- 2026-09-28: owner verified Microsoft sign-in locally (user created with the Azure provider). With `scopes=email` Microsoft returned no display name, so FND-005 should also request `profile` for Azure to fill `profiles.full_name`.
+- 2026-09-28: merged via PR #3; marked Done in the FND-003 PR. Google and Microsoft sign-in were then verified locally by the owner (below).
 
 ### Owner checklist: OAuth apps and Supabase projects
 Do these once. Secrets go only into `supabase/.env` (local) and the Supabase dashboard (remote), never into the repository.

@@ -11,7 +11,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Avatar, WorkspaceAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,9 @@ import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Toggle } from "@/components/ui/toggle";
 
+import { DataSections } from "./gallery-data";
+import { Row, Section } from "./gallery-parts";
+
 // Developer-only page: copy here is sample content, not product copy, so it isn't in messages/en.json.
 
 type Theme = "system" | "light" | "dark";
@@ -66,26 +69,6 @@ const STAGES: ApplicationStage[] = [
   "advanced",
   "rejected",
 ];
-
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section aria-labelledby={id} className="border-t border-line py-8 md:py-10">
-      <h2 id={id} className="mb-5 type-heading">
-        {title}
-      </h2>
-      <div className="flex flex-col gap-6">{children}</div>
-    </section>
-  );
-}
-
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="type-label text-ink-muted">{label}</p>
-      <div className="flex flex-wrap items-center gap-3">{children}</div>
-    </div>
-  );
-}
 
 function ThemeSwitch() {
   const [theme, setTheme] = useState<Theme>("system");
@@ -538,6 +521,7 @@ export function Gallery() {
       <Overlays />
       <Feedback />
       <Identity />
+      <DataSections />
     </main>
   );
 }

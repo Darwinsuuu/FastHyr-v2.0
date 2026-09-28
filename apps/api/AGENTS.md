@@ -15,6 +15,7 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Errors are `application/problem+json` with a stable `code`.
 - No personal data in URLs, logs or error reports. IDs only.
 - Pydantic models for every request and response; mypy strict on `app/`.
+- Schema changes: write the SQL migration in `supabase/migrations/` (the source of truth), mirror it in `app/models/`, then `make db-reset db-drift`. New IDs come from `app.core.ids.new_id()` (UUID v7).
 
 ## Commands (from the repo root)
-`make api` · `make lint-api` · `make test-api` · `make api-client` (after changing the OpenAPI)
+`make api` · `make lint-api` · `make test-api` (integration tests need local Supabase) · `make db-drift` · `make api-client` (after changing the OpenAPI)

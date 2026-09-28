@@ -1,6 +1,6 @@
 # FastHyr monorepo commands. Run `make setup` once, then `make dev`.
 # Local Supabase runs in Docker, so Docker Desktop must be running for setup and db-* targets.
-.PHONY: setup dev stop down api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset
+.PHONY: setup dev stop down api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset db-drift
 
 API_DIR := apps/api
 
@@ -74,3 +74,7 @@ db-status:
 # Recreates the local database from supabase/migrations and supabase/seed.sql.
 db-reset:
 	pnpm supabase db reset
+
+# Fails if the SQLAlchemy models (apps/api/app/models) and the migrated database disagree.
+db-drift:
+	cd $(API_DIR) && uv run python scripts/check_schema_drift.py

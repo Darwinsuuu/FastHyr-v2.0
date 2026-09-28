@@ -55,13 +55,14 @@ Your `.env` files decide which Supabase the apps talk to. Use local (Docker) day
 # Local Supabase (values from `make db-status`)
 SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_SERVICE_ROLE_KEY=<local Secret key>
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://fasthyr_api:fasthyr_api_local@127.0.0.1:54322/postgres
 
 # Hosted fasthyr-dev (values from the Supabase dashboard)
 # SUPABASE_URL=https://<project-ref>.supabase.co
 # SUPABASE_SERVICE_ROLE_KEY=<fasthyr-dev secret key>
-# DATABASE_URL=<fasthyr-dev Session pooler connection string>
+# DATABASE_URL=<fasthyr-dev Session pooler connection string, user fasthyr_api.<project-ref>>
 ```
+The API connects as its own database role, `fasthyr_api`, not as `postgres`. Locally `make db-reset` gives it the password `fasthyr_api_local`; for a hosted project, set its password once as described in [DEPLOYMENT.md](docs/architecture/DEPLOYMENT.md#supabase-projects-and-their-env-vars).
 Do the same for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `apps/web/.env.local`, then restart `make dev`. Never put hosted keys in `.env.example` or any committed file.
 
 ### 4. Start everything
@@ -104,6 +105,7 @@ make test    # Vitest (web) and pytest (API)
 | `make db-start` / `make db-stop` | Starts or stops only local Supabase (your data is kept) |
 | `make db-status` | Prints local Supabase URLs and keys |
 | `make db-reset` | Recreates the local database from `supabase/migrations` and `supabase/seed.sql` (deletes local data) |
+| `make db-drift` | Checks that the API's database models match the migrated local database |
 
 ### Troubleshooting
 | Problem | Fix |

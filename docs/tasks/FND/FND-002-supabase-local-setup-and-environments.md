@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [FND-001](../FND/FND-001-monorepo-scaffold.md) |
 | Requirements | — |
@@ -29,9 +29,9 @@ Developers run Supabase locally and the development, QA and production projects 
 
 ## Acceptance criteria
 - [x] Local Supabase starts from `make setup`
-- [ ] Google and Microsoft sign-in work locally with test OAuth apps
+- [x] Google and Microsoft sign-in work locally with test OAuth apps
 - [x] Env var names documented in `.env.example` files
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - OAuth app creation in Google Cloud and Azure is a manual owner step — write the checklist in the task log
@@ -82,6 +82,9 @@ Branch: `feature/local-supabase-xcwy54` from `develop`.
 - `make down` (`scripts/stop-all.sh`) stops web, API and Supabase, then quits Docker Desktop. `docker info` checks time out after 5 s (`scripts/docker-ready.sh`) because it can hang while Docker Desktop is quitting or starting. Owner confirmed start and stop Spotlight shortcuts (Shortcuts app, `osascript` → Terminal → `make dev` / `make down`) work on his Mac.
 - Added an empty `supabase/seed.sql` so `db reset` doesn't warn; FND-014 fills it.
 - Deviation: `config.toml` holds the redirect URLs for every environment, but pushing it to the remote projects (`supabase config push`) is left to FND-007; until then the owner applies the auth settings in the dashboard (checklist below).
+- 2026-09-28: owner reused the v1 Google OAuth client and Azure app for v2 (v1 callbacks removed, new secrets). Google sign-in verified locally by the owner. Azure only accepts `https` or `http://localhost` redirect URIs, so `[auth.external.azure] redirect_uri` is set to `http://localhost:54321/auth/v1/callback` for local. The Azure URL is the tenant URL `https://login.microsoftonline.com/common` without `/v2.0`: Supabase appends `/oauth2/v2.0/authorize`, and the `/v2.0` suffix produced a 404 at Microsoft.
+- 2026-09-28: owner verified Microsoft sign-in locally (user created with the Azure provider). With `scopes=email` Microsoft returned no display name, so FND-005 should also request `profile` for Azure to fill `profiles.full_name`.
+- 2026-09-28: merged via PR #3; marked Done in the FND-003 PR. Google and Microsoft sign-in were then verified locally by the owner (below).
 
 ### Owner checklist: OAuth apps and Supabase projects
 Do these once. Secrets go only into `supabase/.env` (local) and the Supabase dashboard (remote), never into the repository.
@@ -96,7 +99,7 @@ Do these once. Secrets go only into `supabase/.env` (local) and the Supabase das
 
 **2. Microsoft app registration** (Azure portal → Microsoft Entra ID → App registrations)
 1. New registration `FastHyr local + dev`. Supported account types: *Accounts in any organizational directory and personal Microsoft accounts*.
-2. Redirect URI (Web): `http://127.0.0.1:54321/auth/v1/callback`; add the `fasthyr-dev` and `fasthyr-qa` callback URIs under Authentication once they exist.
+2. Redirect URI (Web): `http://localhost:54321/auth/v1/callback` (Azure rejects `http://127.0.0.1`, so `config.toml` sets this as the local Azure `redirect_uri`); add the `fasthyr-dev` and `fasthyr-qa` callback URIs under Authentication once they exist.
 3. Certificates & secrets → New client secret; copy the **Value** (not the ID).
 4. API permissions: Microsoft Graph delegated `openid`, `email`, `profile`, `User.Read` (default).
 5. Copy the Application (client) ID and the secret value into `supabase/.env` (`SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID`, `…_SECRET`).
@@ -110,6 +113,6 @@ Do these once. Secrets go only into `supabase/.env` (local) and the Supabase das
 **4. Supabase projects** (supabase.com dashboard)
 1. Create `fasthyr-dev`, `fasthyr-qa` and `fasthyr-prod` in one organization and one region (production on the Pro plan for PITR, per the deployment doc). Save each database password in your password manager.
 2. In each project, Authentication → URL Configuration: Site URL `https://dev.fasthyr.com`, `https://qa.fasthyr.com` or `https://fasthyr.com`; redirect URLs `https://<site host>/auth/callback` and `https://app.<site host>/auth/callback` for that environment (dev also allows `http://localhost:3000/auth/callback` and `http://app.localhost:3000/auth/callback`).
-3. Authentication → Providers: Email on with "Confirm email", minimum password length 8, leaked-password protection on where the plan allows it; Google and Azure on with that environment's client ID and secret (Azure URL `https://login.microsoftonline.com/common/v2.0`).
+3. Authentication → Providers: Email on with "Confirm email", minimum password length 8, leaked-password protection on where the plan allows it; Google and Azure on with that environment's client ID and secret (Azure Tenant URL `https://login.microsoftonline.com/common`; Supabase adds `/oauth2/v2.0/...` itself).
 4. Authentication → Rate limits / Email: reset link and OTP expiry 3600 s, 60 s between emails. Custom SMTP (Resend) is turned on in FND-010.
 5. Note each project's URL, keys and connection string; the env var names are in `docs/architecture/DEPLOYMENT.md` §1. They are entered into Vercel and Render in FND-007.

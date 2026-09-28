@@ -12,6 +12,9 @@ class Settings(BaseSettings):
 
     app_env: str = "local"
     web_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+    database_url: str = "postgresql://fasthyr_api:fasthyr_api_local@127.0.0.1:54322/postgres"
+    supabase_url: str = "http://127.0.0.1:54321"
+    supabase_service_role_key: str = ""
 
     @field_validator("web_origins", mode="before")
     @classmethod

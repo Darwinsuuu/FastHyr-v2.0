@@ -45,22 +45,24 @@ Frame hex → token mapping (frames use inline hex): `#F7F2EA` surface · `#FFFC
 ## 4. Responsive
 All components and screens are mobile first — see [`RESPONSIVE.md`](RESPONSIVE.md) for breakpoints and how each desktop pattern adapts.
 
-## 5. Components to build (`components/ui`)
-| Component | Notes / variants |
-|---|---|
-| `Button` | `variant` primary/secondary/quiet × `side` ta/candidate × `size` sm/md/lg; loading state; destructive (uses `signal-gap` border/text for quiet destructive, filled `persimmon-ink`-based for confirm dialogs as in frames) |
-| `Input`, `Textarea`, `Select`, `Checkbox`, `Toggle` (switch), `Slider` (rubric/pass mark), `NumberStepper` (credits), `ChipInput` (must-haves, skills), `PhoneInput` (country code + number), `FileDrop` (PDF/image), `SearchInput` | label + hint + error message pattern from frames |
-| `SegmentedControl` | week/30 days, work setup, tabs-as-pills |
-| `Tabs` | underline tabs (pipeline, profile) |
-| `Table` + `Pagination` (+ rows-per-page) | TA density |
-| `Dialog` / `ConfirmDialog` / `TypeToConfirmDialog` ("I understand") | radius-lg sheets |
-| `Menu` (row actions), `Popover`, `Tooltip` | Radix |
-| `Badge` / `StatusPill` | pipeline status, stage, fit |
-| `Signal` | strong/watch/gap glyph + word |
-| `ScoreBar`, `WeightedCalc` ("How we got to 91") | |
-| `InsightCard`, `QuestionPrompt` | from the design system |
-| `Stepper` | wizard (vertical), demo (horizontal) |
-| `JobProgressDialog` | report/PDF progress pattern |
-| `EmptyState`, `Skeleton`, `Toast` | |
-| `Avatar` (initials), `WorkspaceAvatar` | colour pairs from frames |
-| Charts (`components/charts`) | Funnel/flow, stacked weekly bars, histogram with pass-mark line, horizontal bars, radar, line with pass-mark, split bar |
+## 5. Components (`components/ui`)
+Built in FND-012. Every component, variant and state is shown at `/dev/ui` on the app host (local and development only). Overlays and controls use Radix primitives styled with token classes; icons are `@phosphor-icons/react`. Part 1 (core) is built; part 2 (data, signature pieces and charts) is next.
+
+| Component | Notes / variants | File |
+|---|---|---|
+| `Button` | `variant` primary/secondary/quiet × `side` ta/candidate × `size` sm/md/lg; loading state; destructive (uses `signal-gap` border/text for quiet destructive, filled `signal-gap` for confirm dialogs, as in the frames) | `button.tsx` (`Button`, `IconButton`) |
+| `Input`, `Textarea`, `Select`, `Checkbox`, `Toggle` (switch), `Slider` (rubric/pass mark), `NumberStepper` (credits), `ChipInput` (must-haves, skills), `PhoneInput` (country code + number), `FileDrop` (PDF/image), `SearchInput` | label + hint + error message pattern from frames | `field.tsx`, `input.tsx`, `select.tsx`, `checkbox.tsx`, `toggle.tsx`, `slider.tsx`, `number-stepper.tsx`, `chip-input.tsx`, `phone-input.tsx`, `file-drop.tsx` |
+| `SegmentedControl` | week/30 days, work setup, tabs-as-pills | `segmented-control.tsx` |
+| `Tabs` | underline tabs (pipeline, profile) | `tabs.tsx` |
+| `Table` + `Pagination` (+ rows-per-page) | TA density | part 2 |
+| `Dialog` / `ConfirmDialog` / `TypeToConfirmDialog` ("I understand") | radius-lg sheets | `dialog.tsx`: full-screen sheet with sticky buttons on phones, centred from `md` |
+| `Menu` (row actions), `Popover`, `Tooltip` | Radix | `menu.tsx` (bottom sheet on phones), `popover.tsx`, `tooltip.tsx` (opens on tap and focus too) |
+| `Badge` / `StatusPill` | pipeline status, stage, fit | `badge.tsx`, `status-pill.tsx` (`PipelineStatusPill`, `StagePill`) |
+| `Signal` | strong/watch/gap glyph + word | part 2 |
+| `ScoreBar`, `WeightedCalc` ("How we got to 91") | | part 2 |
+| `InsightCard`, `QuestionPrompt` | from the design system | part 2 |
+| `Stepper` | wizard (vertical), demo (horizontal) | part 2 |
+| `JobProgressDialog` | report/PDF progress pattern | `job-progress-dialog.tsx` |
+| `EmptyState`, `Skeleton`, `Toast` | | `empty-state.tsx` (with the Turn, `components/brand/turn-mark.tsx`), `skeleton.tsx`, `toast.tsx` (`useToast`) |
+| `Avatar` (initials), `WorkspaceAvatar` | colour pairs from frames | `avatar.tsx` (`Avatar`, `WorkspaceAvatar`) |
+| Charts (`components/charts`) | Funnel/flow, stacked weekly bars, histogram with pass-mark line, horizontal bars, radar, line with pass-mark, split bar | part 2 |

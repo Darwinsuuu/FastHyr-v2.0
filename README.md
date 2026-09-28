@@ -78,6 +78,7 @@ Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `
 |---|---|
 | Public site | http://fasthyr.localhost:3000 |
 | TA app (sign in first) | http://app.fasthyr.localhost:3000 |
+| UI kit gallery (sign in first; local and development only) | http://app.fasthyr.localhost:3000/dev/ui |
 | API health check | http://localhost:8000/health → `{"status":"ok"}` |
 | API docs (Swagger) | http://localhost:8000/v1/docs |
 | API schema (OpenAPI) | http://localhost:8000/v1/openapi.json |

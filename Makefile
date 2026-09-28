@@ -50,6 +50,7 @@ api-client:
 
 # Local Supabase (Auth, Postgres, Storage, Studio, Mailpit). It keeps running until db-stop.
 db-start:
+	@docker info >/dev/null 2>&1 || { echo "Docker is not running. Install Docker Desktop, open it, wait until it says Engine running, then run make db-start."; exit 1; }
 	pnpm supabase start
 
 db-stop:

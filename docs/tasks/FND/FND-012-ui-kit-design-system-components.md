@@ -27,12 +27,12 @@ The shared component library exists so screens are assembled from tokens and com
 - Feature-specific composites
 
 ## Acceptance criteria
-- [ ] Every component keyboard-accessible with visible focus
-- [ ] Both themes pass contrast
-- [ ] Gallery shows all variants
-- [ ] Mobile variants built in: dialogs become full-screen sheets, menus become bottom sheets, tables have a card-list mode, touch targets ≥ 44 px (design/RESPONSIVE.md)
-- [ ] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] Every component keyboard-accessible with visible focus
+- [x] Both themes pass contrast
+- [x] Gallery shows all variants
+- [x] Mobile variants built in: dialogs become full-screen sheets, menus become bottom sheets, tables have a card-list mode, touch targets ≥ 44 px (design/RESPONSIVE.md)
+- [x] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - Match paddings/radii from frames; map hex to tokens
@@ -60,3 +60,8 @@ Checks: keyboard and visible focus; a contrast script (`scripts/check-contrast.m
 - Component copy (close, cancel, file errors, status labels) is in `messages/en.json` under `ui` and `status`.
 - Verified in Chromium against the local stack: no horizontal scroll at 360, 768, 1024 and 1440 px; Paper and Night; dialog as a full-screen sheet and menu as a bottom sheet at 360 px, centred dialog and dropdown at 1024 px; type-to-confirm stays disabled until "I understand"; tooltip opens on tap; job progress polls and closes on success.
 - Tests: `components/ui/dialog.test.tsx`, `field.test.tsx`, `number-stepper.test.tsx`, `helpers.test.ts`, `scripts/contrast.test.ts`.
+- Part 2 on `feature/ui-kit-data`: `Table` (card list below `md`), `Pagination`, `Signal`/`SignalCounts`, `ScoreBar`, `WeightedCalc`, `InsightCard`, `QuestionPrompt`, `Stepper` (vertical and horizontal, compact on phones), and `components/charts`: `FlowBand`, `BarChart`, `HorizontalBars`, `SplitBar`, `RadarChart`, `LineChart`. Specs came from the PipelinesV2, ManageMembers, CandidateProfile, Overview, PipelineView, NewPipeline, Demo and CreditUsage frames.
+- New colour tokens `chart-2`, `chart-3`, `chart-muted` and `chart-amber` in `tokens.json`. The frames use these four greens and ambers for chart series, and no token covered them. Their Night values are new, picked to read on the Night surfaces.
+- Charts are HTML bars or SVG with no library. Each one hides the visual from screen readers and renders a table of the same data instead. Bars show their value on hover or tap where the frames don't print it. SVG text is larger below `md` because the chart is drawn smaller there.
+- Verified in Chromium: no sideways scroll at 360, 768, 1024 and 1440 px; Paper and Night; the table switches to cards on phones; pagination moves and clamps; `next build` succeeds.
+- Tests: `lib/pagination.test.ts`, `components/ui/pagination.test.tsx`, `components/ui/score.test.ts`.

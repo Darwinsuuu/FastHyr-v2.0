@@ -57,7 +57,7 @@ Branch: `feature/web-skeleton` from `develop` after FND-004 (PR #5) merged.
 - **Tests:** time-zone formatting, host routing and redirects, token output, API client headers and errors.
 
 ## Log
-- 2026-09-28: plan approved by the owner; branch `feature/web-skeleton`.
+- 2026-09-28: plan approved by the owner; branch `feature/web-skeleton`; PR #6.
 - Host folders are `app/site/` and `app/ta/` rather than the `(site)`/`(app)` route groups in FRONTEND.md: route groups don't change URLs, so both can't own `/`. URLs never show the folder names.
 - In dev, Next gives the proxy `http://localhost:3000` as the request URL whatever the Host header, and shortens a redirect to that origin into `/login`, which the browser resolved on the app host and looped. Signed-out app requests are therefore rewritten to `app/ta/sign-in-required`, a route handler whose redirect keeps the full site URL; the wanted path travels in the `x-fh-next-path` request header.
 - **Local hosts changed** to `fasthyr.localhost:3000` and `app.fasthyr.localhost:3000` with `NEXT_PUBLIC_COOKIE_DOMAIN=fasthyr.localhost`. Chromium treats `Domain=localhost` as host-only, so a sign-in on `localhost` never reached `app.localhost`; under `fasthyr.localhost` the cookie is shared (verified). Updated the web and API env examples, the API's default `WEB_ORIGINS`, and Supabase `site_url` / redirect allow-list. Safari needs an `/etc/hosts` line (README).

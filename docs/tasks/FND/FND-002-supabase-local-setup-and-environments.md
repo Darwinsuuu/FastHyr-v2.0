@@ -82,6 +82,7 @@ Branch: `feature/local-supabase-xcwy54` from `develop`.
 - `make down` (`scripts/stop-all.sh`) stops web, API and Supabase, then quits Docker Desktop. `docker info` checks time out after 5 s (`scripts/docker-ready.sh`) because it can hang while Docker Desktop is quitting or starting. Owner confirmed start and stop Spotlight shortcuts (Shortcuts app, `osascript` → Terminal → `make dev` / `make down`) work on his Mac.
 - Added an empty `supabase/seed.sql` so `db reset` doesn't warn; FND-014 fills it.
 - Deviation: `config.toml` holds the redirect URLs for every environment, but pushing it to the remote projects (`supabase config push`) is left to FND-007; until then the owner applies the auth settings in the dashboard (checklist below).
+- 2026-09-28: owner reused the v1 Google OAuth client and Azure app for v2 (v1 callbacks removed, new secrets). Google sign-in verified locally by the owner. Azure only accepts `https` or `http://localhost` redirect URIs, so `[auth.external.azure] redirect_uri` is set to `http://localhost:54321/auth/v1/callback` for local.
 - 2026-09-28: merged via PR #3; marked Done in the FND-003 PR. The Google and Microsoft sign-in check stays open until the owner creates the OAuth apps (checklist below); it is re-checked in AUTH-001.
 
 ### Owner checklist: OAuth apps and Supabase projects
@@ -97,7 +98,7 @@ Do these once. Secrets go only into `supabase/.env` (local) and the Supabase das
 
 **2. Microsoft app registration** (Azure portal → Microsoft Entra ID → App registrations)
 1. New registration `FastHyr local + dev`. Supported account types: *Accounts in any organizational directory and personal Microsoft accounts*.
-2. Redirect URI (Web): `http://127.0.0.1:54321/auth/v1/callback`; add the `fasthyr-dev` and `fasthyr-qa` callback URIs under Authentication once they exist.
+2. Redirect URI (Web): `http://localhost:54321/auth/v1/callback` (Azure rejects `http://127.0.0.1`, so `config.toml` sets this as the local Azure `redirect_uri`); add the `fasthyr-dev` and `fasthyr-qa` callback URIs under Authentication once they exist.
 3. Certificates & secrets → New client secret; copy the **Value** (not the ID).
 4. API permissions: Microsoft Graph delegated `openid`, `email`, `profile`, `User.Read` (default).
 5. Copy the Application (client) ID and the secret value into `supabase/.env` (`SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID`, `…_SECRET`).

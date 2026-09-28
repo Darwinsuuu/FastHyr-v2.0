@@ -35,5 +35,48 @@
       "one": "{count} member",
       "other": "{count} members"
     }
+  },
+  "ui": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "remove": "Remove {label}",
+    "removeAmount": "Remove {amount} {unit}",
+    "addAmount": "Add {amount} {unit}",
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "countryCode": "Country code",
+    "typeToConfirm": "Type “{phrase}” to confirm",
+    "dropFile": "Drop a file here or choose one",
+    "fileTypeNotSupported": "That file type isn't supported. Choose a file in the format shown.",
+    "fileTooLarge": "That file is larger than {size}. Choose a smaller file.",
+    "moreActions": "More actions",
+    "jobKeepOpen": "Please don't close or refresh this window.",
+    "jobFailed": "We couldn't finish that. Nothing was changed, so you can try again.",
+    "tryAgain": "Try again",
+    "done": "Done",
+    "dismiss": "Dismiss"
+  },
+  "status": {
+    "pipeline": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "live": "Live",
+      "paused": "Paused",
+      "paused_no_credits": "Paused · out of credits",
+      "completed": "Completed",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "stage": {
+      "processing_resume": "Processing résumé",
+      "resume_not_match": "Résumé not a match",
+      "invited": "Invited to interview",
+      "interview_in_progress": "Interview in progress",
+      "scoring": "Scoring",
+      "ready_for_review": "Ready for review",
+      "did_not_pass": "Didn't pass interview",
+      "advanced": "Advanced",
+      "rejected": "Not moving forward"
+    }
   }
 }

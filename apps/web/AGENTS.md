@@ -18,6 +18,13 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/FRONTEND.md
 - Copy: `t()` / `plural()` from `lib/i18n.ts` with keys in `messages/en.json`.
 - Auth: `lib/supabase/` clients are for sign-in and the session only.
 
+## UI kit (FND-012)
+- Build screens from `components/ui/` (Button, Field + Input, Select, Dialog, Menu, StatusPill…), not raw `<button>`, `<input>` or hand-rolled overlays. See every component at `/dev/ui` on the app host.
+- Wrap every form control in `Field` so its label, hint and error reach screen readers.
+- Icons come from `@phosphor-icons/react` (Regular, `size-5`). Icon-only buttons are `IconButton` with a `label`.
+- Join classes with `cn()` from `lib/cn.ts`; `rounded-lg` is the 24 px sheet radius, so small corners use `rounded-[8px]`/`rounded-[10px]` like the kit does.
+- A new colour pairing needs a line in `scripts/check-contrast.mjs`; `pnpm --filter web lint` checks it in both themes.
+
 ## Commands (from the repo root)
 `make web` · `make lint-web` · `make test-web`
 

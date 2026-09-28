@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | Backlog |
+| Status | In review |
 | Size | L |
 | Depends on | [FND-005](../FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) |
 | Requirements | NFR-06 |
@@ -42,7 +42,21 @@ _(Important functional tests only — write them after the feature works; see [`
 - Functional: type-to-confirm dialog only enables on the exact phrase; pagination changes page
 
 ## Implementation plan
-_(Filled in by the implementer before coding; approved by the product owner.)_
+Approved by the owner on 2026-09-28. Shipped as two PRs so each review stays readable:
+- **Part 1** (`feature/ui-kit-core`): actions, form controls, overlays, feedback, identity and status, and the `/dev/ui` gallery.
+- **Part 2** (`feature/ui-kit-data`): `Table` with `Pagination` (card list on phones), `Signal`, `ScoreBar`, `WeightedCalc`, `InsightCard`, `QuestionPrompt`, `Stepper`, and the SVG chart primitives in `components/charts`.
+
+Building blocks: Radix primitives for anything that needs focus trapping, keyboard support or positioning (Dialog, DropdownMenu, Popover, Tooltip, Tabs, Toast, Checkbox, Switch, Slider, Select), styled only with token classes; Phosphor icons (Regular, 20 px); `cn()` (`clsx` + `tailwind-merge`); hand-built SVG charts with no chart library. Paddings, radii and copy come from the canvas frames, with hex mapped to tokens.
+
+Phone behaviour (RESPONSIVE.md): dialogs are full-screen sheets with sticky footer buttons, menus are bottom sheets, tabs scroll sideways, tooltips open on tap and focus, touch targets are at least 44 px.
+
+Checks: keyboard and visible focus; a contrast script (`scripts/check-contrast.mjs`, run by lint) for every token pair the kit uses, in Paper and Night; the gallery in Chromium at 360, 768, 1024 and 1440 px. Unit tests after the hand checks: type-to-confirm enables only on the exact phrase, `Field` wiring, `NumberStepper` min and max (part 1); pagination (part 2).
 
 ## Log
-_(Branch name, decisions, deviations, PR links, review files.)_
+- 2026-09-28: plan approved; part 1 on `feature/ui-kit-core`, PR #7.
+- Part 1 built: `Button`/`IconButton`, `Field`, `Input`, `Textarea`, `SearchInput`, `Select`, `Checkbox`, `Toggle`, `Slider`, `NumberStepper`, `ChipInput`, `PhoneInput`, `FileDrop`, `SegmentedControl`, `Dialog`, `ConfirmDialog`, `TypeToConfirmDialog`, `Menu`, `Popover`, `Tooltip`, `Tabs`, `Toast` (`ToastProvider` in the TA layout), `Skeleton`, `EmptyState`, `JobProgressDialog`, `Avatar`, `WorkspaceAvatar`, `Badge`, `PipelineStatusPill`, `StagePill`, and `TurnMark` (`components/brand/`).
+- Gallery at `app.fasthyr.localhost:3000/dev/ui`, gated by the new `NEXT_PUBLIC_APP_ENV` (shown for `local` and `development`, 404 for `qa` and `production`). It sits on the app host, so it needs a sign-in.
+- Deviations: destructive primary buttons fill with `signal-gap` (the frames' `#B03E26`), so DESIGN_SYSTEM.md §5 no longer says `persimmon-ink`. Avatar initials on `sage` use `ink` rather than `evergreen`, because evergreen on sage is 3.6:1 in Night. Status pills never use red: `signal-gap` is evidence, not a verdict, so "Didn't pass" and "Not moving forward" are quiet outlined pills. The token `radius-lg` (24 px) replaces Tailwind's `rounded-lg`, so small corners use explicit 8 or 10 px.
+- Component copy (close, cancel, file errors, status labels) is in `messages/en.json` under `ui` and `status`.
+- Verified in Chromium against the local stack: no horizontal scroll at 360, 768, 1024 and 1440 px; Paper and Night; dialog as a full-screen sheet and menu as a bottom sheet at 360 px, centred dialog and dropdown at 1024 px; type-to-confirm stays disabled until "I understand"; tooltip opens on tap; job progress polls and closes on success.
+- Tests: `components/ui/dialog.test.tsx`, `field.test.tsx`, `number-stepper.test.tsx`, `helpers.test.ts`, `scripts/contrast.test.ts`.

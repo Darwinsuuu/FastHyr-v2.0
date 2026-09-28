@@ -31,3 +31,16 @@ export function formatNumber(value: number, locale?: string): string {
 export function formatMoney(cents: number, currency: string, locale?: string): string {
   return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
 }
+
+/** File sizes in binary units, e.g. 10485760 → "10 MB". */
+export function formatBytes(bytes: number, locale?: string): string {
+  const units = ["bytes", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  const digits = unit === 0 || value >= 10 ? 0 : 1;
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value)} ${units[unit]}`;
+}

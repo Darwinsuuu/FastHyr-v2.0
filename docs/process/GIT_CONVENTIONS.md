@@ -82,6 +82,7 @@ Task: <TASK-ID>
 - **Why** explains the reason, so a reader understands the commit without opening the PR.
 - **Task** links the commit to its task.
 - **No AI co-authors.** Commits never include `Co-Authored-By` (or similar) trailers for Claude or any other AI tool. The person committing is the author.
+- **The product owner is the author of every commit**, including commits an AI agent makes: agents set `git config user.name "Darwin Labiste"` and `git config user.email "81823285+Darwinsuuu@users.noreply.github.com"` before committing.
 - A commit template ships with the repo: run `git config commit.template .gitmessage` once per clone, then `git commit` (without `-m`) opens it.
 - AI agents write the body with a heredoc or multiple `-m` flags; a one-line `-m` is not enough.
 
@@ -138,10 +139,10 @@ Every PR has a **detailed description in the standard format**. Empty or one-lin
 
 | PR | Template | Title format |
 |---|---|---|
-| Working branch → `develop` (feature, fix, refactor, …) | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) — GitHub fills it in automatically | `<TASK-ID>: <task title>` e.g. `AUTH-001: Employer sign-in` |
+| Working branch → `develop` (feature, fix, refactor, …) | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) — GitHub fills it in automatically | `<type>(<branch-name>): <task title>`, same as the commit format (§3), e.g. `feature(auth-creation): Employer sign-in` |
 | `develop` → `release` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) | `Branch Management: RELEASE Deployment DD.MM.YYYY` (see §5) |
 | `release` → `master` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) (QA results + Upcoming Changes file required) | `Branch Management: PRODUCTION Deployment DD.MM.YYYY` (see §5) |
-| `fix/` or `hotfix/` → `develop` | PR template; mark type Fix; for hotfixes describe the production incident and its impact | `<TASK-ID or FIX/HOTFIX>: <what is fixed>` |
+| `fix/` or `hotfix/` → `develop` | PR template; mark type Fix; for hotfixes describe the production incident and its impact | `fix(<branch-name>): <what is fixed>` or `hotfix(<branch-name>): <what is fixed>` |
 
 The standard PR description covers, in this order:
 1. **Summary** — what and why, in plain language.

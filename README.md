@@ -48,6 +48,22 @@ cp supabase/.env.example supabase/.env   # only for Google / Microsoft sign-in
 ```
 The Supabase keys come from `make db-status` (the local keys are the same on every machine). Google and Microsoft sign-in need your own test OAuth apps; the steps are in the [FND-002 task log](docs/tasks/FND/FND-002-supabase-local-setup-and-environments.md#log). After editing `supabase/.env`, restart Supabase with `make db-stop db-start`.
 
+#### Local Supabase or the hosted `fasthyr-dev` project
+Your `.env` files decide which Supabase the apps talk to. Use local (Docker) day to day: it's fast, works offline, and `make db-reset` only touches your own copy. Point at the hosted `fasthyr-dev` project when you want to test against the real network, for example connection speed. Keep both sets in the file and comment out the one you're not using:
+```bash
+# apps/api/.env
+# Local Supabase (values from `make db-status`)
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_SERVICE_ROLE_KEY=<local Secret key>
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+# Hosted fasthyr-dev (values from the Supabase dashboard)
+# SUPABASE_URL=https://<project-ref>.supabase.co
+# SUPABASE_SERVICE_ROLE_KEY=<fasthyr-dev secret key>
+# DATABASE_URL=<fasthyr-dev Session pooler connection string>
+```
+Do the same for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `apps/web/.env.local`, then restart `make dev`. Never put hosted keys in `.env.example` or any committed file.
+
 ### 4. Start the apps
 ```bash
 make dev     # web and API together; Ctrl+C stops both

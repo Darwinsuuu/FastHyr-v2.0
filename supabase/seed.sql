@@ -1,0 +1,1 @@
+-- Local seed data. The "Acme Talent" sample workspace is added in FND-014.

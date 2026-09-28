@@ -75,4 +75,4 @@ When sources disagree: **ADRs > REQUIREMENTS.md > SCREEN_SPECS.md > canvas frame
 Warm, professional, reassuring for candidates; efficient and evidence-first for TA users. Sentence case, no emoji, no exclamation marks. See [`docs/design/VOICE_AND_TONE.md`](docs/design/VOICE_AND_TONE.md).
 
 ## Current status
-Documentation complete for the MVP (2026-09-29). Monorepo scaffold in place (FND-001): empty Next.js app, FastAPI app with `GET /health`, `make setup · dev · lint · test`. Next task: **FND-002 Supabase local setup and environments**.
+Documentation complete for the MVP (2026-09-29). Monorepo scaffold in place (FND-001): empty Next.js app, FastAPI app with `GET /health`, `make setup · dev · lint · test`. Local Supabase via the pinned CLI (FND-002): `make setup` starts it (Docker required), Auth configured for Google, Microsoft and email + password; no schema yet. Next task: **FND-003 Core schema**.

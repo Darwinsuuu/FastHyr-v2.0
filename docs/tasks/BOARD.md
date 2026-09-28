@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 0 |
+| M0 Foundation | 14 | 1 |
 | M1 Access | 12 | 0 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -24,8 +24,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [FND-001](FND/FND-001-monorepo-scaffold.md) | Monorepo scaffold | M | — | In review | |
-| [FND-002](FND/FND-002-supabase-local-setup-and-environments.md) | Supabase local setup and environments | S | FND-001 | Backlog | |
+| [FND-001](FND/FND-001-monorepo-scaffold.md) | Monorepo scaffold | M | — | Done | #2 |
+| [FND-002](FND/FND-002-supabase-local-setup-and-environments.md) | Supabase local setup and environments | S | FND-001 | In review | |
 | [FND-003](FND/FND-003-core-schema-identity-workspaces-members-department.md) | Core schema: identity, workspaces, members, departments, invites | M | FND-002 | Backlog | |
 | [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | Backlog | |
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Backlog | |

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | — |
 | Requirements | — |
@@ -90,3 +90,4 @@ Branch: `feature/monorepo-scaffold` from `develop`.
 - 2026-09-28: plan written and approved by the owner. Branch `feature/monorepo-scaffold`.
 - Deviation: `make lint` also runs `tsc --noEmit` for `packages/api-client`, and the API's test client uses `httpx2` (Starlette deprecates `httpx` for `TestClient`).
 - `apps/api` and `packages/api-client` exist, but the BACKEND.md sub-packages (`models/`, `services/`…) and `supabase/` contents are left for the tasks that need them; `supabase/` and `.github/workflows/` hold a `.gitkeep`.
+- 2026-09-28: PR #2 merged into `develop`; status set to Done in the FND-002 PR.

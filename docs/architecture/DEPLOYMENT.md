@@ -12,10 +12,24 @@ Each long-lived branch deploys to its own environment ([`process/GIT_CONVENTIONS
 
 Feature-branch PRs also get Vercel preview deployments that point at the development API.
 
+### Supabase projects and their env vars
+One Supabase project per environment: `fasthyr-dev`, `fasthyr-qa`, `fasthyr-prod`, all in the same region. Locally, `make db-status` prints the same values.
+
+| Env var | Used by | Where to find it (Supabase dashboard) |
+|---|---|---|
+| `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` | API / web | Project Settings → Data API → Project URL (`https://<project-ref>.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | web | Project Settings → API Keys → publishable (or legacy `anon`) key |
+| `SUPABASE_SERVICE_ROLE_KEY` | API, worker | Project Settings → API Keys → secret (or legacy `service_role`) key; server only, never in the web app |
+| `DATABASE_URL` | API, worker, migrations | Connect → connection string (session pooler for Render) |
+| `SUPABASE_JWKS_URL` | API | `https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json` (FND-004) |
+
+Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/config.toml`. The OAuth client IDs and secrets go into each project's Authentication → Providers page, never into the repository. The one-time setup checklist is in the FND-002 task log.
+
 ## 2. Local development
 ```
-make setup        # pnpm install, uv sync, supabase start, apply migrations + seed
-make dev          # web + api + worker + redis (honcho/overmind)
+make setup        # pnpm install, uv sync, supabase start (applies migrations + seed)
+make dev          # opens Docker if needed, supabase start, then web + api (+ worker, redis later)
+make stop         # supabase stop
 make api-client   # regenerate packages/api-client from the running API's OpenAPI
 make test         # web + api tests
 make lint         # eslint, prettier --check, ruff, mypy

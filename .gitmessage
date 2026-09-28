@@ -1,0 +1,14 @@
+# <type>(<branch-name>): <What this step does, sentence case>
+#
+# What:
+# - <main change>
+# - <main change>
+#
+# Why:
+# - <reason / problem solved>
+#
+# Notes: <migrations, env vars, follow-ups — or remove this line>
+# Task: <TASK-ID>
+#
+# Types: feature, fix, hotfix, refactor, perf, test, docs, style, chore, ci, revert
+# Enable once per clone: git config commit.template .gitmessage

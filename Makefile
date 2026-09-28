@@ -1,6 +1,6 @@
 # FastHyr monorepo commands. Run `make setup` once, then `make dev`.
 # Local Supabase runs in Docker, so Docker Desktop must be running for setup and db-* targets.
-.PHONY: setup dev stop api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset
+.PHONY: setup dev stop down api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset
 
 API_DIR := apps/api
 
@@ -62,6 +62,10 @@ db-stop:
 
 # Stops local Supabase (the apps stop with Ctrl+C). Docker Desktop itself stays open.
 stop: db-stop
+
+# Stops everything make dev started: web, API, Supabase, then quits Docker Desktop on macOS.
+down:
+	@scripts/stop-all.sh
 
 # Local URLs and keys to copy into the .env files.
 db-status:

@@ -68,7 +68,7 @@ Do the same for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` i
 ```bash
 make dev     # opens Docker Desktop if needed, starts Supabase, then web and API; Ctrl+C stops the apps
 ```
-Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `make stop` stops Supabase too.
+Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `make stop` stops Supabase too, and `make down` stops everything: the web app, the API, Supabase, and Docker Desktop. Your local data is kept either way.
 | What | URL |
 |---|---|
 | Web app | http://localhost:3000 |
@@ -100,6 +100,7 @@ make test    # Vitest (web) and pytest (API)
 | `make api-client` | Regenerates the TypeScript client in `packages/api-client` from the API's OpenAPI schema |
 | `make worker` | Background worker (added in FND-008) |
 | `make stop` | Stops local Supabase (your data is kept) |
+| `make down` | Stops the web app, API and Supabase, then quits Docker Desktop (your data is kept) |
 | `make db-start` / `make db-stop` | Starts or stops only local Supabase (your data is kept) |
 | `make db-status` | Prints local Supabase URLs and keys |
 | `make db-reset` | Recreates the local database from `supabase/migrations` and `supabase/seed.sql` (deletes local data) |

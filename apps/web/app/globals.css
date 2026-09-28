@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Mobile-first base styles (docs/design/RESPONSIVE.md): written for a 360 px phone. */
+@layer base {
+  html {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* 16 px minimum so iOS doesn't zoom into focused fields. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Page side padding: 16 px on phones, 24 px from md, 32 px from xl; content max ~1280 px. */
+@utility page-gutter {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: calc(16px + env(safe-area-inset-left, 0px))
+    calc(16px + env(safe-area-inset-right, 0px));
+  @variant md {
+    padding-inline: 24px;
+  }
+  @variant xl {
+    padding-inline: 32px;
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}

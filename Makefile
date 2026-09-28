@@ -1,11 +1,13 @@
 # FastHyr monorepo commands. Run `make setup` once, then `make dev`.
-.PHONY: setup dev api worker web lint lint-web lint-api test test-web test-api api-client db-reset
+# Local Supabase runs in Docker, so Docker Desktop must be running for setup and db-* targets.
+.PHONY: setup dev api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset
 
 API_DIR := apps/api
 
 setup:
 	pnpm install
 	cd $(API_DIR) && uv sync
+	$(MAKE) db-start
 
 # Web on :3000 and API on :8000, side by side. Ctrl+C stops both.
 dev:
@@ -46,5 +48,17 @@ api-client:
 	cd $(API_DIR) && uv run python scripts/export_openapi.py openapi.json
 	pnpm --filter @fasthyr/api-client generate
 
+# Local Supabase (Auth, Postgres, Storage, Studio, Mailpit). It keeps running until db-stop.
+db-start:
+	pnpm supabase start
+
+db-stop:
+	pnpm supabase stop
+
+# Local URLs and keys to copy into the .env files.
+db-status:
+	pnpm supabase status
+
+# Recreates the local database from supabase/migrations and supabase/seed.sql.
 db-reset:
-	@echo "Local Supabase is added in FND-002."
+	pnpm supabase db reset

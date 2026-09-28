@@ -19,7 +19,7 @@ For the MVP, **Claude does the planning, building and reviewing** (ADR-018): Cla
 6. **Review:** a fresh Claude session (no memory of the build) reviews the PR against the task's acceptance criteria, the DoD, G1–G9 and the security/tenancy rules, and writes `docs/reviews/<TASK-ID>-r<N>.md` from [`templates/REVIEW_TEMPLATE.md`](templates/REVIEW_TEMPLATE.md). Blocking findings go back to step 3; the next round is `r2`.
 7. **Merge:** product owner merges the PR into `develop` (merge commit, no squash). Set the task to **Done** in `BOARD.md` with the PR link.
 
-Releases are separate from tasks: when a set of Done tasks is ready, `develop` is merged into `release` for QA, then `release` into `master` for production ([`GIT_CONVENTIONS.md`](GIT_CONVENTIONS.md) §4).
+Releases are separate from tasks: when a set of Done tasks is ready, `develop` is merged into `release` for QA, then `release` into `master` for production. Promotion PRs and their merge commits are titled `Branch Management: RELEASE Deployment DD.MM.YYYY` / `Branch Management: PRODUCTION Deployment DD.MM.YYYY`, and every production deployment has its own Upcoming Changes file in `docs/releases/` ([`GIT_CONVENTIONS.md`](GIT_CONVENTIONS.md) §5).
 
 ## Rules for Claude sessions
 - Start every session by reading `AGENTS.md`; then only the docs the task links (don't load everything).

@@ -1,7 +1,8 @@
 <!--
 Use for promotion PRs only:
-  develop → release   title: "Release YYYY-MM-DD → QA"
-  release → master    title: "Release YYYY-MM-DD → Production (vYYYY.MM.DD-N)"
+  develop → release   title: "Branch Management: RELEASE Deployment DD.MM.YYYY"
+  release → master    title: "Branch Management: PRODUCTION Deployment DD.MM.YYYY"
+The merge commit uses the same title plus a What / Why description (GIT_CONVENTIONS.md §5).
 -->
 
 ## Release summary
@@ -11,6 +12,8 @@ Use for promotion PRs only:
 - **From → to:** `develop` → `release` / `release` → `master`
 - **Target environment:** QA / Production
 - **Version tag (production only):** `vYYYY.MM.DD-N`
+- **Overall change title (production only):** <e.g. Candidate intake and résumé screening>
+- **Upcoming Changes file (production only):** `docs/releases/YYYY-MM-DD.md`
 
 ## Tasks included
 | Task | Title | PR |
@@ -43,3 +46,5 @@ Use for promotion PRs only:
 - [ ] All included tasks are Done on `docs/tasks/BOARD.md`
 - [ ] CI green on the source branch
 - [ ] Every change in this release was merged into `develop` first (and into `release` first, for production PRs)
+- [ ] Production only: Upcoming Changes file exists, is up to date and is listed in `docs/releases/README.md`
+- [ ] Merge commit will use the PR title as its subject and include a What / Why description

@@ -139,8 +139,8 @@ Every PR has a **detailed description in the standard format**. Empty or one-lin
 | PR | Template | Title format |
 |---|---|---|
 | Working branch → `develop` (feature, fix, refactor, …) | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) — GitHub fills it in automatically | `<TASK-ID>: <task title>` e.g. `AUTH-001: Employer sign-in` |
-| `develop` → `release` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) | `Release YYYY-MM-DD → QA` |
-| `release` → `master` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) (QA results required) | `Release YYYY-MM-DD → Production (vYYYY.MM.DD-N)` |
+| `develop` → `release` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) | `Branch Management: RELEASE Deployment DD.MM.YYYY` (see §5) |
+| `release` → `master` | [`templates/RELEASE_PR_TEMPLATE.md`](templates/RELEASE_PR_TEMPLATE.md) (QA results + Upcoming Changes file required) | `Branch Management: PRODUCTION Deployment DD.MM.YYYY` (see §5) |
 | `fix/` or `hotfix/` → `develop` | PR template; mark type Fix; for hotfixes describe the production incident and its impact | `<TASK-ID or FIX/HOTFIX>: <what is fixed>` |
 
 The standard PR description covers, in this order:
@@ -166,5 +166,45 @@ Write "None" for sections that don't apply rather than deleting them.
 - Needs a passing CI run and an approved review (`DEV_WORKFLOW.md`).
 - Tag production merges `vYYYY.MM.DD-N` (e.g. `v2026.10.15-1`).
 
-## 5. Never commit
+## 5. Deployments to release (QA) and production
+Promotion PRs move code up one environment. They use a fixed title, and the **merge commit uses the same title** plus a description.
+
+### Titles
+Format: `Branch Management: {ENVIRONMENT} Deployment {DD.MM.YYYY}`, where the date is the day the PR is opened.
+
+| Promotion | PR title and merge commit subject |
+|---|---|
+| `develop` → `release` | `Branch Management: RELEASE Deployment 29.09.2026` |
+| `release` → `master` | `Branch Management: PRODUCTION Deployment 29.09.2026` |
+
+If a second deployment to the same environment happens on the same day, add a counter: `Branch Management: PRODUCTION Deployment 29.09.2026 (2)`.
+
+### Merge commit
+Merge with a merge commit (no squash). The subject is the PR title; the body is required and follows the commit description format:
+```
+Branch Management: PRODUCTION Deployment 29.09.2026
+
+What:
+- Deploy <overall change title> to production (tag v2026.09.29-1)
+- Tasks: AUTH-001, AUTH-002, WS-001, …
+
+Why:
+- QA passed on the release environment on 28.09.2026
+
+Notes: migrations 20260925_…, new env var RESEND_WEBHOOK_SECRET
+Upcoming changes: docs/releases/2026-09-29.md
+```
+With the GitHub CLI: `gh pr merge <n> --merge --subject "Branch Management: PRODUCTION Deployment 29.09.2026" --body-file <file>`. In the GitHub UI, edit the merge commit title and description before confirming.
+
+### Upcoming Changes file (production deployments only)
+Every PR to production (`release` → `master`) has its **own Upcoming Changes file** describing, for the team and stakeholders, what is about to go live.
+
+- **Location and name:** `docs/releases/YYYY-MM-DD.md`, using the production PR's date (year first so files sort in order). A second production PR on the same day uses `YYYY-MM-DD-2.md`.
+- **Template:** [`templates/UPCOMING_CHANGES_TEMPLATE.md`](templates/UPCOMING_CHANGES_TEMPLATE.md).
+- **Title:** each file starts with a short, descriptive title for the overall change, chosen by whoever prepares the release (an AI tool proposes it), e.g. *"Candidate intake and résumé screening"* or *"Faster pipeline reports and billing fixes"*. The title goes in the file heading, the production PR summary and the merge commit body.
+- **How it gets to `master` without skipping `develop`:** the file is created on a `docs/upcoming-changes-DD-MM-YYYY` branch **from `develop`** and merged into `develop` just before the RELEASE deployment PR, so it travels `develop` → `release` → `master` with the code it describes. If QA fixes are added before production, the fix PRs update the same file.
+- The PRODUCTION PR links to the file, and [`docs/releases/README.md`](../releases/README.md) lists every file, newest first.
+- RELEASE (QA) deployments don't need their own file.
+
+## 6. Never commit
 Secrets, `.env` files, customer data, or real candidate résumés/recordings. Test fixtures are synthetic.

@@ -30,7 +30,7 @@ Primary user: the TA/HR professional (customer). Secondary: hiring manager. End 
 Monorepo · **Next.js** (App Router, TS) on **Vercel** · **FastAPI** (Python 3.12) + **arq worker** on **Render** (+ Redis) · **Supabase** Auth, Postgres, Storage · **OpenAI** (Realtime for interviews, Responses API for everything else) · **Stripe** · **Resend**. Details: [`docs/architecture/TECH_STACK.md`](docs/architecture/TECH_STACK.md).
 
 ## Branches and environments
-`master` = production · `release` = QA testing · `develop` = development testing. Work happens on prefixed branches (`feature/`, `fix/`, `hotfix/`, `refactor/`, `perf/`, `test/`, `docs/`, `chore/`, `ci/`) with commits like `feature(auth-creation): …`; **every branch starts from `develop`** (never `release` or `master`) — QA bugs use `fix/`, production bugs use `hotfix/`; **all code goes `develop` → `release` → `master`, no skipping**. Full rules: [`docs/process/GIT_CONVENTIONS.md`](docs/process/GIT_CONVENTIONS.md).
+`master` = production · `release` = QA testing · `develop` = development testing. Work happens on prefixed branches (`feature/`, `fix/`, `hotfix/`, `refactor/`, `perf/`, `test/`, `docs/`, `chore/`, `ci/`) with commits like `feature(auth-creation): …`; **every branch starts from `develop`** (never `release` or `master`) — QA bugs use `fix/`, production bugs use `hotfix/`; **all code goes `develop` → `release` → `master`, no skipping**. Promotion PRs and merge commits are titled `Branch Management: RELEASE Deployment DD.MM.YYYY` or `Branch Management: PRODUCTION Deployment DD.MM.YYYY`; each production PR has its own Upcoming Changes file in `docs/releases/`. Full rules: [`docs/process/GIT_CONVENTIONS.md`](docs/process/GIT_CONVENTIONS.md).
 
 ## Repository map
 ```

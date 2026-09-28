@@ -18,6 +18,7 @@
 | [`decisions/`](decisions/) | Architecture & product decision records (ADRs) |
 | [`process/`](process/) | Dev workflow, branching & git conventions (commit and PR formats), testing strategy, Definition of Done, templates |
 | [`tasks/`](tasks/) | Task board and one file per task, grouped by epic |
+| [`releases/`](releases/) | Upcoming Changes file for each production deployment, one per date |
 | [`reviews/`](reviews/) | Code review records, one per task and round |
 
 ## Keeping docs true

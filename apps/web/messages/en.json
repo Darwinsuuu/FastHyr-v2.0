@@ -348,5 +348,94 @@
       "failed": "We couldn't delete the department. Try again."
     },
     "builtInShort": "Built in"
+  },
+  "members": {
+    "eyebrow": "Workspace admin",
+    "title": "Manage members",
+    "intro": "Choose what each person on your hiring team can see and do.",
+    "tab": "Members",
+    "search": "Search by name or email",
+    "searchLabel": "Search members",
+    "roleFilter": "Filter by role",
+    "allRoles": "All roles",
+    "departmentFilter": "Filter by department",
+    "allDepartmentsFilter": "All departments",
+    "departmentsSelected": "Departments",
+    "clearSelection": "Clear selection",
+    "noDepartmentsToFilter": "No departments yet.",
+    "count": {
+      "one": "{count} member",
+      "other": "{count} members"
+    },
+    "noun": {
+      "one": "member",
+      "other": "members"
+    },
+    "columns": {
+      "member": "Member",
+      "role": "Role",
+      "departments": "Departments",
+      "lastActive": "Last active",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "you": "(you)",
+    "owner": "Workspace owner",
+    "unnamed": "Unnamed member",
+    "allDepartments": "All departments",
+    "noDepartments": "No departments yet",
+    "active": "Active",
+    "lastActive": {
+      "never": "Not yet",
+      "now": "Now",
+      "minutes": {
+        "one": "{count} minute ago",
+        "other": "{count} minutes ago"
+      },
+      "hours": {
+        "one": "{count} hour ago",
+        "other": "{count} hours ago"
+      },
+      "yesterday": "Yesterday",
+      "days": {
+        "one": "{count} day ago",
+        "other": "{count} days ago"
+      }
+    },
+    "actionsFor": "More actions for {name}",
+    "edit": "Edit access",
+    "remove": "Remove access",
+    "noMatches": "No members match your search or filters.",
+    "loadFailed": "We couldn't load your members. Refresh the page to try again.",
+    "rolesTitle": "What each role can do",
+    "roles": {
+      "admin": "Manages billing, members, company profile and every pipeline.",
+      "recruiter": "Creates and edits pipelines, reviews all candidates and assessments in their departments.",
+      "hiring_manager": "Views shortlisted candidates and their assessments for roles they’re assigned to. Can’t edit pipelines."
+    },
+    "editDialog": {
+      "title": "Edit access",
+      "body": "Change what {name} can see and do in {workspace}.",
+      "role": "Role",
+      "roleHint": "Currently {role}. The change takes effect immediately.",
+      "departments": "Departments",
+      "departmentsHint": "They’ll only see pipelines and candidates in these departments. Pick as many as you need.",
+      "adminHint": "Admins see every department, including No department.",
+      "noDepartmentsYet": "This workspace has no departments yet. Add them in Departments.",
+      "save": "Save changes",
+      "saved": "Access updated for {name}"
+    },
+    "removeDialog": {
+      "title": "Remove {name}?",
+      "body": "They’ll lose access to {workspace} straight away, including its pipelines, candidates and assessments. You can invite them again later.",
+      "removed": "{name} no longer has access"
+    },
+    "errors": {
+      "owner": "The workspace owner’s access can’t be changed.",
+      "self": "You can’t change your own access.",
+      "department": "One of those departments was just deleted. Pick again.",
+      "gone": "This member no longer has access. The list has been refreshed.",
+      "failed": "We couldn’t save that. Try again."
+    }
   }
 }

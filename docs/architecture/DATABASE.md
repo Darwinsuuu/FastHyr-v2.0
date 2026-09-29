@@ -29,7 +29,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 ## 2. Tables
 
 ### Identity and workspaces
-**profiles** — `id` (= auth.users.id), `full_name`, `avatar_url`, `last_workspace_id`, `created_at`. Created by a trigger when an `auth.users` row is inserted, with name and avatar from the Google/Microsoft metadata.
+**profiles** — `id` (= auth.users.id), `full_name`, `avatar_url`, `email`, `last_workspace_id`, `created_at`. Created by a trigger when an `auth.users` row is inserted, with name and avatar from the Google/Microsoft metadata. `email` is a lowercase copy of `auth.users.email` (for the members list; the API can't read the `auth` schema), kept current by a second trigger on email change.
 
 **workspaces** — `id`, `name`, `slug` (unique, used in apply links), `owner_id`, `timezone` (default from company profile), `stripe_customer_id`, `trial_granted_at`, `created_at`.
 
@@ -37,7 +37,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 
 **departments** — `id`, `workspace_id`, `name` (unique per workspace, case-insensitive; "no department" reserved), `description`, `created_at`. Deleting one cascades to `member_departments`; the service also removes its ID from pending `invites.department_ids` and first moves its pipelines to No department (`pipelines.department_id` has a composite FK with no ON DELETE action).
 
-**workspace_members** — `id`, `workspace_id`, `user_id`, `role` (`admin|recruiter|hiring_manager`), `is_owner`, `status` (`active|removed`), `last_active_at`, `created_at`. Unique `(workspace_id, user_id)`; one owner per workspace, and the owner is an Admin.
+**workspace_members** — `id`, `workspace_id`, `user_id`, `role` (`admin|recruiter|hiring_manager`), `is_owner`, `status` (`active|removed`), `last_active_at` (written by the request context at most every 5 minutes), `created_at`. Unique `(workspace_id, user_id)`; one owner per workspace, and the owner is an Admin.
 
 **member_departments** — `workspace_id`, `member_id`, `department_id`. PK `(member_id, department_id)`.
 

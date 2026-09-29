@@ -67,7 +67,7 @@ async def get_request_context(
     member = await users.get_active_membership(workspace_id)
     if member is None:
         raise NotAMemberError()
-    return RequestContext(
+    context = RequestContext(
         user_id=user.user_id,
         workspace_id=workspace_id,
         member_id=member.id,
@@ -75,6 +75,8 @@ async def get_request_context(
         is_owner=member.is_owner,
         department_ids=await users.department_ids(member),
     )
+    await users.touch_last_active(member)
+    return context
 
 
 async def get_candidate_context(user: CurrentUserDep) -> CandidateContext:

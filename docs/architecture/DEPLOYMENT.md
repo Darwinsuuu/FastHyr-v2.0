@@ -56,13 +56,13 @@ make db-drift     # fail if app/models and the migrated database disagree
 
 ## 3. Branching and CI (GitHub Actions)
 - Branch flow: `feature/*` → `develop` → `release` → `master` (see `process/GIT_CONVENTIONS.md`).
-- On every PR (into `develop`, `release` or `master`):
-  - **web:** install, typecheck, lint, unit tests, build.
-  - **api:** ruff, mypy, pytest (unit + integration + tenancy) against a Supabase CLI Postgres service.
-  - **db:** apply all migrations to a fresh database; fail on drift between migrations and SQLAlchemy models (autogenerate diff check).
-  - **contract:** regenerate the API client and fail if it differs from the committed one.
-  - **security:** gitleaks, pip-audit, pnpm audit (warn-only for low severity).
-- Playwright e2e runs on PRs into `release` and nightly against the release (QA) environment.
+- On every PR (into `develop`, `release` or `master`) and every push to those branches, `.github/workflows/ci.yml` runs five parallel jobs, each built from `make` targets so a red job reproduces locally:
+  - **Web:** `make lint-web` (Prettier, token and contrast checks, ESLint, typecheck), `make test-web`, `next build`.
+  - **API and database:** `make lint-api` (ruff, mypy), then the pinned Supabase CLI starts a fresh local stack (every migration and the seed applied), `make test-api` with `FASTHYR_REQUIRE_DB=1` (unit, integration and tenancy; a missing database fails instead of skipping), and `make db-drift` (SQLAlchemy models vs migrations). The db checks share this job so Supabase starts once.
+  - **API client up to date:** `make api-client`, then fails if `packages/api-client` differs from the committed one.
+  - **Secrets and audits:** gitleaks over the whole history (allowlist in `.gitleaks.toml`: only the fixed local Supabase keys), `pnpm audit --audit-level=moderate` (low only warns), `pip-audit` on the locked API dependencies.
+  - **End-to-end (Playwright):** Supabase, the API and a production build of the web app, then `make e2e`. The suite is small, so it runs on every PR for now; REL-001 decides whether the full suite moves to PRs into `release` plus a nightly run against QA.
+- Merges are blocked by making these five checks required in the branch rules for `develop`, `release` and `master` (GitHub settings, done by the owner; FND-007 covers the rest of branch protection).
 
 ## 4. Deploy
 - **Web:** Vercel Git integration — preview per PR; `develop`, `release` and `master` each deploy to their environment's domains.

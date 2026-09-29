@@ -1,0 +1,12 @@
+# Secret scanning config for CI (FND-006). Starts from gitleaks' default rules.
+[extend]
+useDefault = true
+
+# The publishable and secret keys every local Supabase install ships with (`make db-status`).
+# They only unlock a database on the developer's own machine, so they are not secrets.
+[[allowlists]]
+description = "Local Supabase default keys"
+regexes = [
+  '''sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH''',
+  '''sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz''',
+]

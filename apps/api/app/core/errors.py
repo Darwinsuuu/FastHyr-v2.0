@@ -158,6 +158,14 @@ class UnknownDepartmentError(AppError):
     title = "Choose departments from this workspace"
 
 
+class AlreadyAMemberError(AppError):
+    """The email belongs to someone who already has access to this workspace (FR-WS-03)."""
+
+    status = 409
+    code = "already_a_member"
+    title = "This person is already a member"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | WS — Workspace admin |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [WS-002](../WS/WS-002-departments.md) |
 | Requirements | FR-WS-04, FR-WS-05 |

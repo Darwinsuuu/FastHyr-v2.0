@@ -36,6 +36,7 @@ The API can render a branded email, log it and send it through Resend, with deli
 
 ## Notes and edge cases
 - Sender name `{Company} via FastHyr`
+- Member invite email: fill in `services/invites.send_invite_email(invite, token)` (WS-004 calls it on invite and resend; link `/join/<code>` plus the code, 7-day expiry). Then change the invite dialog copy in `messages/en.json` (`members.invites.inviteDialog.body`, `shareDialog`) to say the email was sent, as the ManageMembers frame does.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

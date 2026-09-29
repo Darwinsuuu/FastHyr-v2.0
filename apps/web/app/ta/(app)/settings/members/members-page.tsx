@@ -5,6 +5,7 @@ import {
   DotsThreeVerticalIcon,
   PencilSimpleIcon,
   UserMinusIcon,
+  UserPlusIcon,
 } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -24,12 +25,13 @@ import { Popover } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type Column, Table } from "@/components/ui/table";
+import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
 import { cn } from "@/lib/cn";
-import { formatNumber } from "@/lib/format";
 import { plural, t } from "@/lib/i18n";
+import type { Invite } from "@/lib/invites";
 import {
   actionErrorKey,
   canManage,
@@ -45,6 +47,8 @@ import {
   ROLES,
 } from "@/lib/members";
 
+import { InviteDialog, PendingInvites, ShareInviteDialog, useInvites } from "./invites";
+
 const PAGE_SIZES = [10, 25, 50];
 const ALL = "all";
 
@@ -53,7 +57,10 @@ interface DepartmentOption {
   name: string;
 }
 
-/** Manage members (frame ManageMembers, FR-WS-04/05): who has access, and to which departments. */
+type Tab = "members" | "invites";
+
+/** Manage members (frame ManageMembers, FR-WS-03 to FR-WS-05): who has access, to which
+ * departments, and who is invited. */
 export function MembersPage() {
   const { workspace } = useShell();
   const queryKey = keys.members(workspace.id);
@@ -77,6 +84,10 @@ export function MembersPage() {
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0] ?? 10);
   const [editing, setEditing] = useState<Member | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
+  const [tab, setTab] = useState<Tab>("members");
+  const [inviting, setInviting] = useState(false);
+  const [sharing, setSharing] = useState<Invite | null>(null);
+  const invites = useInvites();
   // Fixed per render pass so every row compares against the same moment.
   const [now] = useState(() => new Date());
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -144,111 +155,141 @@ export function MembersPage() {
     },
   ];
 
-  return (
-    <div className="page-gutter flex flex-col gap-6 py-6 md:gap-8 md:py-10 lg:px-10 lg:py-9">
-      <header className="flex max-w-[680px] flex-col gap-2">
-        <p className="type-label text-evergreen uppercase">{t("members.eyebrow")}</p>
-        <h1 className="type-heading">{t("members.title")}</h1>
-        <p className="type-body text-ink-muted">{t("members.intro")}</p>
-      </header>
-
-      {query.isError ? (
-        <div className="rounded-lg border border-line bg-surface-raised">
-          <EmptyState title={t("members.loadFailed")} />
+  const membersList = query.isError ? (
+    <div className="rounded-lg border border-line bg-surface-raised">
+      <EmptyState title={t("members.loadFailed")} />
+    </div>
+  ) : (
+    <section aria-label={t("members.tab")} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+        <Field label={t("members.searchLabel")} hideLabel className="md:w-[300px]">
+          <SearchInput
+            value={filters.query}
+            placeholder={t("members.search")}
+            onChange={(event) => updateFilters({ query: event.target.value })}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3 md:flex">
+          <Field label={t("members.roleFilter")} hideLabel className="md:w-[180px]">
+            <Select
+              size="sm"
+              className="max-md:h-11"
+              value={filters.role ?? ALL}
+              onValueChange={(value) =>
+                updateFilters({ role: value === ALL ? null : (value as Role) })
+              }
+              options={[
+                { value: ALL, label: t("members.allRoles") },
+                ...ROLES.map((role) => ({ value: role, label: t(`app.role.${role}`) })),
+              ]}
+            />
+          </Field>
+          <DepartmentFilter
+            departments={departments}
+            value={filters.departmentIds}
+            onChange={(departmentIds) => updateFilters({ departmentIds })}
+          />
         </div>
+        <p className="text-[14px] text-ink-muted tabular-nums md:ml-auto" aria-live="polite">
+          {query.data && plural("members.count", matches.length)}
+        </p>
+      </div>
+
+      {query.isPending ? (
+        <LoadingRows />
       ) : (
-        <section aria-labelledby="members-heading" className="flex flex-col gap-4">
-          <h2 id="members-heading" className="type-title flex items-center gap-2">
-            {t("members.tab")}
-            {query.data && (
-              <Badge tone="evergreen" className="tabular-nums">
-                {formatNumber(members.length)}
-              </Badge>
-            )}
-          </h2>
-
-          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
-            <Field label={t("members.searchLabel")} hideLabel className="md:w-[300px]">
-              <SearchInput
-                value={filters.query}
-                placeholder={t("members.search")}
-                onChange={(event) => updateFilters({ query: event.target.value })}
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-3 md:flex">
-              <Field label={t("members.roleFilter")} hideLabel className="md:w-[180px]">
-                <Select
-                  size="sm"
-                  className="max-md:h-11"
-                  value={filters.role ?? ALL}
-                  onValueChange={(value) =>
-                    updateFilters({ role: value === ALL ? null : (value as Role) })
-                  }
-                  options={[
-                    { value: ALL, label: t("members.allRoles") },
-                    ...ROLES.map((role) => ({ value: role, label: t(`app.role.${role}`) })),
-                  ]}
-                />
-              </Field>
-              <DepartmentFilter
-                departments={departments}
-                value={filters.departmentIds}
-                onChange={(departmentIds) => updateFilters({ departmentIds })}
-              />
-            </div>
-            <p className="text-[14px] text-ink-muted tabular-nums md:ml-auto" aria-live="polite">
-              {query.data && plural("members.count", matches.length)}
-            </p>
-          </div>
-
-          {query.isPending ? (
-            <LoadingRows />
-          ) : (
-            <Table
-              caption={t("members.tab")}
-              rows={shown}
-              columns={columns}
-              rowKey={(member) => member.id}
-              card={(member) => (
-                <MemberCard
-                  member={member}
-                  lastActive={lastActiveText(member.last_active_at, now, timeZone)}
-                />
-              )}
-              rowMenu={(member) =>
-                canManage(member) ? (
-                  <RowMenu member={member} onEdit={setEditing} onRemove={setRemoving} />
-                ) : (
-                  <span className="inline-flex size-11 md:size-9" aria-hidden="true" />
-                )
-              }
-              empty={
-                <p className="px-5 py-10 text-center text-[15px] text-ink-muted">
-                  {t("members.noMatches")}
-                </p>
-              }
-              footer={
-                matches.length > 0 && (
-                  <Pagination
-                    total={matches.length}
-                    page={page}
-                    pageSize={pageSize}
-                    pageSizes={PAGE_SIZES}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
-                      setPage(1);
-                    }}
-                    noun={plural("members.noun", matches.length)}
-                  />
-                )
-              }
+        <Table
+          caption={t("members.tab")}
+          rows={shown}
+          columns={columns}
+          rowKey={(member) => member.id}
+          card={(member) => (
+            <MemberCard
+              member={member}
+              lastActive={lastActiveText(member.last_active_at, now, timeZone)}
             />
           )}
-        </section>
+          rowMenu={(member) =>
+            canManage(member) ? (
+              <RowMenu member={member} onEdit={setEditing} onRemove={setRemoving} />
+            ) : (
+              <span className="inline-flex size-11 md:size-9" aria-hidden="true" />
+            )
+          }
+          empty={
+            <p className="px-5 py-10 text-center text-[15px] text-ink-muted">
+              {t("members.noMatches")}
+            </p>
+          }
+          footer={
+            matches.length > 0 && (
+              <Pagination
+                total={matches.length}
+                page={page}
+                pageSize={pageSize}
+                pageSizes={PAGE_SIZES}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setPage(1);
+                }}
+                noun={plural("members.noun", matches.length)}
+              />
+            )
+          }
+        />
       )}
+    </section>
+  );
+
+  return (
+    <div className="page-gutter flex flex-col gap-6 py-6 md:gap-8 md:py-10 lg:px-10 lg:py-9">
+      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-6">
+        <div className="flex max-w-[680px] flex-col gap-2">
+          <p className="type-label text-evergreen uppercase">{t("members.eyebrow")}</p>
+          <h1 className="type-heading">{t("members.title")}</h1>
+          <p className="type-body text-ink-muted">{t("members.intro")}</p>
+        </div>
+        <Button
+          className="shrink-0 self-start md:self-auto"
+          aria-haspopup="dialog"
+          onClick={() => setInviting(true)}
+        >
+          <UserPlusIcon aria-hidden="true" className="size-4" />
+          {t("members.inviteButton")}
+        </Button>
+      </header>
+
+      <Tabs
+        label={t("members.tabsLabel")}
+        value={tab}
+        onValueChange={(value) => setTab(value as Tab)}
+        items={[
+          {
+            value: "members",
+            label: t("members.tab"),
+            count: query.data ? members.length : undefined,
+            content: membersList,
+          },
+          {
+            value: "invites",
+            label: t("members.invites.tab"),
+            count: invites.data?.length,
+            content: <PendingInvites onShare={setSharing} />,
+          },
+        ]}
+      />
 
       <RolesCard />
+
+      {inviting && (
+        <InviteDialog
+          departments={departments}
+          onClose={() => setInviting(false)}
+          onSent={() => setTab("invites")}
+        />
+      )}
+      {sharing && <ShareInviteDialog invite={sharing} onClose={() => setSharing(null)} />}
 
       {editing && (
         <EditAccessDialog

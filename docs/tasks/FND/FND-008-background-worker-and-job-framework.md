@@ -36,6 +36,7 @@ Slow and scheduled work runs reliably in a worker with retries, cron and visible
 
 ## Notes and edge cases
 - Register the hourly cron `expire_credit_batches`: it calls `services/credits.expire_batches(session)` and commits (BILL-002 built it; BACKEND.md §4).
+- Register the hourly cron `expire_invites`: it calls `services/invites.expire_invites(session)` and commits (WS-004 built it).
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

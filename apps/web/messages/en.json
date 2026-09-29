@@ -352,7 +352,7 @@
   "members": {
     "eyebrow": "Workspace admin",
     "title": "Manage members",
-    "intro": "Choose what each person on your hiring team can see and do.",
+    "intro": "Invite your hiring team and choose what each person can see and do.",
     "tab": "Members",
     "search": "Search by name or email",
     "searchLabel": "Search members",
@@ -436,6 +436,103 @@
       "department": "One of those departments was just deleted. Pick again.",
       "gone": "This member no longer has access. The list has been refreshed.",
       "failed": "We couldn’t save that. Try again."
+    },
+    "tabsLabel": "Member lists",
+    "inviteButton": "Invite members",
+    "invites": {
+      "tab": "Pending invites",
+      "count": {
+        "one": "{count} pending invite",
+        "other": "{count} pending invites"
+      },
+      "noun": {
+        "one": "invite",
+        "other": "invites"
+      },
+      "expiryNote": "Invites expire after 7 days",
+      "empty": "No pending invites.",
+      "loadFailed": "We couldn't load your invites. Refresh the page to try again.",
+      "invitedAs": "Invited as {role} · sent {sent}",
+      "pending": "Pending",
+      "sent": {
+        "now": "just now",
+        "minutes": {
+          "one": "{count} minute ago",
+          "other": "{count} minutes ago"
+        },
+        "hours": {
+          "one": "{count} hour ago",
+          "other": "{count} hours ago"
+        },
+        "yesterday": "yesterday",
+        "days": {
+          "one": "{count} day ago",
+          "other": "{count} days ago"
+        }
+      },
+      "expires": {
+        "underADay": "Expires in under a day",
+        "days": {
+          "one": "Expires in {count} day",
+          "other": "Expires in {count} days"
+        }
+      },
+      "expiresOn": "Expires in 7 days, on {date}",
+      "share": "Share",
+      "shareFor": "Share the invite for {email}",
+      "resend": "Resend",
+      "resendFor": "Resend the invite for {email}",
+      "revoke": "Revoke",
+      "revokeFor": "Revoke the invite for {email}",
+      "inviteDialog": {
+        "title": "Invite a member",
+        "body": "Choose their role and departments. You’ll get a code to send them, and they join {workspace} by signing in with this email.",
+        "email": "Email address",
+        "emailPlaceholder": "name@company.com",
+        "emailRequired": "Enter their email address.",
+        "emailInvalid": "Enter an email address like name@company.com.",
+        "alreadyMember": "This person already has access to {workspace}.",
+        "role": "Role",
+        "roleHint": {
+          "admin": "Admins manage billing, members, the company profile and every pipeline. You can change this later.",
+          "recruiter": "Recruiters create pipelines and review every candidate in their departments. You can change this later.",
+          "hiring_manager": "Hiring managers view shortlisted candidates in their departments. You can change this later."
+        },
+        "send": "Send invite",
+        "sent": "Invite ready for {email}"
+      },
+      "shareDialog": {
+        "title": "Invite ready",
+        "body": "Send {email} this code. They sign in with that email, choose Join a workspace and enter it. It works for 7 days.",
+        "code": "Invite code",
+        "copyCode": "Copy code",
+        "message": "Message to send",
+        "copyMessage": "Copy message",
+        "copied": "Copied",
+        "copyFailed": "We couldn't copy that. Select the text and copy it instead.",
+        "text": "You’re invited to join {workspace} on FastHyr. Sign in at {url} with {email}, choose Join a workspace and enter this code: {code}. The code expires on {date}.",
+        "inviteAnother": "Invite another",
+        "done": "Done"
+      },
+      "resendDialog": {
+        "title": "Reinvite {email}?",
+        "body": "You’ll get a fresh code to send them to join {workspace} as {role}. The previous link and code stop working.",
+        "currently": "Currently",
+        "after": "After reinviting",
+        "confirm": "Reinvite"
+      },
+      "revokeDialog": {
+        "title": "Revoke the invite for {email}?",
+        "body": "Their invite link will stop working straight away, and they won’t be able to join {workspace}. This can’t be undone, but you can send a new invite later.",
+        "keep": "Keep invite",
+        "confirm": "Revoke invite",
+        "revoked": "Invite for {email} revoked"
+      },
+      "errors": {
+        "department": "One of those departments was just deleted. Pick again.",
+        "gone": "This invite was already accepted, revoked or expired. The list has been refreshed.",
+        "failed": "We couldn't save that. Try again."
+      }
     }
   }
 }

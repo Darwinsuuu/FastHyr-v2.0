@@ -11,7 +11,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | Milestone | Tasks | Done |
 |---|---|---|
 | M0 Foundation | 14 | 7 |
-| M1 Access | 12 | 5 |
+| M1 Access | 12 | 6 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
@@ -49,10 +49,10 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Backlog | |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Backlog | |
 | [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |
-| [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | |
-| [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | In review | |
-| [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Backlog | |
-| [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Backlog | |
+| [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |
+| [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Done | #16 |
+| [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | In review | |
+| [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Ready | |
 | [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Done | #14 |
 | [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Done | #13 |
 

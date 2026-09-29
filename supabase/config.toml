@@ -257,16 +257,16 @@ pass = "env(RESEND_API_KEY)"
 admin_email = "no-reply@fasthyr.com"
 sender_name = "FastHyr"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Branded templates (AUTH-002). Links go to the site's /auth/confirm with a token hash instead of
+# Supabase's PKCE link, so they work in any browser and survive a resend. Hosted projects need the
+# same subjects and HTML: see docs/architecture/DEPLOYMENT.md (Auth emails).
+[auth.email.template.confirmation]
+subject = "Verify your email for FastHyr"
+content_path = "./supabase/templates/confirmation.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./supabase/templates/password_changed_notification.html"
+[auth.email.template.recovery]
+subject = "Reset your FastHyr password"
+content_path = "./supabase/templates/recovery.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

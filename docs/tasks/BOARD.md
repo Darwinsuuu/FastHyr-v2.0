@@ -43,8 +43,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [AUTH-001](AUTH/AUTH-001-employer-sign-in.md) | Employer sign-in | M | FND-005, FND-012 | In review | |
-| [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | Backlog | |
+| [AUTH-001](AUTH/AUTH-001-employer-sign-in.md) | Employer sign-in | M | FND-005, FND-012 | Done | |
+| [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | In review | |
 | [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Backlog | |
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Backlog | |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Backlog | |

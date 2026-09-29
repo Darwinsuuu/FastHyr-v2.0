@@ -1,15 +1,18 @@
 "use client";
 
-import { EnvelopeSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 
+import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
 import { GoogleMark, MicrosoftMark } from "@/components/auth/provider-marks";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { continuePath, type OAuthProvider, OAUTH_SCOPES } from "@/lib/auth/flow";
+import { verifyEmailRedirect } from "@/lib/auth/links";
 import { continueWithPassword, type PasswordOutcome } from "@/lib/auth/password";
+import { rememberPendingVerification, tabStorage } from "@/lib/auth/pending-verification";
 import { env } from "@/lib/env";
 import { type MessageKey, t } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/browser";
@@ -36,41 +39,50 @@ function noticeText(notice: LoginNotice): string {
   }
 }
 
-/** Callback URL for OAuth and email links; `next` rides along so the user lands where they meant. */
-function callbackUrl(next: string | null, provider?: OAuthProvider): string {
+/** Callback URL for Google and Microsoft; `next` rides along so the user lands where they meant. */
+function callbackUrl(next: string | null, provider: OAuthProvider): string {
   const url = new URL("/auth/callback", env.siteUrl);
   if (next) url.searchParams.set("next", next);
-  if (provider) url.searchParams.set("provider", provider);
+  url.searchParams.set("provider", provider);
   return url.toString();
+}
+
+function verifyEmailPath(next: string | null): string {
+  return next ? `/verify-email?next=${encodeURIComponent(next)}` : "/verify-email";
 }
 
 export function LoginForm({ next, notice }: { next: string | null; notice: LoginNotice | null }) {
   const [busy, setBusy] = useState<"password" | OAuthProvider | null>(null);
   const [banner, setBanner] = useState<string | null>(notice ? noticeText(notice) : null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  // Uncontrolled, so anything typed before hydration stays; the modal starts from its value.
+  const emailInput = useRef<HTMLInputElement>(null);
+  const [forgotEmail, setForgotEmail] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email")).trim();
+    const address = String(form.get("email")).trim();
     setBusy("password");
     setBanner(null);
     setPasswordError(null);
     const outcome = await continueWithPassword(supabaseBrowser().auth, {
-      email,
+      email: address,
       password: String(form.get("password")),
-      emailRedirectTo: callbackUrl(next),
+      emailRedirectTo: verifyEmailRedirect(next),
     }).catch((): PasswordOutcome => "failed");
     if (outcome === "signed-in") {
       window.location.assign(continuePath(next));
       return;
     }
-    setBusy(null);
     if (outcome === "check-email") {
-      setSentTo(email);
+      // A new account's link was just sent; for an unverified one it may have been a while ago,
+      // but Supabase refuses a resend within the minute either way.
+      rememberPendingVerification(tabStorage(), { email: address, sentAt: Date.now() });
+      window.location.assign(verifyEmailPath(next));
       return;
     }
+    setBusy(null);
     const key = PASSWORD_ERRORS[outcome];
     setPasswordError(key ? t(key) : null);
   }
@@ -87,28 +99,6 @@ export function LoginForm({ next, notice }: { next: string | null; notice: Login
       setBusy(null);
       setBanner(t("auth.error.failed"));
     }
-  }
-
-  if (sentTo) {
-    return (
-      <div className="flex flex-col gap-5" role="status">
-        <span
-          aria-hidden="true"
-          className="flex size-12 items-center justify-center rounded-[14px] bg-evergreen-soft text-evergreen"
-        >
-          <EnvelopeSimpleIcon className="size-6" />
-        </span>
-        <div className="flex flex-col gap-2">
-          <h1 className="type-heading lg:text-[30px] lg:leading-9">{t("auth.checkEmailTitle")}</h1>
-          <p className="text-[15px] leading-6 text-ink-muted">
-            {t("auth.checkEmailBody", { email: sentTo })}
-          </p>
-        </div>
-        <Button variant="secondary" className="self-start" onClick={() => setSentTo(null)}>
-          {t("auth.useDifferentEmail")}
-        </Button>
-      </div>
-    );
   }
 
   const [legalBefore = "", legalMiddle = "", legalAfter = ""] =
@@ -170,18 +160,29 @@ export function LoginForm({ next, notice }: { next: string | null; notice: Login
             autoComplete="email"
             inputMode="email"
             placeholder={t("auth.emailPlaceholder")}
+            ref={emailInput}
             required
           />
         </Field>
-        <Field label={t("auth.password")} error={passwordError} required>
-          <Input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder={t("auth.passwordPlaceholder")}
-            required
-          />
-        </Field>
+        <div className="relative">
+          <Field label={t("auth.password")} error={passwordError} required>
+            <Input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder={t("auth.passwordPlaceholder")}
+              required
+            />
+          </Field>
+          {/* Beside the label, as in the frame; a sibling of the label so clicks don't focus the input. */}
+          <button
+            type="button"
+            className="absolute top-0 right-0 text-[14px] leading-5 font-medium text-evergreen underline hover:text-persimmon"
+            onClick={() => setForgotEmail(emailInput.current?.value.trim() ?? "")}
+          >
+            {t("auth.forgotPassword")}
+          </button>
+        </div>
         <Button
           type="submit"
           size="lg"
@@ -204,6 +205,12 @@ export function LoginForm({ next, notice }: { next: string | null; notice: Login
         </Link>
         {legalAfter}
       </p>
+
+      <ForgotPasswordDialog
+        open={forgotEmail !== null}
+        onOpenChange={(open) => !open && setForgotEmail(null)}
+        initialEmail={forgotEmail ?? ""}
+      />
     </div>
   );
 }

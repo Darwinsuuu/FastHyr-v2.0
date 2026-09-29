@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AUTH — Authentication & workspaces |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-005](../FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md), [FND-012](../FND/FND-012-ui-kit-design-system-components.md) |
 | Requirements | FR-AUTH-01, FR-AUTH-04, FR-AUTH-09 |

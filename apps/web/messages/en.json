@@ -44,7 +44,43 @@
     "logOut": "Log out",
     "workspacesPageTitle": "Choose workspace",
     "workspacesTitle": "Welcome, {name}. Where will you be hiring?",
-    "workspacesPlaceholder": "Creating and joining workspaces arrives soon. Until then, ask a workspace admin to add you."
+    "workspacesPlaceholder": "Creating and joining workspaces arrives soon. Until then, ask a workspace admin to add you.",
+    "forgotPassword": "Forgot password?",
+    "forgot": {
+      "title": "Reset your password",
+      "intro": "Enter the work email you sign in with. We'll send you a link to choose a new password.",
+      "emailHint": "We'll only use this to send the reset link.",
+      "emailRequired": "Enter your work email.",
+      "emailInvalid": "Enter a valid email, like you@company.com.",
+      "oauthNote": "Signed up with Google or Microsoft? You don't have a FastHyr password. Close this and use the Google or Microsoft button instead.",
+      "backToSignIn": "Back to sign in",
+      "send": "Send reset link",
+      "sentTitle": "Check your email",
+      "sentBody": "If an account exists for {email}, we've sent a link to reset your password. The link works once and expires in 1 hour.",
+      "sentFrom": "It comes from no-reply@fasthyr.com. Check your spam or promotions folder.",
+      "sentDevice": "Open the link on this device to choose your new password.",
+      "failed": "We couldn't send the link. Check your connection and try again."
+    },
+    "resendLink": "Resend link",
+    "resendLinkIn": "Resend link in {seconds}s",
+    "reset": {
+      "title": "Choose a new password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "save": "Save password",
+      "mismatch": "The passwords don't match.",
+      "samePassword": "Choose a password that's different from your current one.",
+      "failed": "We couldn't save your password. Check your connection and try again.",
+      "expiredTitle": "This link has expired or was already used.",
+      "sendNewLink": "Send a new link"
+    },
+    "verify": {
+      "pageTitle": "Verify your email",
+      "resent": "We sent a new link.",
+      "failed": "We couldn't send the link. Check your connection and try again."
+    }
   },
   "app": {
     "title": "Your FastHyr workspace",

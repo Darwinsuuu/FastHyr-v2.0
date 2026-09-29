@@ -33,6 +33,14 @@ Locally, `supabase/seed.sql` does this with the password `fasthyr_api_local`.
 
 Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/config.toml`. The OAuth client IDs and secrets go into each project's Authentication → Providers page, never into the repository. The one-time setup checklist is in the FND-002 task log.
 
+**Auth emails (AUTH-002).** Supabase Auth sends the verification and password-reset emails itself, not the API. For each hosted project:
+1. Authentication → URL Configuration: Site URL is the environment's site host (e.g. `https://dev.fasthyr.com`); the recovery link is built from it.
+2. Authentication → Emails → Templates: for **Confirm signup** and **Reset password**, copy the subject from `supabase/config.toml` (`[auth.email.template.*]`) and paste the HTML from `supabase/templates/confirmation.html` and `recovery.html`. The links must stay pointed at `/auth/confirm`; Supabase's default template links don't work with it.
+3. Authentication → Emails → SMTP Settings (once Resend's `fasthyr.com` domain is verified): host `smtp.resend.com`, port 465, user `resend`, password a Resend API key, sender `no-reply@fasthyr.com`, name `FastHyr`. Supabase's built-in mailer only reaches team members and allows a few emails an hour.
+4. Authentication → Rate Limits and Sign In / Providers → Email: link expiry (`otp_expiry`) 3600 s and minimum interval between emails 60 s, as in `config.toml`.
+
+Locally nothing is needed: `make db-start` loads the templates and Mailpit catches every email. After changing a template or `config.toml`, restart local Supabase (`make db-stop db-start`).
+
 ## 2. Local development
 ```
 make setup        # pnpm install, uv sync, supabase start (applies migrations + seed)

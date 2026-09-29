@@ -4,8 +4,8 @@ import { continuePath, isOAuthProvider } from "@/lib/auth/flow";
 import { env } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase/server";
 
-// Google and Microsoft sign-in, and email verification links, come back here with a one-time
-// code, or with an error when the user cancelled or the link is no longer valid.
+// Google and Microsoft sign-in come back here with a one-time code, or with an error when the user
+// cancelled. Links in Supabase's emails go to /auth/confirm instead (AUTH-002).
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");

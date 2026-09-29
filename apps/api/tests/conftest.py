@@ -55,14 +55,14 @@ def supabase() -> Supabase:
 
 
 async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID]) -> None:
-    """Removes test workspaces' ledger, batches and pipelines so the workspaces can be deleted.
-    The ledger rejects deletes, so this connects as the table owner with triggers switched off
-    for the transaction."""
+    """Removes test workspaces' audit log, ledger, batches and pipelines so the workspaces can be
+    deleted. The audit log and ledger reject deletes, so this connects as the table owner with
+    triggers switched off for the transaction."""
     connection = await asyncpg.connect(supabase.owner_database_url)
     try:
         async with connection.transaction():
             await connection.execute("set local session_replication_role = replica")
-            for table in ("credit_ledger", "credit_batches", "pipelines"):
+            for table in ("audit_log", "credit_ledger", "credit_batches", "pipelines"):
                 await connection.execute(
                     f"delete from {table} where workspace_id = any($1::uuid[])", workspace_ids
                 )

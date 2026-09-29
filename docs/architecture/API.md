@@ -38,7 +38,7 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 ## Workspace (TA) — all require membership via `X-Workspace-Id`
 ### Workspace admin
 | `GET/PUT /workspace/company-profile` · `POST …/branding-upload` | Admin |
-| `GET/POST /departments` · `PATCH/DELETE /departments/{id}` | read: member · write: Admin |
+| `GET/POST /departments` · `PATCH/DELETE /departments/{id}` | read: member · write: Admin. `GET` returns `{departments, no_department}`; Admins also get each department's `stats` (pipelines by active/scheduled/closed/draft, candidate count, members who can see it) and `no_department` stats. Names 1–40 chars, unique ignoring case (`409 department_name_taken`), "No department" reserved (`422 department_name_reserved`). `DELETE` moves pipelines to No department (WS-002) |
 | `GET /members` · `PATCH /members/{id}` · `DELETE /members/{id}` | Admin |
 | `GET/POST /invites` · `POST /invites/{id}/resend` · `DELETE /invites/{id}` | Admin |
 

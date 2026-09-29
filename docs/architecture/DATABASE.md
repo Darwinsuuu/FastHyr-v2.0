@@ -35,7 +35,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 
 **company_profiles** — `workspace_id` PK, `company_name`, `logo_path`, `banner_path`, `website`, `industry`, `company_size`, `hq_country`, `timezone`, `about` (≤600), `careers_url`, `updated_by`, `updated_at`.
 
-**departments** — `id`, `workspace_id`, `name` (unique per workspace, case-insensitive; "no department" reserved), `description`, `created_at`. Deleting one cascades to `member_departments`; the service also removes its ID from pending `invites.department_ids`.
+**departments** — `id`, `workspace_id`, `name` (unique per workspace, case-insensitive; "no department" reserved), `description`, `created_at`. Deleting one cascades to `member_departments`; the service also removes its ID from pending `invites.department_ids` and first moves its pipelines to No department (`pipelines.department_id` has a composite FK with no ON DELETE action).
 
 **workspace_members** — `id`, `workspace_id`, `user_id`, `role` (`admin|recruiter|hiring_manager`), `is_owner`, `status` (`active|removed`), `last_active_at`, `created_at`. Unique `(workspace_id, user_id)`; one owner per workspace, and the owner is an Admin.
 

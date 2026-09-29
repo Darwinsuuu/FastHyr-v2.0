@@ -185,7 +185,7 @@ async def _delete_workspaces(supabase: Supabase, ids: list[uuid.UUID]) -> None:
     connection = await asyncpg.connect(supabase.database_url)
     try:
         async with connection.transaction():
-            for table in ("member_departments", "workspace_members", "departments"):
+            for table in ("invites", "member_departments", "workspace_members", "departments"):
                 await connection.execute(
                     f"delete from {table} where workspace_id = any($1::uuid[])", ids
                 )

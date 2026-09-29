@@ -34,7 +34,8 @@ The TA app has its persistent layout: sidebar, workspace switcher, role-aware na
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- The switcher calls `useSwitchWorkspace()` (`lib/api/provider.tsx`, AUTH-003): it sets the `fh_ws` cookie, saves the last workspace (`PUT /v1/me/last-workspace`) and clears the query cache. Create and Join can link to `/workspaces` on the site host, which lists the user's workspaces above the create and join cards.
+- AUTH-003 added a placeholder app `/getting-started` (new workspaces open there); DASH-002 replaces it.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

@@ -35,7 +35,7 @@ One service owns every credit change: grants, reserves, consumption, releases an
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- AUTH-003 shipped before this task: `POST /workspaces` sets `workspaces.trial_granted_at` and calls the empty `grant_trial()` in `app/services/workspaces.py`. Fill it in through `services/credits.py`, and backfill a 20-credit trial batch (30 days from the workspace's `trial_granted_at`) for every workspace that has `trial_granted_at` and no trial batch.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

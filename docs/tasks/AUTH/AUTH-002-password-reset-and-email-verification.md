@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AUTH — Authentication & workspaces |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [AUTH-001](../AUTH/AUTH-001-employer-sign-in.md), [FND-010](../FND/FND-010-email-infrastructure-resend.md) |
 | Requirements | FR-AUTH-02, FR-AUTH-03 |

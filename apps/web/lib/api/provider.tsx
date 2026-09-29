@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useState } from "react";
 
 import { ApiError } from "@/lib/api/client";
 import { workspaceCookie } from "@/lib/workspace";
+import { activateWorkspace } from "@/lib/workspaces/activate";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -25,12 +26,19 @@ export function ApiProvider({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-/** Switches the active workspace: replaces the `fh_ws` cookie and clears every cached query. */
+/**
+ * Switches the active workspace: the `fh_ws` cookie and last workspace (activateWorkspace), then
+ * clears every cached query so nothing from the previous workspace shows. `null` forgets it.
+ */
 export function useSwitchWorkspace() {
   const queryClient = useQueryClient();
   return useCallback(
-    (workspaceId: string | null) => {
-      document.cookie = workspaceCookie(workspaceId);
+    async (workspaceId: string | null) => {
+      if (workspaceId) {
+        await activateWorkspace(workspaceId);
+      } else {
+        document.cookie = workspaceCookie(null);
+      }
       queryClient.clear();
     },
     [queryClient],

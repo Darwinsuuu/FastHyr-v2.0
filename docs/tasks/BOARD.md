@@ -10,8 +10,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 4 |
-| M1 Access | 12 | 0 |
+| M0 Foundation | 14 | 6 |
+| M1 Access | 12 | 2 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
@@ -43,9 +43,9 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [AUTH-001](AUTH/AUTH-001-employer-sign-in.md) | Employer sign-in | M | FND-005, FND-012 | Done | |
-| [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | In review | |
-| [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Backlog | |
+| [AUTH-001](AUTH/AUTH-001-employer-sign-in.md) | Employer sign-in | M | FND-005, FND-012 | Done | #9 |
+| [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | Done | #10 |
+| [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | In review | |
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Backlog | |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Backlog | |
 | [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |

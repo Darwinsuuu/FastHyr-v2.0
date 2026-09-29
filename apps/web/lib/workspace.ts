@@ -1,6 +1,7 @@
 // The active workspace lives in the `fh_ws` cookie (FRONTEND.md §1) and goes to the API as
 // `X-Workspace-Id`. It holds only the workspace UUID. Switching replaces the cookie and the
-// caller resets the query cache (see useSwitchWorkspace in lib/api/provider.tsx).
+// caller resets the query cache (useSwitchWorkspace in lib/api/provider.tsx, which also saves it
+// as the last workspace through lib/workspaces/activate.ts).
 
 import { env } from "@/lib/env";
 

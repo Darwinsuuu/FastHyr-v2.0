@@ -48,7 +48,7 @@ cp supabase/.env.example supabase/.env   # only for Google / Microsoft sign-in
 ```
 Use `fasthyr.localhost` and `app.fasthyr.localhost`, not plain `localhost`: browsers only share one sign-in between the two hosts when they sit under a common domain. Chrome, Edge and Firefox resolve `*.localhost` by themselves; for Safari, add `127.0.0.1 fasthyr.localhost app.fasthyr.localhost` to `/etc/hosts` once. If you copied the env files before FND-005, copy `apps/web/.env.example` again (new `NEXT_PUBLIC_*` URLs and `NEXT_PUBLIC_COOKIE_DOMAIN`), update `WEB_ORIGINS` in `apps/api/.env`, and restart Supabase so it picks up the new redirect URLs.
 
-To sign in locally without OAuth, open http://fasthyr.localhost:3000/login, enter any email and a password of 8 or more characters, and press Continue. That creates the account and sends a verification email, which you open from Mailpit at http://127.0.0.1:54324. "Forgot password?" on the same page sends a reset link to Mailpit the same way. If you pulled AUTH-002 into a Supabase that was already running, restart it once (`make db-stop db-start`) so it picks up the branded email templates; without that, the links in those emails fail. With no workspace yet you land on Choose workspace; the TA app shows your profile and workspaces once you belong to one.
+To sign in locally without OAuth, open http://fasthyr.localhost:3000/login, enter any email and a password of 8 or more characters, and press Continue. That creates the account and sends a verification email, which you open from Mailpit at http://127.0.0.1:54324. "Forgot password?" on the same page sends a reset link to Mailpit the same way. If you pulled AUTH-002 into a Supabase that was already running, restart it once (`make db-stop db-start`) so it picks up the branded email templates; without that, the links in those emails fail. With no workspace yet you land on Choose workspace, where you can create one (you become its admin and land on a placeholder Getting started page). Invites can't be sent from the app until WS-004; to try joining, create an invite in the database (see "Try joining a workspace" under Troubleshooting).
 
 The Supabase keys come from `make db-status` (the local keys are the same on every machine). Google and Microsoft sign-in need your own test OAuth apps; the steps are in the [FND-002 task log](docs/tasks/FND/FND-002-supabase-local-setup-and-environments.md#log). After editing `supabase/.env`, restart Supabase with `make db-stop db-start`.
 
@@ -130,4 +130,15 @@ Before the first `make e2e`, install Playwright's browser once with `pnpm --filt
 | Supabase port already allocated (543xx) | Another Supabase project is running; stop it with `pnpm supabase stop --project-id <its id>`, or `docker ps` to find it |
 | OAuth error `redirect_uri_mismatch` | The OAuth app is missing `http://127.0.0.1:54321/auth/v1/callback` as a redirect URI |
 
-Status: monorepo scaffold (FND-001), local Supabase (FND-002), core schema (FND-003), the API skeleton (FND-004: sign-in checks, workspace context, permissions, error format, `GET /v1/me`) the web skeleton (FND-005: site and app hosts, design tokens and fonts, sign-in session, typed API client), the UI kit (FND-012) employer sign-in (AUTH-001: Google, Microsoft and email + password at `/login`, log out) and password reset and email verification (AUTH-002: forgot-password modal, `/reset-password`, `/verify-email`, branded auth emails) in place; see the task board for what's next.
+#### Try joining a workspace
+Sending invites arrives with WS-004. Until then, create one in Supabase Studio's SQL editor (http://127.0.0.1:54323) for a workspace you made, with the email of a second account (lowercase):
+
+```sql
+insert into invites (workspace_id, email, role, code, token_hash, invited_by)
+select id, 'teammate@example.com', 'recruiter', 'TEST-0001', md5(random()::text), owner_id
+from workspaces where name = 'Acme Talent';
+```
+
+Sign in as that account and paste `TEST-0001` (or `fasthyr.localhost:3000/join/TEST-0001`) into Join a workspace. Each code works once; use a new code for the next try.
+
+Status: monorepo scaffold (FND-001), local Supabase (FND-002), core schema (FND-003), the API skeleton (FND-004: sign-in checks, workspace context, permissions, error format, `GET /v1/me`) the web skeleton (FND-005: site and app hosts, design tokens and fonts, sign-in session, typed API client), the UI kit (FND-012) employer sign-in (AUTH-001: Google, Microsoft and email + password at `/login`, log out) password reset and email verification (AUTH-002: forgot-password modal, `/reset-password`, `/verify-email`, branded auth emails) and Choose workspace (AUTH-003: create a workspace or join one with an invite code at `/workspaces`) in place; see the task board for what's next.

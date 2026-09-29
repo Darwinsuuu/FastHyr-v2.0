@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 4 |
+| M0 Foundation | 14 | 6 |
 | M1 Access | 12 | 2 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -29,7 +29,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-003](FND/FND-003-core-schema-identity-workspaces-members-department.md) | Core schema: identity, workspaces, members, departments, invites | M | FND-002 | Done | #4 |
 | [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | Done | #5 |
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Done | #6 |
-| [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | Ready | |
+| [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | In review | |
 | [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Backlog | |
 | [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Ready | |
 | [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Backlog | |

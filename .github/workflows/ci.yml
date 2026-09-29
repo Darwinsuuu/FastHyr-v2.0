@@ -1,0 +1,152 @@
+# Checks every PR (FND-006, DEPLOYMENT.md §3). Each job maps to make targets a contributor can run
+# locally, so a red job can be reproduced with the same command.
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, release, master]
+  push:
+    branches: [develop, release, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # Supabase's config.toml reads the OAuth apps from env(); CI never signs in with them.
+  SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ci-unused
+  SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ci-unused
+  SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID: ci-unused
+  SUPABASE_AUTH_EXTERNAL_AZURE_SECRET: ci-unused
+  # Services CI never uses; skipping them saves image pulls.
+  SUPABASE_SKIP: studio,imgproxy,logflare,vector,edge-runtime,postgres-meta,realtime,storage-api,supavisor
+
+jobs:
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          python: "false"
+      - name: Format, lint, types (make lint-web)
+        run: make lint-web
+      - name: Unit tests (make test-web)
+        run: make test-web
+      - name: Build
+        run: pnpm --filter web build
+
+  api:
+    name: API and database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Ruff and mypy (make lint-api)
+        run: make lint-api
+      - name: Start Supabase (applies every migration and the seed to a fresh database)
+        run: pnpm supabase start -x "$SUPABASE_SKIP"
+      - name: Tests (make test-api)
+        run: make test-api
+        env:
+          # A missing database fails the run instead of skipping the integration and tenancy tests.
+          FASTHYR_REQUIRE_DB: "1"
+      - name: Models match migrations (make db-drift)
+        run: make db-drift
+
+  contract:
+    name: API client up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Regenerate the client (make api-client)
+        run: make api-client
+      - name: Fail if packages/api-client changed
+        run: |
+          if ! git diff --exit-code -- packages/api-client; then
+            echo "::error::packages/api-client is stale. Run \`make api-client\` and commit the result."
+            exit 1
+          fi
+
+  security:
+    name: Secrets and audits
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          python: "false"
+      - uses: astral-sh/setup-uv@v6
+      - name: Gitleaks (whole history, allowlist in .gitleaks.toml)
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "$base/$archive"
+          curl -sSfL "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt" | grep " $archive\$" | sha256sum -c -
+          tar -xzf "$archive" gitleaks
+          ./gitleaks git --redact --no-banner --verbose .
+      - name: pnpm audit (moderate and above fail; low only warns)
+        run: pnpm audit --audit-level=moderate
+      - name: pip-audit
+        working-directory: apps/api
+        run: |
+          uv export --locked --no-emit-project --format requirements-txt > "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit@2.10.1 --strict --disable-pip -r "$RUNNER_TEMP/requirements.txt"
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_APP_ENV: local
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_SITE_URL: http://fasthyr.localhost:3000
+      NEXT_PUBLIC_APP_URL: http://app.fasthyr.localhost:3000
+      NEXT_PUBLIC_COOKIE_DOMAIN: fasthyr.localhost
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      # The fixed publishable key of every local Supabase install (`make db-status`).
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Start Supabase
+        run: pnpm supabase start -x "$SUPABASE_SKIP"
+      - name: Install Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Build the web app
+        run: pnpm --filter web build
+      - name: Start the API and web app
+        run: |
+          # The venv's uvicorn, not `uv run`: a live uv process holds the cache lock and the
+          # setup-uv post step would wait on it and fail.
+          (cd apps/api && .venv/bin/uvicorn app.main:app --port 8000 > "$RUNNER_TEMP/api.log" 2>&1 &)
+          (pnpm --filter web start > "$RUNNER_TEMP/web.log" 2>&1 &)
+          for url in http://localhost:8000/health http://fasthyr.localhost:3000/login; do
+            timeout 60 bash -c "until curl -sf -o /dev/null $url; do sleep 1; done" \
+              || { echo "::error::$url did not come up"; cat "$RUNNER_TEMP"/*.log; exit 1; }
+          done
+      - name: Playwright (make e2e)
+        run: make e2e
+      - name: Server logs
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/web.log"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results/
+          retention-days: 7

@@ -16,7 +16,7 @@ from app.core.auth import CurrentUser
 from app.core.context import Role
 from app.core.ids import new_id
 from app.main import create_app
-from tests.conftest import Supabase
+from tests.conftest import Supabase, delete_credit_rows
 from tests.tenancy.harness import (
     Tenancy,
     _auth_admin_headers,
@@ -57,6 +57,7 @@ async def _delete_workspaces_of(supabase: Supabase, users: list["User"]) -> None
                     "select id from workspaces where owner_id = any($1::uuid[])", user_ids
                 )
             ]
+            await delete_credit_rows(supabase, ids)
             await connection.execute(
                 "delete from workspace_members where user_id = any($1::uuid[])", user_ids
             )
@@ -156,6 +157,14 @@ def test_create_makes_the_caller_owner_with_trial_and_profile(
     assert row["trial_granted_at"] is not None
     assert row["company_name"] == "Café Talent, Inc."
     assert row["last_workspace_id"] == workspace_id
+    [trial] = fetch(
+        supabase,
+        "select b.amount, b.remaining, b.expires_at, l.kind from credit_batches b"
+        " join credit_ledger l on l.batch_id = b.id where b.workspace_id = $1",
+        workspace_id,
+    )
+    assert (trial["amount"], trial["remaining"], trial["kind"]) == (20, 20, "grant_trial")
+    assert trial["expires_at"] == row["trial_granted_at"] + timedelta(days=30)
 
 
 def test_create_gives_every_workspace_a_unique_url_safe_slug(

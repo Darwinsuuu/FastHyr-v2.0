@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AUTH — Authentication & workspaces |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [AUTH-001](../AUTH/AUTH-001-employer-sign-in.md), [FND-003](../FND/FND-003-core-schema-identity-workspaces-members-department.md), [BILL-002](../BILL/BILL-002-credit-ledger-service.md) |
 | Requirements | FR-AUTH-04, FR-AUTH-05, FR-AUTH-06, FR-AUTH-07 |
@@ -28,11 +28,11 @@ A signed-in TA user can create a workspace (becoming owner with trial credits), 
 - Invite link page (AUTH-004)
 
 ## Acceptance criteria
-- [ ] Creating a workspace grants 20 trial credits (recorded now; the credits arrive with BILL-002) and opens Getting started (placeholder until DASH-002)
+- [x] Creating a workspace grants 20 trial credits (the credits arrived with BILL-002) and opens Getting started (placeholder until DASH-002)
 - [x] Switching clears cached data
 - [x] Slug unique and URL-safe
 - [x] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - —

@@ -44,7 +44,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 **invites** — `id`, `workspace_id`, `email`, `role`, `department_ids uuid[]`, `code` (short, e.g. `AB12-CD34`, unique), `token_hash`, `invited_by`, `status` (`pending|accepted|revoked|expired`), `expires_at` (+7 days), `accepted_by`, `created_at`. Email stored lowercase; one pending invite per email per workspace (resend rotates `code` and `token_hash` on the same row).
 
 ### Pipelines
-**pipelines**
+**pipelines** (BILL-002 created the table with the credit columns, `status`, `created_at` and `updated_at`; PIPE-001 adds the rest)
 | Column | Notes |
 |---|---|
 | `id`, `workspace_id`, `department_id` (nullable = No department), `owner_id` (member who created) | |
@@ -54,7 +54,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 | `interview_format` (`video_voice|voice_only`), `tone` (`warm|professional|direct`), `seniority` (`entry|mid|senior|lead`), `skills_to_probe text[]` (≥3), `link_expiry_days` (3/5/7/14), `reminder_enabled`, `integrity_enabled` | AI interview |
 | `weight_technical`, `weight_communication`, `weight_culture` (sum = 100, check), `pass_mark` (0–100, default 70), `email_resume_reject`, `email_post_interview` | Scoring |
 | `open_mode` (`now|scheduled`), `opens_at`, `duration_days` (30/60/90/120), `closes_at` | Schedule |
-| `credits_reserved int`, `credits_used int` | Reserve (see BILLING.md) |
+| `credits_reserved int`, `credits_used int` | Reserve (see BILLING.md); check `credits_used between 0 and credits_reserved` |
 | `status` (`draft|scheduled|live|paused|paused_no_credits|closed|cancelled`), `closed_reason` (`schedule|manual`), `archived_at`, `published_at`, `published_by`, `locked_at`, `duplicated_from_id` | Lifecycle (WORKFLOW.md §2) |
 A trigger rejects updates to setup columns when `locked_at is not null`.
 
@@ -110,9 +110,9 @@ A trigger rejects updates to setup columns when `locked_at is not null`.
 ### Billing
 **subscriptions** — `workspace_id` PK, `stripe_subscription_id`, `plan` (`starter|growth|scale`), `status` (Stripe status), `current_period_start`, `current_period_end`, `pending_plan`, `cancel_at_period_end`, `default_payment_method_brand`, `default_payment_method_last4`, `default_payment_method_exp`.
 
-**credit_batches** — `id`, `workspace_id`, `kind` (`trial|plan|extra`), `amount`, `remaining`, `added_at`, `expires_at`, `stripe_invoice_id`, `note`. Check `remaining between 0 and amount`.
+**credit_batches** — `id`, `workspace_id`, `kind` (`trial|plan|extra`), `amount`, `remaining`, `added_at`, `expires_at`, `stripe_invoice_id`, `note`. Check `remaining between 0 and amount`; at most one `trial` batch per workspace (partial unique index).
 
-**credit_ledger** (append-only) — `id`, `workspace_id`, `kind` (`grant_trial|grant_plan|purchase|consume|reserve|release|top_up|expire|adjust`), `amount` (signed, balance change; 0 for reserve moves), `reserve_change` (signed), `pipeline_id`, `application_id`, `batch_id`, `balance_after`, `actor_id`, `created_at`.
+**credit_ledger** (append-only) — `id`, `workspace_id`, `kind` (`grant_trial|grant_plan|purchase|consume|reserve|release|top_up|expire|adjust`), `amount` (signed, balance change; 0 for reserve moves), `reserve_change` (signed), `pipeline_id`, `application_id`, `batch_id`, `balance_after` (unexpired balance after the change), `actor_id` (no FK), `created_at`. Composite FKs to `pipelines` and `credit_batches`; `application_id` gets its FK in APPLY-003. The ledger's `amount` always sums to the batches' `remaining`.
 
 **stripe_invoices** (cache) — `id` (Stripe ID), `workspace_id`, `number`, `kind` (`plan|credits`), `description`, `amount_cents`, `currency`, `status` (`paid|open|failed|void`), `hosted_url`, `pdf_url`, `created_at`.
 

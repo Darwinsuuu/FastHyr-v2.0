@@ -19,7 +19,7 @@ Stripe price IDs are env/config per environment. Prices are shown from config, n
 - **Reserved (open)** = Σ over pipelines in `scheduled|live|paused|paused_no_credits` of `credits_reserved − credits_used`.
 - **Free** = Balance − Reserved (can be negative after expiries; see §4).
 
-## 3. Operations (only `services/credits.py`; each in one DB transaction, `SELECT … FOR UPDATE` on the workspace's batches)
+## 3. Operations (only `services/credits.py`; each in the caller's DB transaction, starting with `SELECT … FOR UPDATE` on the workspace row, so a workspace's credit changes run one at a time, including its first grant when it has no batches yet; consume also locks the pipeline row)
 | Operation | Effect | Ledger kind |
 |---|---|---|
 | Grant trial | new `trial` batch 20, expires +30 d | `grant_trial` |

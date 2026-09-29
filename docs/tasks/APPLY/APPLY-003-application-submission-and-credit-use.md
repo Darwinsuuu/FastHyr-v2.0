@@ -35,7 +35,8 @@ Candidates submit a résumé and details; FastHyr records consent, uses one cred
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- Use 1 credit with `services/credits.consume(session, workspace_id, pipeline_id, application_id=…)` in the same transaction as the application insert (BILL-002). It raises `pipeline_not_accepting` without using a credit.
+- Add the foreign key `credit_ledger (workspace_id, application_id) → applications (workspace_id, id)`; BILL-002 left `application_id` as a plain uuid because `applications` didn't exist yet.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

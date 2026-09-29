@@ -2,6 +2,7 @@
 
 from app.models.audit import AuditLog
 from app.models.base import Base
+from app.models.credits import CreditBatch, CreditLedgerEntry
 from app.models.identity import (
     CompanyProfile,
     Department,
@@ -11,14 +12,18 @@ from app.models.identity import (
     Workspace,
     WorkspaceMember,
 )
+from app.models.pipelines import Pipeline
 
 __all__ = [
     "AuditLog",
     "Base",
     "CompanyProfile",
+    "CreditBatch",
+    "CreditLedgerEntry",
     "Department",
     "Invite",
     "MemberDepartment",
+    "Pipeline",
     "Profile",
     "Workspace",
     "WorkspaceMember",

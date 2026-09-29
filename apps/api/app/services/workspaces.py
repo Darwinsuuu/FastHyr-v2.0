@@ -22,6 +22,7 @@ from app.models import Workspace
 from app.repositories.users import UserRepository
 from app.repositories.workspaces import WorkspaceSetupRepository
 from app.schemas.me import MyWorkspace
+from app.services import credits
 from app.services.me import to_my_workspace
 
 SLUG_MAX = 63
@@ -59,9 +60,10 @@ def normalize_invite_code(raw: str) -> str:
 
 
 async def grant_trial(session: AsyncSession, workspace: Workspace) -> None:
-    """Trial credits for a new workspace (FR-BILL-02). `trial_granted_at` is set by the caller.
-    BILL-002 adds the 20-credit trial batch here through services/credits.py, and backfills one
-    for every workspace created before it that has `trial_granted_at` and no trial batch."""
+    """Trial credits for a new workspace (FR-BILL-02): 20 credits from `trial_granted_at`, which
+    the caller sets. Workspaces created before BILL-002 got theirs from its migration."""
+    assert workspace.trial_granted_at is not None
+    await credits.grant_trial(session, workspace.id, granted_at=workspace.trial_granted_at)
 
 
 async def create_default_email_templates(session: AsyncSession, workspace: Workspace) -> None:

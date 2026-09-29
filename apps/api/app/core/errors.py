@@ -103,6 +103,23 @@ class InviteInvalidError(AppError):
     title = "This invite is no longer valid"
 
 
+class InsufficientFreeCreditsError(AppError):
+    """Reserving or topping up more than the workspace's free credits (FR-BILL-04)."""
+
+    status = 409
+    code = "insufficient_free_credits"
+    title = "Not enough free credits"
+
+
+class PipelineNotAcceptingError(AppError):
+    """The pipeline isn't live, its reserve is used up, or the workspace has no credits left.
+    No credit is used (BILLING.md §4)."""
+
+    status = 409
+    code = "pipeline_not_accepting"
+    title = "This pipeline isn't accepting applications"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

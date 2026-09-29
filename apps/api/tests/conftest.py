@@ -6,6 +6,7 @@ missing database a failure instead.
 
 import asyncio
 import os
+import uuid
 from dataclasses import dataclass
 
 import asyncpg
@@ -16,6 +17,8 @@ from app.core.config import get_settings
 # Fixed keys every local Supabase install uses (`make db-status`); CI can override them.
 LOCAL_PUBLISHABLE_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
 LOCAL_SECRET_KEY = "sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz"
+# The table owner, for test cleanup the API role may not do (the credit ledger is append-only).
+LOCAL_OWNER_DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 
 
 @dataclass(frozen=True)
@@ -24,6 +27,7 @@ class Supabase:
     url: str
     anon_key: str
     secret_key: str
+    owner_database_url: str
 
 
 async def _ping(database_url: str) -> None:
@@ -46,7 +50,24 @@ def supabase() -> Supabase:
         url=settings.supabase_url,
         anon_key=os.environ.get("SUPABASE_ANON_KEY", LOCAL_PUBLISHABLE_KEY),
         secret_key=settings.supabase_service_role_key or LOCAL_SECRET_KEY,
+        owner_database_url=os.environ.get("SUPABASE_DB_URL", LOCAL_OWNER_DATABASE_URL),
     )
+
+
+async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID]) -> None:
+    """Removes test workspaces' ledger, batches and pipelines so the workspaces can be deleted.
+    The ledger rejects deletes, so this connects as the table owner with triggers switched off
+    for the transaction."""
+    connection = await asyncpg.connect(supabase.owner_database_url)
+    try:
+        async with connection.transaction():
+            await connection.execute("set local session_replication_role = replica")
+            for table in ("credit_ledger", "credit_batches", "pipelines"):
+                await connection.execute(
+                    f"delete from {table} where workspace_id = any($1::uuid[])", workspace_ids
+                )
+    finally:
+        await connection.close()
 
 
 # The tenancy harness (two workspaces, every role) for any test folder: see tests/tenancy.

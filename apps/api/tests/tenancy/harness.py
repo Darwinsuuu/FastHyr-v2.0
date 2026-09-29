@@ -29,7 +29,7 @@ from fastapi.testclient import TestClient
 from app.core.context import Role
 from app.core.ids import new_id
 from app.main import create_app
-from tests.conftest import Supabase
+from tests.conftest import Supabase, delete_credit_rows
 
 PASSWORD = "tenancy-password-1"
 WORKSPACES = ("a", "b")
@@ -181,6 +181,7 @@ async def _insert_workspace(
 
 
 async def _delete_workspaces(supabase: Supabase, ids: list[uuid.UUID]) -> None:
+    await delete_credit_rows(supabase, ids)
     connection = await asyncpg.connect(supabase.database_url)
     try:
         async with connection.transaction():

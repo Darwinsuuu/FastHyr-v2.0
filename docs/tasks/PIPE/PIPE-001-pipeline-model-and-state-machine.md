@@ -37,6 +37,7 @@ Pipelines exist in the database with their full setup, a strict state machine, l
 
 ## Notes and edge cases
 - Pausing never extends closes_at
+- BILL-002 already created `pipelines` with `id`, `workspace_id`, `status` (full check), `credits_reserved`, `credits_used`, `created_at`, `updated_at` and `unique (workspace_id, id)`. Add the other columns with `alter table` (existing rows are test-only), and use `services/credits.reserve`/`release` for publish, top-up, close and cancel. `consume` already moves a pipeline to `paused_no_credits`; resuming after a top-up is this task's state machine.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

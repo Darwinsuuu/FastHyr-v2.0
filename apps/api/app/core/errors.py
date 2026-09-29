@@ -120,6 +120,22 @@ class PipelineNotAcceptingError(AppError):
     title = "This pipeline isn't accepting applications"
 
 
+class DepartmentNameTakenError(AppError):
+    """Department names are unique per workspace, ignoring case (FR-WS-02)."""
+
+    status = 409
+    code = "department_name_taken"
+    title = "A department with this name already exists"
+
+
+class DepartmentNameReservedError(AppError):
+    """The name "No department" is built in (FR-WS-02)."""
+
+    status = 422
+    code = "department_name_reserved"
+    title = "This name is reserved"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

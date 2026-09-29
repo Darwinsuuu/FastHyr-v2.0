@@ -248,5 +248,105 @@
     "value": "Value",
     "candidates": "Candidates",
     "score": "Score"
+  },
+  "departments": {
+    "eyebrow": "Workspace admin",
+    "title": "Departments",
+    "intro": "Group your pipelines by team so they're easier to find, filter and report on. Departments are optional. A pipeline without one is filed under No department.",
+    "add": "Add department",
+    "summary": "Summary",
+    "stats": {
+      "departments": "Departments",
+      "departmentsSub": "plus No department",
+      "filed": "Pipelines filed",
+      "filedValue": "{filed} of {total}",
+      "filedSub": "have a department",
+      "noDepartment": "No department",
+      "noDepartmentSub": {
+        "one": "pipeline, admins only",
+        "other": "pipelines, admins only"
+      },
+      "empty": "Empty departments",
+      "emptySub": "no pipelines yet"
+    },
+    "listTitle": "All departments",
+    "search": "Search departments",
+    "noMatches": "No departments match “{query}”.",
+    "noun": {
+      "one": "department",
+      "other": "departments"
+    },
+    "columns": {
+      "department": "Department",
+      "pipelines": "Pipelines",
+      "candidates": "Candidates",
+      "access": "Who can see it",
+      "created": "Created"
+    },
+    "noDepartment": "No department",
+    "noDepartmentDescription": "Pipelines created without a department",
+    "noDescription": "No description",
+    "default": "Default",
+    "builtIn": "Built in. It can't be renamed or deleted.",
+    "pipelineCount": {
+      "one": "{count} pipeline",
+      "other": "{count} pipelines"
+    },
+    "breakdown": {
+      "active": "{count} active",
+      "scheduled": "{count} scheduled",
+      "closed": "{count} closed"
+    },
+    "noneYet": "None yet",
+    "candidateCount": {
+      "one": "{count} candidate",
+      "other": "{count} candidates"
+    },
+    "adminsOnly": "Admins only",
+    "memberCount": {
+      "one": "{count} member",
+      "other": "{count} members"
+    },
+    "unnamedMember": "Member",
+    "actionsFor": "Actions for {name}",
+    "edit": "Edit department",
+    "viewPipelines": "View its pipelines",
+    "delete": "Delete department",
+    "howTitle": "How departments work.",
+    "howBody": "Pick a department when you create a pipeline, or leave it as No department. Recruiters and hiring managers only see pipelines in the departments you give them access to in {link}. Pipelines in No department are visible to admins only. Deleting a department never deletes its pipelines or candidates.",
+    "howLink": "Manage members",
+    "loadFailed": "We couldn't load departments. Refresh the page to try again.",
+    "form": {
+      "addTitle": "Add a department",
+      "addBody": "You can file pipelines under it as soon as it's saved.",
+      "editTitle": "Edit department",
+      "editBody": "Renaming updates every pipeline in this department.",
+      "name": "Department name",
+      "namePlaceholder": "e.g. Engineering",
+      "nameHint": "Shown on pipelines and in filters. Up to 40 characters.",
+      "nameRequired": "Give the department a name.",
+      "nameTaken": "A department with this name already exists.",
+      "nameReserved": "“No department” is built in. Try another name.",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "What kind of roles does this team hire for?",
+      "save": "Save changes",
+      "saveFailed": "We couldn't save the department. Try again.",
+      "added": "{name} added",
+      "saved": "Changes saved"
+    },
+    "deleteDialog": {
+      "title": "Delete {name}?",
+      "moves": {
+        "one": "Its pipeline moves to No department.",
+        "other": "Its {count} pipelines move to No department."
+      },
+      "noPipelines": "It has no pipelines, so nothing else changes.",
+      "keepResults": "Pipelines, candidates and results stay exactly as they are.",
+      "loseAccess": "Members who only had access to this department will lose access to its pipelines.",
+      "keep": "Keep department",
+      "deleted": "{name} deleted",
+      "failed": "We couldn't delete the department. Try again."
+    },
+    "builtInShort": "Built in"
   }
 }

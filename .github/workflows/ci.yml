@@ -131,7 +131,9 @@ jobs:
         run: pnpm --filter web build
       - name: Start the API and web app
         run: |
-          (cd apps/api && uv run uvicorn app.main:app --port 8000 > "$RUNNER_TEMP/api.log" 2>&1 &)
+          # The venv's uvicorn, not `uv run`: a live uv process holds the cache lock and the
+          # setup-uv post step would wait on it and fail.
+          (cd apps/api && .venv/bin/uvicorn app.main:app --port 8000 > "$RUNNER_TEMP/api.log" 2>&1 &)
           (pnpm --filter web start > "$RUNNER_TEMP/web.log" 2>&1 &)
           for url in http://localhost:8000/health http://fasthyr.localhost:3000/login; do
             timeout 60 bash -c "until curl -sf -o /dev/null $url; do sleep 1; done" \

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | WS — Workspace admin |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [WS-003](../WS/WS-003-manage-members.md), [FND-010](../FND/FND-010-email-infrastructure-resend.md) |
 | Requirements | FR-WS-03 |

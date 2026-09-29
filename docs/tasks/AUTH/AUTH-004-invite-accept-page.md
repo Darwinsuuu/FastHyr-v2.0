@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AUTH — Authentication & workspaces |
 | Milestone | M1 Access |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [WS-004](../WS/WS-004-member-invites.md) |
 | Requirements | FR-AUTH-06 |

@@ -6,13 +6,15 @@ import {
   PlusIcon,
   SignInIcon,
   SignOutIcon,
+  UserCircleIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useRef, useState } from "react";
 
 import { TurnMark } from "@/components/brand/turn-mark";
 import { logOut } from "@/components/auth/log-out-button";
+import { ProfileDialog } from "@/components/auth/profile-dialog";
 import { Avatar, WorkspaceAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -42,6 +44,8 @@ async function openWorkspace(workspaceId: string, path: string) {
 export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
   const firstName = user.fullName.split(" ")[0] ?? "";
   const displayName = user.fullName || user.email;
+  const [profileOpen, setProfileOpen] = useState(false);
+  const accountButton = useRef<HTMLButtonElement>(null);
   const workspaces = useQuery({
     queryKey: keys.myWorkspaces(),
     queryFn: async () => unwrap(await api.GET("/v1/me/workspaces")),
@@ -69,6 +73,11 @@ export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
           title={displayName}
           items={[
             {
+              label: t("auth.profile.open"),
+              icon: <UserCircleIcon aria-hidden="true" />,
+              onSelect: () => setProfileOpen(true),
+            },
+            {
               label: t("auth.logOut"),
               icon: <SignOutIcon aria-hidden="true" />,
               destructive: true,
@@ -77,6 +86,7 @@ export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
           ]}
           trigger={
             <button
+              ref={accountButton}
               type="button"
               aria-label={t("workspaces.account")}
               className="flex min-h-11 items-center gap-2.5 rounded-pill border border-line bg-surface-raised py-1.5 pr-2.5 pl-1.5 text-ink hover:bg-surface-sunk data-[state=open]:bg-surface-sunk"
@@ -134,6 +144,13 @@ export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
           </button>
         </p>
       </main>
+
+      <ProfileDialog
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        user={{ id: user.id, name: displayName, avatarUrl: user.avatarUrl }}
+        returnFocusTo={accountButton}
+      />
     </div>
   );
 }

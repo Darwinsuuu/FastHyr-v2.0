@@ -2,7 +2,7 @@
 
 import { XIcon } from "@phosphor-icons/react";
 import * as RadixDialog from "@radix-ui/react-dialog";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, type RefObject, useState } from "react";
 
 import { Button, IconButton } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -23,6 +23,13 @@ export interface DialogProps {
   size?: "sm" | "md" | "lg";
   /** Blocks closing by Escape, scrim click and the close button (for work in progress). */
   dismissible?: boolean;
+  /** Shown before the title, e.g. a 64 px avatar in the user profile. */
+  leading?: ReactNode;
+  /**
+   * Where focus goes on close, for dialogs opened from a menu item (the item is gone by then).
+   * Without it, focus returns to whatever was focused when the dialog opened.
+   */
+  returnFocusTo?: RefObject<HTMLElement | null>;
 }
 
 const WIDTHS = { sm: "md:max-w-[480px]", md: "md:max-w-[520px]", lg: "md:max-w-[640px]" };
@@ -40,6 +47,8 @@ export function Dialog({
   footer,
   size = "md",
   dismissible = true,
+  leading,
+  returnFocusTo,
 }: DialogProps) {
   return (
     <RadixDialog.Root
@@ -59,10 +68,15 @@ export function Dialog({
             );
             (first ?? content).focus();
           }}
+          onCloseAutoFocus={(event) => {
+            if (!returnFocusTo?.current) return;
+            event.preventDefault();
+            returnFocusTo.current.focus();
+          }}
           onPointerDownOutside={(event) => !dismissible && event.preventDefault()}
           {...(description ? {} : { "aria-describedby": undefined })}
           className={cn(
-            "fixed inset-0 z-50 flex flex-col bg-surface-raised text-ink",
+            "fixed inset-0 z-50 flex flex-col bg-surface-raised text-ink outline-none",
             "md:inset-auto md:top-1/2 md:left-1/2 md:max-h-[calc(100dvh-64px)] md:w-[calc(100vw-64px)] md:-translate-x-1/2 md:-translate-y-1/2",
             "md:rounded-lg md:shadow-raised",
             "data-[state=open]:animate-[fh-rise_240ms_ease-out]",
@@ -70,7 +84,8 @@ export function Dialog({
           )}
         >
           <div className="flex items-start gap-3 px-4 pt-[max(16px,env(safe-area-inset-top))] md:px-7 md:pt-7">
-            <div className="min-w-0 flex-1 pt-1.5">
+            {leading}
+            <div className={cn("min-w-0 flex-1", leading ? "self-center" : "pt-1.5")}>
               <RadixDialog.Title className="text-[22px] leading-7 font-[650] tracking-[-0.01em]">
                 {title}
               </RadixDialog.Title>

@@ -77,6 +77,31 @@
       "pageTitle": "Verify your email",
       "resent": "We sent a new link.",
       "failed": "We couldn't send the link. Check your connection and try again."
+    },
+    "profile": {
+      "open": "User profile",
+      "subtitle": "Your FastHyr account",
+      "email": "Email",
+      "verified": "Verified",
+      "notVerified": "Not verified",
+      "signsInWith": "Signs in with",
+      "method": {
+        "google": "Google",
+        "microsoft": "Microsoft",
+        "email": "Email and password"
+      },
+      "lastSignedIn": "Last signed in",
+      "created": "Account created",
+      "userId": "User ID",
+      "copy": "Copy",
+      "copyId": "Copy user ID",
+      "copied": "Copied",
+      "copiedAnnounce": "User ID copied",
+      "copyFailed": "We couldn't copy that. Select the ID and copy it instead.",
+      "nameFrom": "Your name and photo come from your {provider} account. To change them, update them in {provider} and sign in again.",
+      "nameFromEmail": "Your account uses your email address as its name.",
+      "loadFailed": "We couldn't load your account details.",
+      "loading": "Loading your account details"
     }
   },
   "workspaces": {

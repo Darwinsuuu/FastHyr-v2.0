@@ -1,0 +1,32 @@
+name: Set up FastHyr
+description: Node, pnpm and uv with caches, then the JS and/or Python dependencies.
+inputs:
+  node:
+    description: Install Node, pnpm and the JS workspace dependencies
+    default: "true"
+  python:
+    description: Install uv, Python 3.12 and the API dependencies
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - if: inputs.node == 'true'
+      uses: pnpm/action-setup@v4
+    - if: inputs.node == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+    - if: inputs.node == 'true'
+      shell: bash
+      run: pnpm install --frozen-lockfile
+    - if: inputs.python == 'true'
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: "3.12"
+        enable-cache: true
+        cache-dependency-glob: apps/api/uv.lock
+    - if: inputs.python == 'true'
+      shell: bash
+      working-directory: apps/api
+      run: uv sync --locked

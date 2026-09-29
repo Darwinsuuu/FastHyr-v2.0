@@ -34,7 +34,7 @@ Every workspace starts with warm, ready-to-use templates for each candidate emai
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- Create the defaults for new workspaces in `create_default_email_templates()` (`app/services/workspaces.py`, called by `POST /workspaces` since AUTH-003), and backfill workspaces created before this task.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

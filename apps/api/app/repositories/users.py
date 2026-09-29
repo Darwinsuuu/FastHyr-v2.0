@@ -5,7 +5,7 @@ these as the only reads that cross workspaces, and they only ever return the use
 import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import MemberDepartment, Profile, Workspace, WorkspaceMember
@@ -51,7 +51,8 @@ class UserRepository:
         )
         return frozenset(rows)
 
-    async def list_memberships(self) -> list[MembershipRow]:
+    async def list_memberships(self, workspace_id: uuid.UUID | None = None) -> list[MembershipRow]:
+        """The user's active memberships, or just the one in `workspace_id` if given."""
         counts = (
             select(WorkspaceMember.workspace_id, func.count().label("member_count"))
             .where(WorkspaceMember.status == ACTIVE)
@@ -70,6 +71,7 @@ class UserRepository:
             .join(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
             .join(counts, counts.c.workspace_id == Workspace.id)
             .where(WorkspaceMember.user_id == self.user_id, WorkspaceMember.status == ACTIVE)
+            .where(Workspace.id == workspace_id if workspace_id else true())
             .order_by(Workspace.name, Workspace.id)
         )
         return [MembershipRow(*row) for row in rows]

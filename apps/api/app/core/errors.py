@@ -75,6 +75,34 @@ class NotFoundError(AppError):
     title = "Not found"
 
 
+class InviteNotFoundError(AppError):
+    status = 404
+    code = "invite_not_found"
+    title = "We couldn't find that invite"
+
+
+class InviteWrongEmailError(AppError):
+    """The invite is addressed to a different email than the signed-in one (FR-AUTH-06)."""
+
+    status = 403
+    code = "invite_wrong_email"
+    title = "This invite was sent to a different email"
+
+
+class InviteExpiredError(AppError):
+    status = 410
+    code = "invite_expired"
+    title = "This invite has expired"
+
+
+class InviteInvalidError(AppError):
+    """Revoked, or already used by someone else."""
+
+    status = 410
+    code = "invite_invalid"
+    title = "This invite is no longer valid"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

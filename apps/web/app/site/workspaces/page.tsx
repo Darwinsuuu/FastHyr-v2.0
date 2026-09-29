@@ -1,33 +1,49 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
-import { LogOutButton } from "@/components/auth/log-out-button";
+import { ChooseWorkspace } from "@/app/site/workspaces/choose-workspace";
+import { ApiProvider } from "@/lib/api/provider";
 import { t } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: t("auth.workspacesPageTitle") };
+export const metadata: Metadata = { title: t("workspaces.pageTitle") };
 
-// Placeholder for Choose workspace, where signed-in users with no workspace land (FR-AUTH-04).
-// AUTH-003 replaces it with the WorkspaceSelect frame (create or join a workspace).
+type Claims = {
+  sub: string;
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    name?: string;
+    avatar_url?: string;
+    picture?: string;
+    email_verified?: boolean;
+  };
+};
+
+// Choose workspace (frame WorkspaceSelect, FR-AUTH-04 to FR-AUTH-06): create a workspace or
+// join one with an invite. People who already have workspaces can open one from here too.
 export default async function WorkspacesPage() {
   const { data } = await (await supabaseServer()).auth.getClaims();
   if (!data?.claims) {
+    // Plain /login: `next` is always an app-host path, and this page is on the site host.
     redirect("/login");
   }
-  const claims = data.claims as { email?: string; user_metadata?: { full_name?: string } };
-  const name = claims.user_metadata?.full_name?.split(" ")[0] || claims.email || "";
+  const claims = data.claims as unknown as Claims;
+  // Unverified email + password accounts can't create or join a workspace (FR-AUTH-03).
+  if (claims.user_metadata?.email_verified === false) {
+    redirect("/verify-email");
+  }
+  const fullName = claims.user_metadata?.full_name || claims.user_metadata?.name || "";
   return (
-    <AuthSplitLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="type-heading lg:text-[30px] lg:leading-9">
-            {t("auth.workspacesTitle", { name })}
-          </h1>
-          <p className="text-[15px] leading-6 text-ink-muted">{t("auth.workspacesPlaceholder")}</p>
-        </div>
-        <LogOutButton className="self-start" />
-      </div>
-    </AuthSplitLayout>
+    <ApiProvider>
+      <ChooseWorkspace
+        user={{
+          id: claims.sub,
+          email: claims.email ?? "",
+          fullName,
+          avatarUrl: claims.user_metadata?.avatar_url || claims.user_metadata?.picture || null,
+        }}
+      />
+    </ApiProvider>
   );
 }

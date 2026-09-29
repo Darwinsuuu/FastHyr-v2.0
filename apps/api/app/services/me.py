@@ -21,10 +21,10 @@ async def get_me(session: AsyncSession, user: CurrentUser) -> MeResponse:
 
 async def list_my_workspaces(session: AsyncSession, user: CurrentUser) -> list[MyWorkspace]:
     rows = await UserRepository(session, user.user_id).list_memberships()
-    return [_to_workspace(row) for row in rows]
+    return [to_my_workspace(row) for row in rows]
 
 
-def _to_workspace(row: MembershipRow) -> MyWorkspace:
+def to_my_workspace(row: MembershipRow) -> MyWorkspace:
     return MyWorkspace(
         id=row.workspace_id,
         name=row.workspace_name,

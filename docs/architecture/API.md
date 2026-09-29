@@ -18,9 +18,10 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 ## Me (any signed-in user)
 | `GET /me` | profile (id, email, name, avatar, last workspace), verified status |
 | `GET /me/workspaces` | active memberships: id, name, slug, role, owner flag, member count |
-| `POST /workspaces` | create workspace (+ trial credits) |
-| `POST /invites/accept` | `{code}` or `{token}` |
-| `GET /invites/{code}` | invite preview for the join page |
+| `PUT /me/last-workspace` | `{workspace_id}`: remembers the active workspace for the next sign-in on any device (FR-AUTH-04); not a member → 404; 204 |
+| `POST /workspaces` | `{name}` (1–120 chars): create workspace; caller becomes owner (Admin); unique slug from the name; company profile stub; trial grant (BILL-002 adds the credits); becomes last workspace; 201 with the `/me/workspaces` row. Verified email only |
+| `POST /invites/accept` | `{code}` (bare code in any case, or a pasted `/join/<code>` link) or `{token}` (AUTH-004): joins with the invite's role and departments, becomes last workspace; returns the `/me/workspaces` row, also if already a member. Verified email only |
+| `GET /invites/{code}` | invite preview for the join page (AUTH-004) |
 
 ## Candidate (signed-in candidate)
 | `POST /candidate/pipelines/{pipeline_id}/resume-upload` | signed upload URL |

@@ -32,7 +32,7 @@ Invited people land on a clear page that lets the right account join the workspa
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- AUTH-003 built `POST /v1/invites/accept {code}` (role, departments, error codes `invite_not_found`, `invite_wrong_email`, `invite_expired`, `invite_invalid`). This task adds `{token}` accept and the `GET /invites/{code}` preview (inviter, role, departments, masked email for S-04).
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

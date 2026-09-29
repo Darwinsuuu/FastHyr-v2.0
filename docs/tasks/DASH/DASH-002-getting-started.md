@@ -33,7 +33,7 @@ New workspaces see a checklist that reflects real progress.
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- Replaces the AUTH-003 placeholder at app `/getting-started` (`app/ta/getting-started/`), where new workspaces open.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

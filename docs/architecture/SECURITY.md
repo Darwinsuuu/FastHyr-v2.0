@@ -46,7 +46,7 @@ Resource access failures return **404** (not 403) for resources outside the call
 - File uploads: size/type checks, PDF sanitisation, no server-side rendering of untrusted PDFs except in the worker sandbox (text extraction only). SVG logos sanitised or rasterised.
 - CORS: only the configured web origins. CSRF: API uses bearer tokens (no cookies) so CSRF doesn't apply; Next.js server actions are not used for business logic.
 - Security headers on web (CSP with Stripe/Supabase/OpenAI Realtime origins allowed, HSTS, frame-ancestors none, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy allowing camera/microphone only on `/interview/*` and `/demo/*`).
-- Rate limits (Redis): public apply endpoints, contact form, demo (per IP and global daily cap), auth-adjacent endpoints (invite accept, review request), Ava messages (per member).
+- Rate limits (Redis): public apply endpoints, contact form, demo (per IP and global daily cap), auth-adjacent endpoints (invite accept, review request; invite accept has none until Redis arrives in FND-008), Ava messages (per member).
 - Bot protection on public forms and demo start (e.g. Cloudflare Turnstile).
 - Webhooks: Stripe signature verification; Resend (Svix) signature verification; replay protection via event IDs.
 - OpenAI Realtime client secrets are short-lived (≈1 min to connect) and scoped to one session; the server sets instructions (clients cannot change them because the server re-applies them via the sideband).

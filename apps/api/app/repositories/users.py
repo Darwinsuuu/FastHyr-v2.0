@@ -4,13 +4,16 @@ these as the only reads that cross workspaces, and they only ever return the use
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select, true
+from sqlalchemy import func, or_, select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import MemberDepartment, Profile, Workspace, WorkspaceMember
 
 ACTIVE = "active"
+# How stale `last_active_at` may get before a request writes it again (WS-003).
+LAST_ACTIVE_EVERY = timedelta(minutes=5)
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,25 @@ class UserRepository:
             )
         )
         return member
+
+    async def touch_last_active(self, member: WorkspaceMember) -> None:
+        """Records activity at most every `LAST_ACTIVE_EVERY`, so most requests write nothing."""
+        seen = member.last_active_at
+        if seen is not None and datetime.now(UTC) - seen < LAST_ACTIVE_EVERY:
+            return
+        await self.session.execute(
+            update(WorkspaceMember)
+            .where(
+                WorkspaceMember.id == member.id,
+                or_(
+                    WorkspaceMember.last_active_at.is_(None),
+                    WorkspaceMember.last_active_at < func.now() - LAST_ACTIVE_EVERY,
+                ),
+            )
+            .values(last_active_at=func.now())
+            .execution_options(synchronize_session=False)
+        )
+        await self.session.commit()
 
     async def department_ids(self, member: WorkspaceMember) -> frozenset[uuid.UUID]:
         rows = await self.session.scalars(

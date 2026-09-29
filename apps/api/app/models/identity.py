@@ -28,6 +28,8 @@ class Profile(Base):
     )
     full_name: Mapped[str | None] = mapped_column(Text)
     avatar_url: Mapped[str | None] = mapped_column(Text)
+    # Copied from auth.users by triggers (lowercase), for the members list.
+    email: Mapped[str | None] = mapped_column(Text)
     last_workspace_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("workspaces.id", ondelete="SET NULL", use_alter=True)
     )

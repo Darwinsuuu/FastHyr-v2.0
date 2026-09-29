@@ -49,8 +49,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Backlog | |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Backlog | |
 | [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |
-| [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | In review | |
-| [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Backlog | |
+| [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | |
+| [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | In review | |
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Backlog | |
 | [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Backlog | |
 | [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Done | #14 |

@@ -39,7 +39,7 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 ### Workspace admin
 | `GET/PUT /workspace/company-profile` · `POST …/branding-upload` | Admin |
 | `GET/POST /departments` · `PATCH/DELETE /departments/{id}` | read: member · write: Admin. `GET` returns `{departments, no_department}`; Admins also get each department's `stats` (pipelines by active/scheduled/closed/draft, candidate count, members who can see it) and `no_department` stats. Names 1–40 chars, unique ignoring case (`409 department_name_taken`), "No department" reserved (`422 department_name_reserved`). `DELETE` moves pipelines to No department (WS-002) |
-| `GET /members` · `PATCH /members/{id}` · `DELETE /members/{id}` | Admin |
+| `GET /members` · `PATCH /members/{id}` · `DELETE /members/{id}` | Admin. `GET` returns `{members}`: every active member (owner first, then by name) with name, email, avatar, role, owner and `is_you` flags, departments (empty for Admins, who see all), `last_active_at`. `PATCH {role?, department_ids?}` (making someone Admin clears departments; unknown departments `422 unknown_department`); `DELETE` sets status `removed` (an invite brings them back). The owner can't be changed or removed (`409 owner_access_locked`), nor can your own access (`409 own_access_locked`). Changes apply on the member's next request (WS-003) |
 | `GET/POST /invites` · `POST /invites/{id}/resend` · `DELETE /invites/{id}` | Admin |
 
 ### Dashboard & analytics

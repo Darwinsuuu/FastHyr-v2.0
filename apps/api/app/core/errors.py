@@ -136,6 +136,28 @@ class DepartmentNameReservedError(AppError):
     title = "This name is reserved"
 
 
+class OwnerAccessLockedError(AppError):
+    """The workspace owner is always an Admin and can't be removed (FR-WS-04)."""
+
+    status = 409
+    code = "owner_access_locked"
+    title = "The workspace owner's access can't be changed"
+
+
+class OwnAccessLockedError(AppError):
+    """Admins can't change or remove their own access, so nobody locks themselves out."""
+
+    status = 409
+    code = "own_access_locked"
+    title = "You can't change your own access"
+
+
+class UnknownDepartmentError(AppError):
+    status = 422
+    code = "unknown_department"
+    title = "Choose departments from this workspace"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

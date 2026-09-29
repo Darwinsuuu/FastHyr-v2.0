@@ -85,6 +85,12 @@
   }
 }
 
+@keyframes fh-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
 @keyframes fh-shimmer {
   50% {
     opacity: 0.55;

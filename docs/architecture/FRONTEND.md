@@ -50,11 +50,11 @@ Rules:
 apps/web/
 ├── app/
 │   ├── site/…                   # public + candidate routes (site host), incl. /login and /auth/callback
-│   ├── ta/…                     # TA app routes (app host), shared AppShell layout
+│   ├── ta/…                     # TA app routes (app host); pages in ta/(app)/ get the AppShell layout
 │   └── fonts.ts · globals.css   # next/font families; Tailwind + tokens + base styles
 ├── components/
 │   ├── ui/                      # design-system primitives (Button, Input, Select, Dialog, Menu, Tabs, Table, Badge, Signal, Stepper, Toast, JobProgressDialog…)
-│   ├── app-shell/               # sidebar, workspace switcher, user menu, account modal
+│   ├── app-shell/               # AppShell, sidebar nav, workspace switcher, user menu, RequireAccess, PagePlaceholder
 │   ├── charts/                  # Funnel, FlowBar, WeeklyBars, Histogram, Radar, Sparkline
 │   └── <feature>/               # pipelines/, candidates/, interview/, billing/, settings/, marketing/
 ├── lib/
@@ -62,6 +62,7 @@ apps/web/
 │   ├── supabase/                # browser/server clients (auth only)
 │   ├── interview/               # WebRTC + OpenAI Realtime client, recorder, uploader, device checks
 │   ├── format/                  # dates, numbers, money (locale + workspace time zone)
+│   ├── app-nav.ts               # sidebar sections, the Action each page needs, switch destination
 │   └── permissions.ts           # UI gating mirrors API permissions (never the only check)
 ├── messages/en.json             # all UI copy (NFR-12)
 └── styles/tokens.css            # generated from docs/design/tokens.json
@@ -79,7 +80,8 @@ apps/web/
 - **Two sides:** TA screens use `side="ta"` (evergreen) components; candidate screens use `side="candidate"` (persimmon) and at most one primary action.
 - **Accessibility:** real buttons/links/inputs with labels, focus ring token, `aria-*` on icon-only buttons, reduced-motion support, keyboard-operable menus and dialogs (Radix).
 - **Empty, loading and error states** for every list and card (skeletons, not spinners, for TA tables).
-- **Feature flags:** none in MVP; unfinished screens are simply not linked.
+- **Feature flags:** none in MVP; unfinished screens are simply not linked at launch. During development every sidebar item is linked and unbuilt pages show `PagePlaceholder`; the task that builds a page replaces its file.
+- **App shell (DASH-001):** every app page sits in `app/ta/(app)/`, whose layout renders `AppShell`: the 264 px sidebar from `lg`, a top bar with a slide-out drawer below it; the workspace switcher and user menu are popovers from `md` and bottom sheets on phones. `useShell()` gives pages the user, the active workspace and its role. Nav items are hidden by role from `lib/permissions.ts` (a mirror of the API's `MATRIX`, checked by an API unit test); a page a role can't use wraps itself in `<RequireAccess action=…>`, and its endpoints still call `require()` with the same action.
 
 ## 4. Interview client (`lib/interview/`)
 - `devices.ts` — permissions, camera/mic selection, level meter, face-in-frame + wave detection (on-device, e.g. MediaPipe Face Detection; no frames leave the browser for the check).

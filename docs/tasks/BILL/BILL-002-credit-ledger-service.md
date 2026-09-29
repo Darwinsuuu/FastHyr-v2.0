@@ -4,7 +4,7 @@
 |---|---|
 | Epic | BILL — Billing & credits |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | L |
 | Depends on | [FND-003](../FND/FND-003-core-schema-identity-workspaces-members-department.md) |
 | Requirements | FR-BILL-02, FR-BILL-03, FR-BILL-04 |

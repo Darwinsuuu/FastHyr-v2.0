@@ -28,7 +28,7 @@ test("a new TA user creates a workspace and lands on Getting started", async ({ 
   // Back on Choose workspace, the new workspace is listed and opens the app.
   await page.goto("/workspaces");
   await page.getByRole("button", { name: `Open ${name}` }).click();
-  await expect(page).toHaveURL(/app\.fasthyr\.localhost:\d+\/$/);
+  await expect(page).toHaveURL(/app\.fasthyr\.localhost:\d+\/overview$/);
 });
 
 test("joining with an unknown code explains what went wrong", async ({ page }) => {

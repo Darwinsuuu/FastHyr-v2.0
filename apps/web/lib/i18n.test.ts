@@ -4,7 +4,7 @@ import { plural, t } from "./i18n";
 
 describe("messages", () => {
   it("fills placeholders", () => {
-    expect(t("app.signedInAs", { name: "Ada" })).toBe("Signed in as Ada");
+    expect(t("shell.accountMenuFor", { name: "Ada" })).toBe("Account: Ada");
   });
 
   it("picks the plural form by count", () => {

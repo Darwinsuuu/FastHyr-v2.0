@@ -119,23 +119,54 @@
     "gettingStartedPlaceholder": "Your workspace is ready. The Getting started guide is being built; for now this page confirms your workspace was created."
   },
   "app": {
-    "title": "Your FastHyr workspace",
-    "signedInAs": "Signed in as {name}",
-    "emailVerified": "Email verified",
-    "emailNotVerified": "Email not verified yet",
-    "workspacesHeading": "Your workspaces",
-    "noWorkspaces": "You're not a member of any workspace yet.",
     "role": {
       "admin": "Admin",
       "recruiter": "Recruiter",
       "hiring_manager": "Hiring manager"
     },
-    "owner": "Owner",
     "loading": "Loading…",
     "loadFailed": "We couldn't load your details. Refresh the page to try again.",
     "memberCount": {
       "one": "{count} member",
       "other": "{count} members"
+    }
+  },
+  "shell": {
+    "homeLink": "FastHyr overview",
+    "skipToContent": "Skip to content",
+    "mainNav": "Main",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "workspace": "Workspace",
+    "switchWorkspace": "Switch workspace, current: {name}",
+    "workspacesMenu": "Workspaces",
+    "yourWorkspaces": "Your workspaces",
+    "createWorkspace": "Create a workspace",
+    "createWorkspaceHint": "Start fresh for a new company or team",
+    "joinWorkspace": "Join a workspace",
+    "joinWorkspaceHint": "Use an invite link or code",
+    "switchFailed": "We couldn't switch workspace. Try again.",
+    "accountMenu": "Account",
+    "accountMenuFor": "Account: {name}",
+    "roleInWorkspace": "{role} · {workspace}",
+    "noAccessTitle": "You don't have access to this page",
+    "noAccessBody": "Your role in this workspace doesn't include it. Ask a workspace admin if you need it.",
+    "comingSoonTitle": "This page is on its way",
+    "comingSoonBody": "It's being built. Everything else in the menu works as usual.",
+    "nav": {
+      "gettingStarted": "Getting started",
+      "overview": "Overview",
+      "pipelines": "Pipelines",
+      "candidates": "Candidates",
+      "billingHeading": "Billing & usage",
+      "billing": "Billing & invoices",
+      "creditUsage": "Credit usage",
+      "adminHeading": "Workspace admin",
+      "company": "Company profile",
+      "departments": "Departments",
+      "members": "Manage members",
+      "emailTemplates": "Email templates"
     }
   },
   "ui": {

@@ -11,7 +11,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | Milestone | Tasks | Done |
 |---|---|---|
 | M0 Foundation | 14 | 7 |
-| M1 Access | 12 | 3 |
+| M1 Access | 12 | 4 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
@@ -53,8 +53,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Backlog | |
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Backlog | |
 | [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Backlog | |
-| [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Ready | |
-| [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | In review | |
+| [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | In review | |
+| [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Done | #13 |
 
 ## M2 Pipelines
 

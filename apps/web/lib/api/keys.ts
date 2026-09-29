@@ -6,4 +6,5 @@ export const keys = {
   workspace: (workspaceId: string) => ["ws", workspaceId] as const,
   departments: (workspaceId: string) => ["ws", workspaceId, "departments"] as const,
   members: (workspaceId: string) => ["ws", workspaceId, "members"] as const,
+  invites: (workspaceId: string) => ["ws", workspaceId, "invites"] as const,
 };

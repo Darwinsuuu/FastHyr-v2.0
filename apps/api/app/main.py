@@ -7,7 +7,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.api.routers import departments, me, members, workspaces
+from app.api.routers import departments, invites, me, members, workspaces
 from app.core.auth import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db import create_engine, create_sessionmaker
@@ -67,6 +67,7 @@ def create_app(
     v1.include_router(workspaces.router)
     v1.include_router(departments.router)
     v1.include_router(members.router)
+    v1.include_router(invites.router)
     app.include_router(v1)
 
     return app

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | WS — Workspace admin |
 | Milestone | M1 Access |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [WS-003](../WS/WS-003-manage-members.md) |
 | Requirements | FR-WS-06, FR-DASH-05, NFR-01 |

@@ -33,6 +33,7 @@ Invited people land on a clear page that lets the right account join the workspa
 
 ## Notes and edge cases
 - AUTH-003 built `POST /v1/invites/accept {code}` (role, departments, error codes `invite_not_found`, `invite_wrong_email`, `invite_expired`, `invite_invalid`). This task adds `{token}` accept and the `GET /invites/{code}` preview (inviter, role, departments, masked email for S-04).
+- WS-004 stores `token_hash` = SHA-256 of the link token (`services/invites.new_token_hash()`); the token itself only goes into the invite email (FND-010). Resending rotates code and token on the same row. Accepted, revoked or expired invites keep their row; `expire_invites()` marks overdue ones `expired`.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

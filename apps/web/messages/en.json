@@ -5,16 +5,46 @@
     "placeholder": "The FastHyr site is being built. This page is a placeholder."
   },
   "auth": {
+    "panelEyebrow": "For hiring teams",
+    "panelHeadline": "Every applicant, heard.",
+    "panelBody": "Screen every résumé, run structured AI interviews, and get evidence you can act on — without reading every application yourself.",
+    "copyright": "© {year} FastHyr",
+    "homeLink": "FastHyr home",
     "signInTitle": "Sign in to FastHyr",
-    "signInPlaceholderNote": "Temporary sign-in page for development. The designed page arrives with employer sign-in.",
-    "email": "Work email",
-    "password": "Password",
-    "signIn": "Sign in",
-    "signingIn": "Signing in…",
+    "signInIntro": "New here? Sign in with your work email and we'll set up your account.",
     "continueWithGoogle": "Continue with Google",
     "continueWithMicrosoft": "Continue with Microsoft",
-    "signInFailed": "We couldn't sign you in with those details. Check them and try again.",
-    "signOut": "Sign out"
+    "orUseEmail": "or use your email",
+    "email": "Work email",
+    "emailPlaceholder": "you@company.com",
+    "password": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "continue": "Continue",
+    "legal": "By continuing, you agree to FastHyr's {terms} and {privacy}.",
+    "terms": "Terms of service",
+    "privacy": "Privacy policy",
+    "provider": {
+      "google": "Google",
+      "azure": "Microsoft"
+    },
+    "error": {
+      "tooShort": "Passwords are at least 8 characters.",
+      "wrongPassword": "That password doesn't match this email. If you signed up with Google or Microsoft, use that button instead.",
+      "weakPassword": "Choose a stronger password. This one is too common or has appeared in a data breach.",
+      "rateLimited": "Too many attempts. Wait a minute, then try again.",
+      "failed": "We couldn't sign you in. Check your connection and try again.",
+      "cancelled": "Sign-in with {provider} was cancelled. Try again or use another method.",
+      "linkExpired": "That link has expired or was already used. If you've already verified your email, sign in below."
+    },
+    "checkEmailTitle": "Check your email",
+    "checkEmailBody": "We sent a link to {email}. Open it on this device to verify your address and continue.",
+    "useDifferentEmail": "Use a different email",
+    "continuing": "Signing you in…",
+    "continueFailed": "We couldn't load your workspaces. Refresh the page to try again.",
+    "logOut": "Log out",
+    "workspacesPageTitle": "Choose workspace",
+    "workspacesTitle": "Welcome, {name}. Where will you be hiring?",
+    "workspacesPlaceholder": "Creating and joining workspaces arrives soon. Until then, ask a workspace admin to add you."
   },
   "app": {
     "title": "Your FastHyr workspace",

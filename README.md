@@ -48,7 +48,7 @@ cp supabase/.env.example supabase/.env   # only for Google / Microsoft sign-in
 ```
 Use `fasthyr.localhost` and `app.fasthyr.localhost`, not plain `localhost`: browsers only share one sign-in between the two hosts when they sit under a common domain. Chrome, Edge and Firefox resolve `*.localhost` by themselves; for Safari, add `127.0.0.1 fasthyr.localhost app.fasthyr.localhost` to `/etc/hosts` once. If you copied the env files before FND-005, copy `apps/web/.env.example` again (new `NEXT_PUBLIC_*` URLs and `NEXT_PUBLIC_COOKIE_DOMAIN`), update `WEB_ORIGINS` in `apps/api/.env`, and restart Supabase so it picks up the new redirect URLs.
 
-To sign in locally without OAuth, create a user in Studio (Authentication → Add user, with "Auto confirm") and use the temporary sign-in page at http://fasthyr.localhost:3000/login. The TA app then shows your profile and workspaces from the API.
+To sign in locally without OAuth, open http://fasthyr.localhost:3000/login, enter any email and a password of 8 or more characters, and press Continue. That creates the account and sends a verification email, which you open from Mailpit at http://127.0.0.1:54324. With no workspace yet you land on Choose workspace; the TA app shows your profile and workspaces once you belong to one.
 
 The Supabase keys come from `make db-status` (the local keys are the same on every machine). Google and Microsoft sign-in need your own test OAuth apps; the steps are in the [FND-002 task log](docs/tasks/FND/FND-002-supabase-local-setup-and-environments.md#log). After editing `supabase/.env`, restart Supabase with `make db-stop db-start`.
 
@@ -77,6 +77,8 @@ Supabase keeps running after Ctrl+C, so the next `make dev` starts in seconds. `
 | What | URL |
 |---|---|
 | Public site | http://fasthyr.localhost:3000 |
+| Sign in | http://fasthyr.localhost:3000/login |
+| Local emails (Mailpit) | http://127.0.0.1:54324 |
 | TA app (sign in first) | http://app.fasthyr.localhost:3000 |
 | UI kit gallery (sign in first; local and development only) | http://app.fasthyr.localhost:3000/dev/ui |
 | API health check | http://localhost:8000/health → `{"status":"ok"}` |
@@ -88,7 +90,7 @@ Run one app at a time with `make web` or `make api`. Web changes reload in the b
 #### One-word shortcut (optional)
 Add an alias to your shell once, then type `fasthyr` in any Terminal window to start everything:
 ```bash
-echo "alias fasthyr='cd ~/Documents/GitHub/fasthyr-v2.0 && make dev'" >> ~/.zshrc
+echo "alias fasthyr='cd ~/Documents/GitHub/FastHyr-v2.0 && make dev'" >> ~/.zshrc
 source ~/.zshrc
 ```
 Change the path if your checkout lives somewhere else.
@@ -100,7 +102,9 @@ In Chrome, open DevTools (Cmd+Option+I / Ctrl+Shift+I), turn on the device toolb
 ```bash
 make lint    # Prettier, ESLint, tsc, ruff, mypy
 make test    # Vitest (web) and pytest (API)
+make e2e     # Playwright browser tests; needs `make dev` running in another terminal
 ```
+Before the first `make e2e`, install Playwright's browser once with `pnpm --filter web exec playwright install chromium`.
 
 ### Other commands
 | Command | What it does |
@@ -126,4 +130,4 @@ make test    # Vitest (web) and pytest (API)
 | Supabase port already allocated (543xx) | Another Supabase project is running; stop it with `pnpm supabase stop --project-id <its id>`, or `docker ps` to find it |
 | OAuth error `redirect_uri_mismatch` | The OAuth app is missing `http://127.0.0.1:54321/auth/v1/callback` as a redirect URI |
 
-Status: monorepo scaffold (FND-001), local Supabase (FND-002), core schema (FND-003), the API skeleton (FND-004: sign-in checks, workspace context, permissions, error format, `GET /v1/me`) and the web skeleton (FND-005: site and app hosts, design tokens and fonts, sign-in session, typed API client) in place; see the task board for what's next.
+Status: monorepo scaffold (FND-001), local Supabase (FND-002), core schema (FND-003), the API skeleton (FND-004: sign-in checks, workspace context, permissions, error format, `GET /v1/me`) the web skeleton (FND-005: site and app hosts, design tokens and fonts, sign-in session, typed API client), the UI kit (FND-012) and employer sign-in (AUTH-001: Google, Microsoft and email + password at `/login`, log out) in place; see the task board for what's next.

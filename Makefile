@@ -1,6 +1,6 @@
 # FastHyr monorepo commands. Run `make setup` once, then `make dev`.
 # Local Supabase runs in Docker, so Docker Desktop must be running for setup and db-* targets.
-.PHONY: setup dev stop down api worker web lint lint-web lint-api test test-web test-api api-client db-start db-stop db-status db-reset db-drift
+.PHONY: setup dev stop down api worker web lint lint-web lint-api test test-web test-api e2e api-client db-start db-stop db-status db-reset db-drift
 
 API_DIR := apps/api
 
@@ -46,6 +46,10 @@ test-web:
 
 test-api:
 	cd $(API_DIR) && uv run pytest
+
+# Browser tests of the core journeys (Playwright). Needs `make dev` running in another terminal.
+e2e:
+	pnpm --filter web e2e
 
 # Regenerate the TypeScript client types from the FastAPI OpenAPI schema.
 api-client:

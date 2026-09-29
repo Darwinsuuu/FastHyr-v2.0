@@ -1,21 +1,34 @@
-import { LoginForm } from "@/app/site/login/login-form";
-import { t } from "@/lib/i18n";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-// Temporary sign-in so the session and API client can be tested. AUTH-001 replaces this page
-// with the designed EmployerLogin screen.
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string; error?: string }>;
-}) {
-  const { next, error } = await searchParams;
+import { type LoginNotice, LoginForm } from "@/app/site/login/login-form";
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
+import { continuePath, isOAuthProvider } from "@/lib/auth/flow";
+import { t } from "@/lib/i18n";
+import { supabaseServer } from "@/lib/supabase/server";
+
+export const metadata: Metadata = { title: t("auth.signInTitle") };
+
+type Search = { next?: string; error?: string; provider?: string };
+
+function noticeFrom({ error, provider }: Search): LoginNotice | null {
+  if (error === "cancelled" && isOAuthProvider(provider)) return { kind: "cancelled", provider };
+  if (error === "link-expired") return { kind: "linkExpired" };
+  if (error) return { kind: "failed" };
+  return null;
+}
+
+// Employer sign-in (frame EmployerLogin, FR-AUTH-01). Signed-in visitors go straight on.
+export default async function LoginPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const search = await searchParams;
+  const next = search.next ?? null;
+  const { data } = await (await supabaseServer()).auth.getClaims();
+  if (data?.claims) {
+    redirect(continuePath(next));
+  }
   return (
-    <main className="page-gutter py-12">
-      <div className="mx-auto w-full max-w-sm">
-        <h1 className="type-heading">{t("auth.signInTitle")}</h1>
-        <p className="type-body-sm mt-2 text-ink-muted">{t("auth.signInPlaceholderNote")}</p>
-        <LoginForm next={next ?? null} failed={error === "signin"} />
-      </div>
-    </main>
+    <AuthSplitLayout>
+      <LoginForm next={next} notice={noticeFrom(search)} />
+    </AuthSplitLayout>
   );
 }

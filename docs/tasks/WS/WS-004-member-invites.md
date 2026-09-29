@@ -28,11 +28,11 @@ Admins invite teammates by email with a role and departments; invites can be res
 - —
 
 ## Acceptance criteria
-- [ ] Resend invalidates the old link
-- [ ] Revoked/expired invites can't be accepted
-- [ ] Duplicate invite to same email replaces the previous
-- [ ] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] Resend invalidates the old link
+- [x] Revoked/expired invites can't be accepted
+- [x] Duplicate invite to same email replaces the previous
+- [x] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - Built before FND-010 (email) and FND-008 (worker) with Darwin's OK (2026-09-29): the invite is created, resent and revoked as specified, and the admin gets the code with a ready-to-send message to copy. `services/invites.send_invite_email()` is the one place FND-010 fills in; `services/invites.expire_invites()` is the job FND-008 registers as a cron. Until then, `POST /invites/accept` already refuses an invite past its `expires_at`.

@@ -1,16 +1,21 @@
 // Reads emails that local Supabase delivered to Mailpit (supabase/config.toml [inbucket]).
 const MAILPIT_URL = process.env.E2E_MAILPIT_URL ?? "http://127.0.0.1:54324";
 
-type Summary = { ID: string; To: { Address: string }[] };
+type Summary = { ID: string; Subject: string; To: { Address: string }[] };
 
-/** The first link in the newest email to `address`, waiting up to 10 s for it to arrive. */
-export async function latestLinkTo(address: string): Promise<string> {
+/**
+ * The first link in the newest email to `address` (whose subject contains `subject`, if given),
+ * waiting up to 10 s for it to arrive.
+ */
+export async function latestLinkTo(address: string, subject?: string): Promise<string> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const list = (await (await fetch(`${MAILPIT_URL}/api/v1/messages`)).json()) as {
       messages: Summary[];
     };
-    const summary = list.messages.find((message) =>
-      message.To.some((to) => to.Address === address),
+    const summary = list.messages.find(
+      (message) =>
+        message.To.some((to) => to.Address === address) &&
+        (!subject || message.Subject.includes(subject)),
     );
     if (summary) {
       const message = (await (

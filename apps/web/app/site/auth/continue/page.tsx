@@ -18,5 +18,11 @@ export default async function ContinuePage({
   if (!data?.claims) {
     redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
   }
+  // Only reachable if email confirmation is ever turned off: an unverified email + password
+  // account can't use or join a workspace until it verifies (FR-AUTH-03).
+  const metadata = data.claims.user_metadata as { email_verified?: boolean } | undefined;
+  if (metadata?.email_verified === false) {
+    redirect(next ? `/verify-email?next=${encodeURIComponent(next)}` : "/verify-email");
+  }
   return <ContinueToApp next={next ?? null} />;
 }

@@ -15,7 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser, TokenVerifier, bearer_token
 from app.core.context import CandidateContext, RequestContext, Role
 from app.core.db import get_session
-from app.core.errors import ForbiddenError, NotAMemberError, WorkspaceRequiredError
+from app.core.errors import (
+    EmailNotVerifiedError,
+    ForbiddenError,
+    NotAMemberError,
+    WorkspaceRequiredError,
+)
 from app.core.permissions import Action, can
 from app.repositories.users import UserRepository
 
@@ -31,6 +36,17 @@ async def get_current_user(
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]
+
+
+async def get_verified_user(user: CurrentUserDep) -> CurrentUser:
+    """The caller, if their email is verified; else 403 `email_not_verified`. For endpoints that
+    create or join a workspace (FR-AUTH-03). Google and Microsoft sign-ins arrive verified."""
+    if not user.email_verified:
+        raise EmailNotVerifiedError()
+    return user
+
+
+VerifiedUserDep = Annotated[CurrentUser, Depends(get_verified_user)]
 
 
 async def get_request_context(

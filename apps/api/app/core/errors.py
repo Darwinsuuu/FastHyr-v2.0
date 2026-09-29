@@ -58,6 +58,15 @@ class ForbiddenError(AppError):
     title = "Your role cannot do this"
 
 
+class EmailNotVerifiedError(AppError):
+    """Email + password accounts verify their email before creating or joining a workspace
+    (FR-AUTH-03)."""
+
+    status = 403
+    code = "email_not_verified"
+    title = "Verify your email first"
+
+
 class NotFoundError(AppError):
     """Also used for resources outside the caller's workspace or scope, so they stay invisible."""
 

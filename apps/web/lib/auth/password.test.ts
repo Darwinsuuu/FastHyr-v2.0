@@ -6,7 +6,7 @@ import { continueWithPassword } from "@/lib/auth/password";
 const details = {
   email: "ta@example.com",
   password: "correct-horse",
-  emailRedirectTo: "http://fasthyr.localhost:3000/auth/callback",
+  emailRedirectTo: "http://fasthyr.localhost:3000/auth/confirm?next=",
 };
 
 function authError(code: string, status = 400) {

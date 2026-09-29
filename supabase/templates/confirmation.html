@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Verify your email</title>
+</head>
+<!-- FastHyr auth email (AUTH-002), sent by Supabase Auth. Styles are inline for email clients. -->
+<body style="margin:0;padding:0;background:#F7F2EA;color:#1E2A26;font-family:'Hanken Grotesk','Helvetica Neue',Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Verify your email to finish setting up FastHyr.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F2EA;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;font-family:Georgia,serif;font-size:22px;font-weight:600;color:#1F4D43;">FastHyr</td></tr>
+<tr><td style="background:#FFFCF7;border-radius:16px;padding:32px 28px;">
+<h1 style="margin:0 0 16px;font-size:24px;line-height:30px;font-weight:700;color:#1E2A26;">Verify your email</h1>
+<p style="margin:0;font-size:15px;line-height:23px;color:#1E2A26;">Open this link to verify {{ .Email }} and finish setting up your FastHyr account.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#1F4D43;border-radius:12px;">
+<a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email" style="display:inline-block;padding:14px 24px;font-size:15px;font-weight:600;color:#FFFCF7;text-decoration:none;">Verify my email</a>
+</td></tr></table>
+<p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#5A625D;">The link works once and expires in 1 hour. If you didn't sign up for FastHyr, you can ignore this email.</p>
+<p style="margin:0;font-size:14px;line-height:21px;color:#5A625D;">If the button doesn't work, copy this link into your browser:<br><a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email" style="color:#1F4D43;word-break:break-all;">{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:13px;line-height:20px;color:#5A625D;">The FastHyr team</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

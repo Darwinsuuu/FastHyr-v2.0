@@ -1,5 +1,6 @@
 """Access-token verification: only valid, unexpired Supabase tokens for our project pass."""
 
+import asyncio
 import time
 import uuid
 from typing import Any
@@ -8,8 +9,9 @@ import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
 
+from app.api.deps import get_verified_user
 from app.core.auth import TokenVerifier, bearer_token
-from app.core.errors import UnauthenticatedError
+from app.core.errors import EmailNotVerifiedError, UnauthenticatedError
 
 ISSUER = "http://127.0.0.1:54321/auth/v1"
 AUDIENCE = "authenticated"
@@ -87,3 +89,15 @@ def test_token_without_expiry_is_rejected() -> None:
 def test_missing_bearer_is_unauthenticated(header: str | None) -> None:
     with pytest.raises(UnauthenticatedError):
         bearer_token(header)
+
+
+def test_unverified_email_cannot_pass_the_verified_user_check() -> None:
+    """FR-AUTH-03: workspace create and join depend on `get_verified_user`."""
+    unverified = VERIFIER.verify_sync(make_token(user_metadata={"email_verified": False}))
+    missing = VERIFIER.verify_sync(make_token(user_metadata={}))
+    verified = VERIFIER.verify_sync(make_token())
+
+    for user in (unverified, missing):
+        with pytest.raises(EmailNotVerifiedError):
+            asyncio.run(get_verified_user(user))
+    assert asyncio.run(get_verified_user(verified)) is verified

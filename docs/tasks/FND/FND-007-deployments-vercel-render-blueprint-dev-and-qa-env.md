@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [FND-006](../FND/FND-006-ci-pipeline.md), [FND-008](../FND/FND-008-background-worker-and-job-framework.md) |
 | Requirements | NFR-05 |

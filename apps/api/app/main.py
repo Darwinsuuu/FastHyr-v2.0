@@ -7,7 +7,16 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.api.routers import departments, dev, invites, jobs, me, members, workspaces
+from app.api.routers import (
+    departments,
+    dev,
+    invites,
+    jobs,
+    me,
+    members,
+    webhooks_resend,
+    workspaces,
+)
 from app.core.auth import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db import create_engine, create_sessionmaker
@@ -74,7 +83,8 @@ def create_app(
     v1.include_router(members.router)
     v1.include_router(invites.router)
     v1.include_router(jobs.router)
-    if settings.app_env == "local":
+    v1.include_router(webhooks_resend.router)
+    if settings.app_env in ("local", "development"):
         v1.include_router(dev.router)
     app.include_router(v1)
 

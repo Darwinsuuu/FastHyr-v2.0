@@ -172,6 +172,14 @@ class WorkspaceRequiredError(AppError):
     title = "Choose a workspace first"
 
 
+class InvalidWebhookSignatureError(AppError):
+    """A webhook whose signature doesn't match its provider's secret, or is too old (FND-010)."""
+
+    status = 400
+    code = "invalid_webhook_signature"
+    title = "Webhook signature check failed"
+
+
 def problem_response(
     request: Request,
     *,

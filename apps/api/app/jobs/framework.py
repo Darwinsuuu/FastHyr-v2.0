@@ -46,14 +46,21 @@ DEFAULT_RETRY = RetryPolicy()
 NO_RETRY = RetryPolicy(max_tries=1)
 
 
+class PermanentJobError(Exception):
+    """Raised (or subclassed) by a job body when retrying can't help: the wrapper goes straight
+    to the failure hook. Give subclasses a stable `code` for the failure record."""
+
+
 @dataclass
 class JobRun:
-    """What a job body gets: an open session (the body commits) and which try this is."""
+    """What a job body gets: an open session (the body commits), which try this is, the queue
+    for follow-up jobs, and the worker context (shared clients such as the email sender)."""
 
     session: AsyncSession
     job_try: int
     job_id: str
-    queue: JobQueue  # for jobs that enqueue the next step
+    queue: JobQueue
+    ctx: dict[Any, Any]
 
 
 FailureHook = Callable[[AsyncSession, BaseException, tuple[Any, ...]], Awaitable[None]]
@@ -78,7 +85,7 @@ def job(
             async with sessionmaker() as session:
                 try:
                     return await body(
-                        JobRun(session, job_try, ctx.get("job_id", ""), ctx["queue"]),
+                        JobRun(session, job_try, ctx.get("job_id", ""), ctx["queue"], ctx),
                         *args,
                         **kwargs,
                     )
@@ -86,7 +93,7 @@ def job(
                     raise
                 except Exception as error:
                     await session.rollback()
-                    if job_try < retry.max_tries:
+                    if job_try < retry.max_tries and not isinstance(error, PermanentJobError):
                         delay = retry.delay(job_try)
                         logger.warning(
                             "job %s try %d failed (%s); retrying in %ds",

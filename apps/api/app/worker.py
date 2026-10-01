@@ -14,6 +14,8 @@ from arq.worker import Function, func
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
+from app.integrations.email import sender_from_settings
+from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.reports import sample_report_job
@@ -26,7 +28,7 @@ def register(function: WorkerFunction) -> Function:
     return func(function, name=function.__qualname__, max_tries=retry_policy_of(function).max_tries)
 
 
-FUNCTIONS: list[Function] = [register(sample_report_job)]
+FUNCTIONS: list[Function] = [register(sample_report_job), register(send_email)]
 
 CRON_JOBS: list[CronJob] = [
     # Hourly crons run at different minutes so they don't all start at once.
@@ -38,10 +40,12 @@ CRON_JOBS: list[CronJob] = [
 
 async def startup(ctx: dict[str, Any]) -> None:
     configure_logging()
-    engine = create_engine(get_settings())
+    settings = get_settings()
+    engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests run a worker on their own queue and pass its name in `ctx`.
+    # Tests pass a fake email sender and their own queue's name in `ctx`.
+    ctx.setdefault("email_sender", sender_from_settings(settings))
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 

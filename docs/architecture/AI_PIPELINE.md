@@ -9,6 +9,13 @@ All AI runs on OpenAI (ADR-007) through `apps/api/app/ai/`. This document define
 4. **Deterministic settings.** Low temperature for scoring; seeds where supported; record model + prompt version.
 5. **Humans decide.** AI outputs are recommendations stored with `ai_decisions`; review routes exist for every automated outcome (ADR-015).
 
+## How to call a model (FND-013)
+- `app/ai/client.py`: `AIClient.structured(purpose, prompt, variables, schema, workspace_id, entity_id, temperature)` → a validated Pydantic object. The schema is sent as a strict JSON schema (Responses API, `store=False`); an answer that is not valid JSON, misses the schema, is refused or cut off is retried once, then `AIOutputError` (`ai_invalid_output`). Network errors, rate limits and 5xx are retried by the SDK (2 retries, `OPENAI_TIMEOUT_SECONDS`), then `AIUnavailableError` (`ai_unavailable`), which jobs retry.
+- Every try writes an `ai_calls` row (model, `<name>@v<N>`, tokens, cost from `OPENAI_PRICES`, latency, status) in its own transaction.
+- Prompts: `app/ai/prompts/<name>@v<N>.md` with `# System` and `# User` sections and `${placeholders}` (`load_prompt(name, version)`); a missing value is an error. Schemas: `app/ai/schemas/`.
+- `AI_FAKE=1` swaps in `FakeAIClient`, which answers from `app/ai/fixtures/<name>@v<N>.json` with no network (local development, CI, e2e). Each prompt task adds its fixture.
+- `tests/ai_eval/`: the evaluation harness (`harness.py`: cases, ranges, counterfactual parity); skipped unless `AI_EVAL=1`.
+
 ## 1. Résumé screening (`screen_resume`)
 **Steps**
 1. **Extract** text with `pdfplumber` (layout-aware). If < 200 characters of text → `resume_status = unreadable`; stop (TA sees "Couldn't read résumé").

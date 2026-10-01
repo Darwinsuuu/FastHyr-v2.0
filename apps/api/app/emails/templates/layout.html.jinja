@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ subject }}</title>
+<style>p{margin:0 0 16px;} ul{margin:0 0 16px;padding-left:20px;}</style>
+</head>
+{#- FastHyr email layout (FND-010). Styles are inline for email clients; colours match the
+    Supabase auth templates in supabase/templates/. -#}
+<body style="margin:0;padding:0;background:#F7F2EA;color:#1E2A26;font-family:'Hanken Grotesk','Helvetica Neue',Arial,sans-serif;">
+{%- if preheader %}
+<div style="display:none;max-height:0;overflow:hidden;">{{ preheader }}</div>
+{%- endif %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F2EA;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+{%- if banner_url %}
+<tr><td style="padding:0 0 20px;"><img src="{{ banner_url }}" alt="{{ company or 'FastHyr' }}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;"></td></tr>
+{%- else %}
+<tr><td style="padding:0 4px 20px;font-family:Georgia,serif;font-size:22px;font-weight:600;color:#1F4D43;">{{ company or "FastHyr" }}</td></tr>
+{%- endif %}
+<tr><td style="background:#FFFCF7;border-radius:16px;padding:32px 28px;font-size:15px;line-height:23px;color:#1E2A26;">
+{%- if heading %}
+<h1 style="margin:0 0 16px;font-size:24px;line-height:30px;font-weight:700;color:#1E2A26;">{{ heading }}</h1>
+{%- endif %}
+{{ body_html }}
+{%- if button %}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#1F4D43;border-radius:12px;">
+<a href="{{ button.url }}" style="display:inline-block;padding:14px 24px;font-size:15px;font-weight:600;color:#FFFCF7;text-decoration:none;">{{ button.label }}</a>
+</td></tr></table>
+{%- endif %}
+{%- if after_html %}
+{{ after_html }}
+{%- endif %}
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:13px;line-height:20px;color:#5A625D;">
+{%- if company %}
+Sent by {{ company }} via FastHyr · <a href="{{ site_url }}/ai-in-hiring" style="color:#5A625D;">Why am I getting this?</a> · <a href="{{ site_url }}/privacy" style="color:#5A625D;">Privacy</a>
+{%- else %}
+The FastHyr team
+{%- endif %}
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -89,9 +89,10 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 | `GET /jobs/{id}` | any member, own jobs only (anyone else gets 404): `{id, kind, status, step, steps_total, error, created_at, finished_at}`; `error` is a stable code. Poll until `status` is `done`, `failed` or `cancelled` (FND-008) |
 | `DELETE /jobs/{id}` | cancel a queued or running job (the worker stops before its next step); a finished job stays as it is; 204 (FND-008) |
 
-### Local only
-| `POST /dev/sample-job` `{steps, step_seconds, fail_tries}` | only when `APP_ENV=local`, left out of OpenAPI: queues the demo `sample_report_job` (202 with the job) to try the job framework by hand (FND-008) |
+### Local and development only
+| `POST /dev/test-email` | queues the test email to the caller's own address; 202 `{message_id}` (FND-010) |
+| `POST /dev/sample-job` `{steps, step_seconds, fail_tries}` | only when `APP_ENV` is `local` or `development`, left out of OpenAPI: queues the demo `sample_report_job` (202 with the job) to try the job framework by hand (FND-008) |
 
 ## Webhooks
 | `POST /webhooks/stripe` | signature-verified; stored in `stripe_events` then processed by the worker |
-| `POST /webhooks/resend` | delivery status updates |
+| `POST /webhooks/resend` | delivery status updates (FND-010): Svix signature (`svix-id`, `svix-timestamp`, `svix-signature`, 5-minute tolerance) checked against `RESEND_WEBHOOK_SECRET`, else `400 invalid_webhook_signature`; `email.delivered`, `email.bounced`, `email.complained`, `email.failed` move the email by `data.email_id` (a bounce or complaint is never undone by a late delivered); other events and unknown emails are ignored; 204 |

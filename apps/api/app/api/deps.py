@@ -22,9 +22,18 @@ from app.core.errors import (
     WorkspaceRequiredError,
 )
 from app.core.permissions import Action, can
+from app.jobs.queue import JobQueue
 from app.repositories.users import UserRepository
 
 Session = Annotated[AsyncSession, Depends(get_session)]
+
+
+def get_job_queue(request: Request) -> JobQueue:
+    queue: JobQueue = request.app.state.job_queue
+    return queue
+
+
+JobQueueDep = Annotated[JobQueue, Depends(get_job_queue)]
 
 
 async def get_current_user(

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | BILL — Billing & credits |
 | Milestone | M2 Pipelines |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [FND-004](../FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md), [FND-008](../FND/FND-008-background-worker-and-job-framework.md) |
 | Requirements | FR-BILL-01 |

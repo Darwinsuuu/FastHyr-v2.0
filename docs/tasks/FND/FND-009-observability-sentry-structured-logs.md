@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [FND-005](../FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md), [FND-008](../FND/FND-008-background-worker-and-job-framework.md) |
 | Requirements | NFR-08, NFR-03 |

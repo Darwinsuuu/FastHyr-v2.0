@@ -37,3 +37,10 @@ async def send_test_email(
     RESEND_API_KEY is set). Its status is in email_messages."""
     message_id = await email_service.send_test_email(session, ctx, queue, settings)
     return TestEmailQueued(message_id=message_id)
+
+
+@router.post("/error", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+async def raise_test_error(ctx: RequestContextDep) -> None:
+    """Raises an unhandled error through the real 500 handler, to check that it reaches Sentry
+    tagged with the request, user and workspace IDs and nothing personal (FND-009)."""
+    raise RuntimeError(f"FastHyr test error from workspace {ctx.workspace_id}")

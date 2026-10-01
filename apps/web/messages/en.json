@@ -582,5 +582,10 @@
     "failed": "Check your connection and try again.",
     "retry": "Try again",
     "toWorkspaces": "Go to your workspaces"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "We hit a problem showing this page and our team has been told. Try again, or come back in a few minutes.",
+    "retry": "Try again"
   }
 }

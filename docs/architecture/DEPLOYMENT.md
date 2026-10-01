@@ -79,8 +79,12 @@ make db-drift     # fail if app/models and the migrated database disagree
 - **Supabase Auth config** (providers, redirect URLs, SMTP, email templates) kept in `supabase/config.toml` and applied per environment.
 
 ## 5. Observability
-- Sentry projects: `web`, `api`, `worker` with release tags = git SHA.
-- Logs: Render log streams (JSON). Key metrics logged per job: duration, retries, AI cost.
+- Sentry projects: `web`, `api`, `worker` with release tags = git SHA (FND-009).
+  - Web (Vercel): `NEXT_PUBLIC_SENTRY_DSN` = the web project's DSN; for readable stack traces also `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` (source maps upload at build). The release comes from `VERCEL_GIT_COMMIT_SHA`.
+  - API and worker (Render): `SENTRY_DSN` = the api project's DSN on the API service and the worker project's DSN on the worker service. The release comes from `RENDER_GIT_COMMIT` (or `GIT_SHA`).
+  - An empty DSN sends nothing. Events never carry personal data: scrub rules in `apps/api/app/core/scrub.py` and `apps/web/lib/observability/scrub.ts` (no bodies, cookies, query strings or local variables; user = ID only; emails and tokens masked). Tags: `request_id`, `user_id`, `workspace_id`, `job`, `job_id`, `component`.
+  - Check a deployment: API and worker, run `python -m app.core.observability --component api` (or `worker`) in the service's Render shell; web, open `/dev/sentry` on the app host (development only) or watch for real errors.
+- Logs: Render log streams, one JSON object per line (`LOG_FORMAT=json` is the default outside local) with `request_id` or `job` / `job_id`, plus `user_id` and `workspace_id` when known. The API writes one `request` line per request (method, route template such as `/v1/invites/{key}`, status, duration) in place of uvicorn's access log, so client IPs and query strings stay out. Key metrics logged per job: duration, retries, AI cost.
 - Uptime checks on `/health`, apply page and login.
 
 ## 6. Launch checklist (summary; full list in task REL-003)

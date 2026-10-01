@@ -29,6 +29,13 @@ web:
 worker:
 	cd $(API_DIR) && uv run arq app.worker.WorkerSettings --watch app
 
+# Sends one test error to the API's and the worker's Sentry projects (FND-009). Needs SENTRY_DSN
+# in apps/api/.env; with it empty nothing is sent. Hosted services: run the python command in a
+# Render shell with --component api or --component worker.
+sentry-test:
+	cd $(API_DIR) && uv run python -m app.core.observability --component api
+	cd $(API_DIR) && uv run python -m app.core.observability --component worker
+
 # Local Redis for the job queue, in Docker.
 redis-start:
 	@scripts/redis-start.sh

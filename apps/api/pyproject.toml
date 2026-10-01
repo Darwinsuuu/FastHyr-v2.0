@@ -17,6 +17,8 @@ dependencies = [
     "nh3>=0.3.7",
     "httpx2>=2.13.1",
     "pikepdf>=10.16.0",
+    "sentry-sdk[fastapi]>=2.71.0",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]

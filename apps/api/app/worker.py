@@ -14,6 +14,7 @@ from arq.worker import Function, func
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
+from app.core.observability import init_sentry
 from app.integrations.email import sender_from_settings
 from app.integrations.storage import storage_from_settings
 from app.jobs.emails import send_email
@@ -47,8 +48,9 @@ CRON_JOBS: list[CronJob] = [
 
 
 async def startup(ctx: dict[str, Any]) -> None:
-    configure_logging()
     settings = get_settings()
+    configure_logging(settings.log_level, settings.resolved_log_format)
+    init_sentry(settings, "worker")
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)

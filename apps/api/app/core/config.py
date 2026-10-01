@@ -46,6 +46,19 @@ class Settings(BaseSettings):
     # AI_FAKE=1 answers every AI call from fixtures (app/ai/fixtures/), with no network.
     ai_fake: bool = False
 
+    # Observability (FND-009). An empty SENTRY_DSN sends nothing. The API and worker are separate
+    # Sentry projects, so each Render service sets its own DSN.
+    sentry_dsn: str = ""
+    # Defaults to APP_ENV.
+    sentry_environment: str = ""
+    sentry_traces_sample_rate: float = 0.0
+    # The release tag is the git SHA; Render sets RENDER_GIT_COMMIT on every deploy.
+    git_sha: str = ""
+    render_git_commit: str = ""
+    log_level: str = "INFO"
+    # Empty means console lines locally and JSON everywhere else.
+    log_format: Literal["", "json", "console"] = ""
+
     @field_validator("web_origins", mode="before")
     @classmethod
     def split_origins(cls, value: object) -> object:
@@ -60,6 +73,16 @@ class Settings(BaseSettings):
         if self.resend_api_key:
             return "resend"
         return "smtp" if self.app_env == "local" else "log"
+
+    @property
+    def release(self) -> str | None:
+        return self.git_sha or self.render_git_commit or None
+
+    @property
+    def resolved_log_format(self) -> Literal["json", "console"]:
+        if self.log_format:
+            return self.log_format
+        return "console" if self.app_env == "local" else "json"
 
     @property
     def jwks_url(self) -> str:

@@ -26,9 +26,9 @@ Errors from web, API and worker reach Sentry with request IDs and without person
 - —
 
 ## Acceptance criteria
-- [ ] Test error appears in each Sentry project
+- [x] Test error appears in each Sentry project (WEB-1, WEB-2, API-1, WORKER-1 on 2026-10-01)
 - [x] No emails/names appear in captured events (checked with a fixture)
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - —

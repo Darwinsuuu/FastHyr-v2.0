@@ -58,10 +58,9 @@ def supabase() -> Supabase:
 
 
 async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID]) -> None:
-    """Removes test workspaces' emails, report jobs, audit log, ledger, batches and pipelines so the
-    workspaces can be
-    deleted. The audit log and ledger reject deletes, so this connects as the table owner with
-    triggers switched off for the transaction."""
+    """Removes test workspaces' emails, report jobs, AI call log, audit log, ledger, batches and
+    pipelines so the workspaces can be deleted. The audit log and ledger reject deletes, so this
+    connects as the table owner with triggers switched off for the transaction."""
     connection = await asyncpg.connect(supabase.owner_database_url)
     try:
         async with connection.transaction():
@@ -69,6 +68,7 @@ async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID])
             for table in (
                 "email_messages",
                 "report_jobs",
+                "ai_calls",
                 "audit_log",
                 "credit_ledger",
                 "credit_batches",

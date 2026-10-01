@@ -120,7 +120,7 @@ A trigger rejects updates to setup columns when `locked_at is not null`.
 
 ### Compliance and ops
 **ai_decisions** (append-only) — `id`, `workspace_id`, `application_id`, `type` (`resume_screen|interview_score|integrity_flag`), `outcome`, `score`, `threshold`, `model`, `prompt_version`, `input_ref`, `output jsonb`, `created_at`.
-**ai_calls** — `id`, `workspace_id` (nullable), `purpose`, `entity_id`, `model`, `prompt_version`, `input_tokens`, `output_tokens`, `audio_seconds`, `cost_usd`, `latency_ms`, `status`, `created_at`.
+**ai_calls** — `id`, `workspace_id` (nullable), `purpose`, `entity_id` (no FK), `model`, `prompt_version` (`<name>@v<N>`), `input_tokens`, `output_tokens`, `audio_seconds`, `cost_usd` (null when the model has no price in `OPENAI_PRICES`), `latency_ms`, `status` (`ok|invalid_output|error`), `created_at`. One row per try, written in its own transaction by `app/ai/` (FND-013); never prompt or output text.
 **audit_log** (append-only) — `id`, `workspace_id`, `actor_id` (no FK, null for system actions), `action`, `entity_type`, `entity_id`, `data jsonb`, `created_at`.
 **deletion_requests** — `id`, `workspace_id`, `candidate_id`, `requested_by`, `reason`, `status`, `completed_at` (keeps only this minimal record after deletion).
 **demo_sessions** — `id`, `ip_hash`, `jd_text`, `resume_text` (redacted), `settings jsonb`, `status`, `talk_seconds`, `created_at`, `expires_at` (+24 h hard delete).

@@ -36,7 +36,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Backlog | |
 | [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Ready | |
 | [FND-012](FND/FND-012-ui-kit-design-system-components.md) | UI kit (design-system components) | L | FND-005 | Done | #7, #8 |
-| [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | Ready | |
+| [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | In review | |
 | [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Ready | |
 
 ## M1 Access

@@ -10,3 +10,11 @@ regexes = [
   '''sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH''',
   '''sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz''',
 ]
+
+# The Resend webhook signing secret the API tests sign their fake webhooks with (base64 of
+# "test-secret-for-fasthyr"). Real secrets come from RESEND_WEBHOOK_SECRET per environment.
+[[allowlists]]
+description = "Test-only Resend webhook secret"
+regexes = [
+  '''whsec_dGVzdC1zZWNyZXQtZm9yLWZhc3RoeXI=''',
+]

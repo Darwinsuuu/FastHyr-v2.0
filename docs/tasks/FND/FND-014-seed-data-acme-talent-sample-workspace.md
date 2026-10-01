@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [FND-003](../FND/FND-003-core-schema-identity-workspaces-members-department.md) |
 | Requirements | — |

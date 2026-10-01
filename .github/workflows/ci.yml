@@ -23,7 +23,7 @@ env:
   SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID: ci-unused
   SUPABASE_AUTH_EXTERNAL_AZURE_SECRET: ci-unused
   # Services CI never uses; skipping them saves image pulls.
-  SUPABASE_SKIP: studio,imgproxy,logflare,vector,edge-runtime,postgres-meta,realtime,storage-api,supavisor
+  SUPABASE_SKIP: studio,imgproxy,logflare,vector,edge-runtime,postgres-meta,realtime,supavisor
 
 jobs:
   web:

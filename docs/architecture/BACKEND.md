@@ -77,11 +77,12 @@ apps/api/
 | cron `expire_credit_batches` | hourly | ledger entries |
 | cron `dispatch_scheduled_emails` | every minute | |
 | cron `retention_purge` | daily | `compliance/PRIVACY.md` |
+| cron `remove_storage_orphans` | daily 03:25 UTC | deletes temp uploads (`tmp/`) and demo files older than 24 h (FND-011); later tasks add files whose rows are gone |
 | cron `purge_demo_sessions` | hourly | |
 | cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); applications/interviews in processing states (their tasks) |
 
 ### How jobs work (FND-008)
-- **Worker:** `app/worker.py` `WorkerSettings` lists every function and cron; run it with `python -m app.worker` (`make worker` locally). Crons run at different minutes of the hour (`expire_credit_batches` :05, `expire_invites` :15) and are `unique`, so several workers run each tick once.
+- **Worker:** `app/worker.py` `WorkerSettings` lists every function and cron; run it with `python -m app.worker` (`make worker` locally). Crons run at different minutes of the hour (`expire_credit_batches` :05, `expire_invites` :15; daily `remove_storage_orphans` 03:25 UTC) and are `unique`, so several workers run each tick once.
 - **Job bodies** live in `app/jobs/` and are wrapped by `@job(retry=RetryPolicy(...), on_failure=...)` from `app/jobs/framework.py`: a fresh session per try (the body commits), rollback on error, retry after `base_delay * 2^(try-1)` (capped), and after the last try `on_failure` records the error in Postgres. Crons use `NO_RETRY`: the next tick does the work again.
 - **Enqueue** with `JobQueue.enqueue(function, *args, key=entity_id)` (`app/jobs/queue.py`, `JobQueueDep` in routers, `run.queue` in jobs) **after** committing the rows the job reads. `key` makes it idempotent: the same function and key can't be queued twice at once. Bodies still check their row's state first, so a retry or a sweeper re-enqueue never repeats finished work.
 - **Progress people wait on** lives in `report_jobs`: `services/jobs.start_report_job()` inserts, commits and enqueues; the body uses `Progress` (`start()` claims it, `step(n)` commits each step and returns False once cancelled, `done()`); `GET /v1/jobs/{id}` reads it. Add a report kind to `JOB_FUNCTIONS` so the sweeper can re-queue it.

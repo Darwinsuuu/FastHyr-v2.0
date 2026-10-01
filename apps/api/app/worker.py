@@ -15,11 +15,17 @@ from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
 from app.integrations.email import sender_from_settings
+from app.integrations.storage import storage_from_settings
 from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.reports import sample_report_job
-from app.jobs.system import expire_credit_batches, expire_invites, requeue_stuck_work
+from app.jobs.system import (
+    expire_credit_batches,
+    expire_invites,
+    remove_storage_orphans,
+    requeue_stuck_work,
+)
 
 EVERY_10_MINUTES = {0, 10, 20, 30, 40, 50}
 
@@ -35,6 +41,8 @@ CRON_JOBS: list[CronJob] = [
     cron(expire_credit_batches, name="expire_credit_batches", minute=5),
     cron(expire_invites, name="expire_invites", minute=15),
     cron(requeue_stuck_work, name="requeue_stuck_work", minute=EVERY_10_MINUTES),
+    # Daily, at a quiet hour (UTC).
+    cron(remove_storage_orphans, name="remove_storage_orphans", hour=3, minute=25),
 ]
 
 
@@ -44,8 +52,9 @@ async def startup(ctx: dict[str, Any]) -> None:
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests pass a fake email sender and their own queue's name in `ctx`.
+    # Tests pass a fake email sender or storage, and their own queue's name in `ctx`.
     ctx.setdefault("email_sender", sender_from_settings(settings))
+    ctx.setdefault("storage", storage_from_settings(settings))
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 

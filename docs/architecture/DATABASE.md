@@ -138,4 +138,4 @@ A trigger rejects updates to setup columns when `locked_at is not null`.
 Dashboards read from SQL views (`v_pipeline_funnel`, `v_source_stats`, `v_dropoff_reasons`, `v_time_to_screen`) over `applications`/`interviews`. If they get slow, convert to materialised views refreshed by cron — not in MVP unless measured.
 
 ## 5. Seed data
-`supabase/seed.sql` creates a demo workspace ("Acme Talent") with the departments, members, pipelines and sample candidates shown in the design, so every screen can be built against realistic data locally.
+`apps/api/scripts/seed.py` (`make db-seed`, run by `make db-reset` and `make setup`) creates a demo workspace ("Acme Talent") with the departments, members, pipelines and sample candidates shown in the design, so every screen can be built against realistic data locally. It writes synthetic `.test` users straight into `auth.users`, so it connects as the database owner, and it moves credits only through `app/services/credits.py` so the ledger adds up. Each task that adds a table the screens show extends it (pipeline titles in PIPE-001, candidates and assessments later). `supabase/seed.sql` only sets the local API role password.

@@ -115,7 +115,8 @@ Before the first `make e2e`, install Playwright's browser once with `pnpm --filt
 | `make down` | Stops the web app, API and Supabase, then quits Docker Desktop (your data is kept) |
 | `make db-start` / `make db-stop` | Starts or stops only local Supabase (your data is kept) |
 | `make db-status` | Prints local Supabase URLs and keys |
-| `make db-reset` | Recreates the local database from `supabase/migrations` and `supabase/seed.sql` (deletes local data) |
+| `make db-reset` | Recreates the local database from `supabase/migrations` and `supabase/seed.sql`, then adds the sample workspace (deletes local data) |
+| `make db-seed` | Adds the Acme Talent sample workspace; sign in as `dana@acme-talent.test` with password `acme-talent-local` |
 | `make db-drift` | Checks that the API's database models match the migrated local database |
 
 ### Troubleshooting

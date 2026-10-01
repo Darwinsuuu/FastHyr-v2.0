@@ -511,7 +511,7 @@
       "revokeFor": "Revoke the invite for {email}",
       "inviteDialog": {
         "title": "Invite a member",
-        "body": "Choose their role and departments. You’ll get a code to send them, and they join {workspace} by signing in with this email.",
+        "body": "Choose their role and departments. They’ll get an email with a link to join {workspace}.",
         "email": "Email address",
         "emailPlaceholder": "name@company.com",
         "emailRequired": "Enter their email address.",
@@ -524,11 +524,11 @@
           "hiring_manager": "Hiring managers view shortlisted candidates in their departments. You can change this later."
         },
         "send": "Send invite",
-        "sent": "Invite ready for {email}"
+        "sent": "Invite sent to {email}"
       },
       "shareDialog": {
-        "title": "Invite ready",
-        "body": "Send {email} this code. They sign in with that email, choose Join a workspace and enter it. It works for 7 days.",
+        "title": "Invite sent",
+        "body": "We emailed {email} a link to join. If it doesn’t arrive, send them this code: they sign in with that email, choose Join a workspace and enter it. It works for 7 days.",
         "code": "Invite code",
         "copyCode": "Copy code",
         "message": "Message to send",
@@ -541,7 +541,7 @@
       },
       "resendDialog": {
         "title": "Reinvite {email}?",
-        "body": "You’ll get a fresh code to send them to join {workspace} as {role}. The previous link and code stop working.",
+        "body": "We’ll email them a fresh invite to join {workspace} as {role}. The previous link and code stop working.",
         "currently": "Currently",
         "after": "After reinviting",
         "confirm": "Reinvite"

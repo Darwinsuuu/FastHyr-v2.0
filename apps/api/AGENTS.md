@@ -31,5 +31,10 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Progress a user waits on goes in `report_jobs` via `services/jobs.py` (`start_report_job`, `Progress`); add the kind to `JOB_FUNCTIONS`.
 - Integration tests run the real worker in burst mode on their own queue (see `tests/integration/test_jobs.py`); they need `make redis-start`.
 
+## Sending an email (FND-010)
+- Render with `app/emails` (`render.render()` for template bodies, `system.py` for fixed system emails); never build HTML from user input by hand.
+- In the service's transaction: `message = emails.queue_email(session, ...)`; after `commit()`: `await emails.enqueue(queue, message)`. Never call a provider from a router or service.
+- Locally the worker delivers to Mailpit (http://127.0.0.1:54324); tests pass a fake `email_sender` to the worker (`tests/integration/test_emails.py`).
+
 ## Commands (from the repo root)
 `make api` · `make worker` · `make lint-api` · `make test-api` (integration tests need local Supabase and Redis) · `make db-drift` · `make api-client` (after changing the OpenAPI)

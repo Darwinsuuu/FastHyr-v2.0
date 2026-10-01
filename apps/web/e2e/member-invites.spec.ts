@@ -34,11 +34,13 @@ test("an Admin invites a teammate, then resends and revokes the invite", async (
 
   await dialog.getByLabel(/Email address/).fill(teammate);
   await dialog.getByRole("button", { name: "Send invite" }).click();
-  const share = page.getByRole("dialog", { name: "Invite ready" });
+  const share = page.getByRole("dialog", { name: "Invite sent" });
   const code = share.getByTestId("invite-code");
   await expect(code).toHaveText(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
   const first = await code.textContent();
   await expect(share.getByRole("textbox")).toHaveValue(new RegExp(`${teammate}.*${first}`));
+  // The worker emails the invite with the /join link (FND-010).
+  expect(await latestLinkTo(teammate, "invited you to join")).toMatch(/\/join\/[\w-]{20,}$/);
   await share.getByRole("button", { name: "Done" }).click();
 
   // Sending switches to the Pending invites tab.
@@ -51,7 +53,7 @@ test("an Admin invites a teammate, then resends and revokes the invite", async (
 
   await page.getByRole("button", { name: `Resend the invite for ${teammate}` }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Reinvite" }).click();
-  const resent = page.getByRole("dialog", { name: "Invite ready" }).getByTestId("invite-code");
+  const resent = page.getByRole("dialog", { name: "Invite sent" }).getByTestId("invite-code");
   await expect(resent).toHaveText(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
   expect(await resent.textContent()).not.toBe(first);
   await page.getByRole("button", { name: "Done" }).click();

@@ -9,6 +9,7 @@ import pytest
 from arq import Retry
 
 from app.jobs.framework import JobRun, RetryPolicy, job
+from app.jobs.queue import JobQueue
 from app.worker import CRON_JOBS, EVERY_10_MINUTES, FUNCTIONS
 
 
@@ -117,3 +118,11 @@ def test_crons_run_on_the_documented_schedule() -> None:
     for cron in CRON_JOBS:
         assert cron.hour is None
         assert cron.unique  # one run per tick even with several workers
+
+
+def test_enqueue_without_redis_returns_false_instead_of_failing_the_request() -> None:
+    async def enqueue() -> bool:
+        queue = JobQueue("redis://127.0.0.1:1")  # nothing listens here
+        return await queue.enqueue("send_email", "id", key="id")
+
+    assert asyncio.run(enqueue()) is False

@@ -23,8 +23,8 @@ class SampleJobError(Exception):
 
 @job(retry=RetryPolicy(max_tries=3, base_delay=timedelta(seconds=1)), on_failure=_mark_failed)
 async def sample_report_job(run: JobRun, workspace_id: uuid.UUID, job_id: uuid.UUID) -> None:
-    """Local-only demo (`POST /v1/dev/sample-job`): walks `steps` steps, failing the first
-    `fail_tries` tries, so retries, backoff and progress can be watched end to end."""
+    """Demo (`POST /v1/dev/sample-job`, local and development): walks `steps` steps, failing
+    the first `fail_tries` tries, so retries, backoff and progress can be watched end to end."""
     progress = job_service.Progress(run.session, workspace_id, job_id)
     row = await progress.start()
     if row is None:

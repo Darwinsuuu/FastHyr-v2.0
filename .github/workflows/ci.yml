@@ -129,6 +129,14 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       # The fixed publishable key of every local Supabase install (`make db-status`).
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+    services:
+      # The job queue: the worker sends emails (invites) to Mailpit, which the journeys read.
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -138,11 +146,12 @@ jobs:
         run: pnpm --filter web exec playwright install --with-deps chromium
       - name: Build the web app
         run: pnpm --filter web build
-      - name: Start the API and web app
+      - name: Start the API, worker and web app
         run: |
           # The venv's uvicorn, not `uv run`: a live uv process holds the cache lock and the
           # setup-uv post step would wait on it and fail.
           (cd apps/api && .venv/bin/uvicorn app.main:app --port 8000 > "$RUNNER_TEMP/api.log" 2>&1 &)
+          (cd apps/api && .venv/bin/arq app.worker.WorkerSettings > "$RUNNER_TEMP/worker.log" 2>&1 &)
           (pnpm --filter web start > "$RUNNER_TEMP/web.log" 2>&1 &)
           for url in http://localhost:8000/health http://fasthyr.localhost:3000/login; do
             timeout 60 bash -c "until curl -sf -o /dev/null $url; do sleep 1; done" \
@@ -152,7 +161,7 @@ jobs:
         run: make e2e
       - name: Server logs
         if: failure()
-        run: cat "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/web.log"
+        run: cat "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/worker.log" "$RUNNER_TEMP/web.log"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

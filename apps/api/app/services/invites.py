@@ -14,16 +14,22 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings
 from app.core.context import RequestContext, Role
 from app.core.errors import AlreadyAMemberError, UnknownDepartmentError
 from app.core.ids import new_id
-from app.models import Invite
+from app.emails import system
+from app.emails.system import FROM_FASTHYR
+from app.jobs.queue import JobQueue
+from app.models import EmailMessage, Invite
 from app.repositories.audit import AuditRepository
 from app.repositories.invites import InviteRepository, InviteRow, expire_overdue_invites
 from app.repositories.members import MemberRepository
+from app.repositories.workspaces import WorkspaceSetupRepository
 from app.schemas.invites import CreateInviteRequest, InviteList
 from app.schemas.invites import Invite as InviteOut
 from app.schemas.members import MemberDepartment
+from app.services import emails as email_service
 
 INVITE_TTL = timedelta(days=7)
 # No look-alike characters (0/O, 1/I/L), so a code read aloud or retyped still works.
@@ -40,14 +46,33 @@ def new_code() -> str:
 
 def new_token_hash() -> tuple[str, str]:
     """A random link token and its SHA-256, the only form stored (SECURITY.md). The token goes
-    in the invite email's link once FND-010 sends it; AUTH-004 accepts it."""
+    in the invite email's link (`queue_invite_email`); AUTH-004 accepts it."""
     token = secrets.token_urlsafe(32)
     return token, hashlib.sha256(token.encode()).hexdigest()
 
 
-async def send_invite_email(invite: Invite, token: str) -> None:
-    """FND-010 sends the member invite email (link + code, NOTIFICATIONS.md §4) from here. Until
-    then the Admin copies the code from the invite dialog."""
+async def queue_invite_email(
+    session: AsyncSession, settings: Settings, invite: Invite, token: str
+) -> EmailMessage:
+    """The member invite email (NOTIFICATIONS.md §4): the `/join/{token}` link and the code. Added
+    in the invite's transaction; the caller enqueues it after the commit."""
+    workspace_name, inviter, _ = await WorkspaceSetupRepository(session).invite_details(invite)
+    return email_service.queue_email(
+        session,
+        workspace_id=invite.workspace_id,
+        template_key="member_invite",
+        to_email=invite.email,
+        from_name=FROM_FASTHYR,
+        email=system.member_invite(
+            site_url=settings.site_url,
+            workspace_name=workspace_name,
+            inviter_name=inviter,
+            role=invite.role,
+            code=invite.code,
+            token=token,
+            expires_at=invite.expires_at,
+        ),
+    )
 
 
 async def list_invites(session: AsyncSession, ctx: RequestContext) -> InviteList:
@@ -59,7 +84,11 @@ async def list_invites(session: AsyncSession, ctx: RequestContext) -> InviteList
 
 
 async def create_invite(
-    session: AsyncSession, ctx: RequestContext, body: CreateInviteRequest
+    session: AsyncSession,
+    ctx: RequestContext,
+    queue: JobQueue,
+    settings: Settings,
+    body: CreateInviteRequest,
 ) -> InviteOut:
     repo = InviteRepository(session, ctx.workspace_id)
     if await repo.is_active_member(body.email):
@@ -95,13 +124,18 @@ async def create_invite(
             "replaced": existing is not None,
         },
     )
+    message = await queue_invite_email(session, settings, invite, token)
     await session.commit()
-    await send_invite_email(invite, token)
+    await email_service.enqueue(queue, message)
     return await _get(repo, invite.id)
 
 
 async def resend_invite(
-    session: AsyncSession, ctx: RequestContext, invite_id: uuid.UUID
+    session: AsyncSession,
+    ctx: RequestContext,
+    queue: JobQueue,
+    settings: Settings,
+    invite_id: uuid.UUID,
 ) -> InviteOut:
     """A new code, token and 7-day expiry; the old link and code stop working."""
     repo = InviteRepository(session, ctx.workspace_id)
@@ -121,8 +155,9 @@ async def resend_invite(
         entity_type="invite",
         entity_id=invite.id,
     )
+    message = await queue_invite_email(session, settings, invite, token)
     await session.commit()
-    await send_invite_email(invite, token)
+    await email_service.enqueue(queue, message)
     return await _get(repo, invite.id)
 
 

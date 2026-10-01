@@ -235,8 +235,9 @@ export interface paths {
         put?: never;
         /**
          * Create Invite
-         * @description Invites an email with a role and departments for 7 days, replacing any pending invite for
-         *     that email. Someone who already has access is `409 already_a_member`.
+         * @description Invites an email with a role and departments for 7 days and emails them the link and
+         *     code, replacing any pending invite for that email. Someone who already has access is
+         *     `409 already_a_member`.
          */
         post: operations["create_invite_v1_invites_post"];
         delete?: never;
@@ -256,7 +257,7 @@ export interface paths {
         put?: never;
         /**
          * Resend Invite
-         * @description A new code and 7-day expiry; the previous link and code stop working.
+         * @description A new code, 7-day expiry and email; the previous link and code stop working.
          */
         post: operations["resend_invite_v1_invites__invite_id__resend_post"];
         delete?: never;
@@ -304,6 +305,26 @@ export interface paths {
          * @description Cancels a queued or running job; a finished one stays as it is.
          */
         delete: operations["cancel_job_v1_jobs__job_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhooks/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend Webhook Event
+         * @description Unknown events and emails are accepted and ignored, so Resend doesn't retry them.
+         */
+        post: operations["resend_webhook_event_v1_webhooks_resend_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1917,6 +1938,68 @@ export interface operations {
             path: {
                 job_id: string;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    resend_webhook_event_v1_webhooks_resend_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "svix-id"?: string | null;
+                "svix-timestamp"?: string | null;
+                "svix-signature"?: string | null;
+            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;

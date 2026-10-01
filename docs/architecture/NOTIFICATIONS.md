@@ -2,6 +2,11 @@
 
 Provider: Resend (ADR-008). All emails go through `services/emails.py`, which renders, logs (`email_messages`) and enqueues `send_email`.
 
+How it works (FND-010):
+- **Render** with `app/emails/render.render()`: parameters filled (values HTML-escaped), body cleaned with the allow-list (`nh3`), Jinja2 layout `app/emails/templates/layout.html.jinja`, plain-text alternative generated from the HTML. System emails are built in `app/emails/system.py`.
+- **Queue** with `emails.queue_email()` in the same transaction as the change that causes the email, commit, then `emails.enqueue()`. The `send_email` job claims the row (`scheduled` → `sending`), sends it, and records the provider ID (`sent`). Provider outages retry 5 times with backoff; a rejected email fails at once (`provider_rejected`). Resend's `Idempotency-Key` is the row ID, so a retried send is never delivered twice. `requeue_stuck_work` re-queues due emails still `scheduled` after 10 minutes.
+- **Providers** (`app/integrations/email.py`, `EMAIL_BACKEND=auto`): Resend when `RESEND_API_KEY` is set; locally, local Supabase's Mailpit over SMTP (port 54325, read at http://127.0.0.1:54324); elsewhere without a key, log the message ID only.
+
 ## 1. Candidate emails (workspace templates, editable)
 | Key | Name (UI) | Trigger | Timing | Controlled by |
 |---|---|---|---|---|
@@ -29,13 +34,13 @@ Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via Fa
 ## 4. System emails (not editable)
 | Email | Trigger |
 |---|---|
-| Member invite | Admin invites (link + code, expires in 7 days) |
+| Member invite | Admin invites or resends (link `{site}/join/{token}` + code, expires in 7 days); from "FastHyr" (FND-010) |
 | Password reset / email verification | Supabase Auth via Resend SMTP (branded templates in Supabase config) |
 | Human review request to TA | Candidate requests review → pipeline owner |
 | Pipeline paused (out of credits) / running low | Credits service → pipeline owner + Admins |
 | Payment failed | Stripe webhook → Admins |
 | Contact form | → hello@fasthyr.com |
-| Test email | "Send test to me" in template editor (sample data: Bea Garcia · Senior Backend Engineer · workspace name) |
+| Test email | "Send test to me" in template editor (sample data: Bea Garcia · Senior Backend Engineer · workspace name); a plain system test is `POST /v1/dev/test-email` (local and development) |
 
 ## 5. Deliverability and logging
 - `mail.fasthyr.com` with SPF, DKIM, DMARC (p=quarantine after warm-up).

@@ -1,0 +1,201 @@
+# Render Blueprint (FND-007, ADR-003, docs/architecture/DEPLOYMENT.md §4).
+# Each environment has an API (web service), a job worker and a Key Value (Redis) instance:
+#   development  ← branch develop   (fasthyr-*-dev)
+#   QA           ← branch release   (fasthyr-*-qa)
+# Production services are added with the production cut-over (REL-003).
+#
+# Deploys wait for the commit's GitHub checks (CI and the migrations workflow) to pass, so the
+# API never starts before the migrations it needs. Only changes under apps/api trigger a deploy.
+# Values marked `sync: false` are secrets: Render asks for them when the Blueprint is first
+# created, and they are edited in the dashboard afterwards, never here.
+
+services:
+  # ---------------------------------------------------------------- development (develop)
+  - type: keyvalue
+    name: fasthyr-redis-dev
+    plan: free
+    region: singapore
+    # The job queue must never drop keys.
+    maxmemoryPolicy: noeviction
+    # Reachable only from services in this Render workspace.
+    ipAllowList: []
+
+  - type: web
+    name: fasthyr-api-dev
+    runtime: python
+    plan: 0.5c-512mb
+    region: singapore
+    branch: develop
+    rootDir: apps/api
+    buildCommand: pip install uv==0.8.17 && uv sync --locked --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - apps/api/**
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_ENV
+        value: development
+      - key: WEB_ORIGINS
+        value: https://dev.fasthyr.com,https://app.dev.fasthyr.com
+      - key: SITE_URL
+        value: https://dev.fasthyr.com
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fasthyr-redis-dev
+          property: connectionString
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TEXT_MODEL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - type: worker
+    name: fasthyr-worker-dev
+    runtime: python
+    plan: 0.5c-512mb
+    region: singapore
+    branch: develop
+    rootDir: apps/api
+    buildCommand: pip install uv==0.8.17 && uv sync --locked --no-dev
+    startCommand: .venv/bin/python -m app.worker
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - apps/api/**
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_ENV
+        value: development
+      - key: SITE_URL
+        value: https://dev.fasthyr.com
+      # Shared with the API: entered once on the API service.
+      - key: SUPABASE_URL
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: SUPABASE_URL }
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: SUPABASE_SERVICE_ROLE_KEY }
+      - key: DATABASE_URL
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: DATABASE_URL }
+      - key: RESEND_API_KEY
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: RESEND_API_KEY }
+      - key: OPENAI_API_KEY
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_API_KEY }
+      - key: OPENAI_TEXT_MODEL
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_TEXT_MODEL }
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fasthyr-redis-dev
+          property: connectionString
+      # The worker's own Sentry project.
+      - key: SENTRY_DSN
+        sync: false
+
+  # ---------------------------------------------------------------- QA (release)
+  - type: keyvalue
+    name: fasthyr-redis-qa
+    plan: free
+    region: singapore
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+  - type: web
+    name: fasthyr-api-qa
+    runtime: python
+    plan: 0.5c-512mb
+    region: singapore
+    branch: release
+    rootDir: apps/api
+    buildCommand: pip install uv==0.8.17 && uv sync --locked --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - apps/api/**
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_ENV
+        value: qa
+      - key: WEB_ORIGINS
+        value: https://qa.fasthyr.com,https://app.qa.fasthyr.com
+      - key: SITE_URL
+        value: https://qa.fasthyr.com
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fasthyr-redis-qa
+          property: connectionString
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TEXT_MODEL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - type: worker
+    name: fasthyr-worker-qa
+    runtime: python
+    plan: 0.5c-512mb
+    region: singapore
+    branch: release
+    rootDir: apps/api
+    buildCommand: pip install uv==0.8.17 && uv sync --locked --no-dev
+    startCommand: .venv/bin/python -m app.worker
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - apps/api/**
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_ENV
+        value: qa
+      - key: SITE_URL
+        value: https://qa.fasthyr.com
+      - key: SUPABASE_URL
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: SUPABASE_URL }
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: SUPABASE_SERVICE_ROLE_KEY }
+      - key: DATABASE_URL
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: DATABASE_URL }
+      - key: RESEND_API_KEY
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: RESEND_API_KEY }
+      - key: OPENAI_API_KEY
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_API_KEY }
+      - key: OPENAI_TEXT_MODEL
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_TEXT_MODEL }
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fasthyr-redis-qa
+          property: connectionString
+      - key: SENTRY_DSN
+        sync: false

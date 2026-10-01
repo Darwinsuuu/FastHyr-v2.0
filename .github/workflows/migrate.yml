@@ -1,0 +1,79 @@
+# Applies supabase/migrations to each hosted Supabase project (FND-007, DEPLOYMENT.md §4).
+#   push to develop  → fasthyr-dev  (secret SUPABASE_DB_URL_DEVELOPMENT)
+#   push to release  → fasthyr-qa   (secret SUPABASE_DB_URL_QA)
+#   production       → fasthyr-prod (secret SUPABASE_DB_URL_PRODUCTION), only by a manual run from
+#                      master: Actions → Migrations → Run workflow (the manual approval step).
+# The Render services wait for this commit's checks, so the API deploys after its migrations.
+# Seed data never reaches a hosted project: `db push` applies migrations only.
+name: Migrations
+
+on:
+  push:
+    branches: [develop, release]
+    paths:
+      - supabase/migrations/**
+      - .github/workflows/migrate.yml
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to migrate (it must match the branch you run from)
+        type: choice
+        options: [development, qa, production]
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Apply migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # One run per environment at a time, and never cancelled halfway.
+    concurrency:
+      group: migrate-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - name: Pick the environment
+        id: target
+        env:
+          REQUESTED: ${{ inputs.environment }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          case "$BRANCH" in
+            develop) environment=development ;;
+            release) environment=qa ;;
+            master) environment=production ;;
+            *) echo "::error::Migrations run only from develop, release or master, not $BRANCH."; exit 1 ;;
+          esac
+          if [ -n "$REQUESTED" ] && [ "$REQUESTED" != "$environment" ]; then
+            echo "::error::Run $REQUESTED migrations from its own branch (development: develop, qa: release, production: master), not $BRANCH."
+            exit 1
+          fi
+          if [ "$environment" = production ] && [ "$GITHUB_EVENT_NAME" != workflow_dispatch ]; then
+            echo "::error::Production migrations run only by hand (Run workflow)."
+            exit 1
+          fi
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          python: "false"
+      - name: supabase db push
+        env:
+          DEVELOPMENT_DB_URL: ${{ secrets.SUPABASE_DB_URL_DEVELOPMENT }}
+          QA_DB_URL: ${{ secrets.SUPABASE_DB_URL_QA }}
+          PRODUCTION_DB_URL: ${{ secrets.SUPABASE_DB_URL_PRODUCTION }}
+          ENVIRONMENT: ${{ steps.target.outputs.environment }}
+        run: |
+          case "$ENVIRONMENT" in
+            development) db_url="$DEVELOPMENT_DB_URL"; secret=SUPABASE_DB_URL_DEVELOPMENT ;;
+            qa) db_url="$QA_DB_URL"; secret=SUPABASE_DB_URL_QA ;;
+            production) db_url="$PRODUCTION_DB_URL"; secret=SUPABASE_DB_URL_PRODUCTION ;;
+          esac
+          if [ -z "$db_url" ]; then
+            echo "::error::The repository secret $secret is not set (DEPLOYMENT.md §7)."
+            exit 1
+          fi
+          pnpm supabase migration list --db-url "$db_url"
+          pnpm supabase db push --yes --db-url "$db_url"

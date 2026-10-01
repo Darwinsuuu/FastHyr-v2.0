@@ -11,11 +11,13 @@ import uuid
 from dataclasses import dataclass
 
 import asyncpg
+import httpx2
 import pytest
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from app.core.config import get_settings
+from app.integrations.storage import SupabaseStorage
 
 # Fixed keys every local Supabase install uses (`make db-status`); CI can override them.
 LOCAL_PUBLISHABLE_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
@@ -79,6 +81,21 @@ async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID])
                 )
     finally:
         await connection.close()
+
+
+@pytest.fixture(scope="session")
+def storage(supabase: Supabase) -> SupabaseStorage:
+    """Local Supabase Storage, called with the service key. Skips when it isn't running
+    (`supabase start -x storage-api`), unless FASTHYR_REQUIRE_DB=1 (CI)."""
+    try:
+        response = httpx2.get(f"{supabase.url}/storage/v1/status", timeout=3)
+        response.raise_for_status()
+    except httpx2.HTTPError as error:
+        message = f"local Supabase Storage is not reachable ({type(error).__name__})"
+        if os.environ.get("FASTHYR_REQUIRE_DB") == "1":
+            pytest.fail(message)
+        pytest.skip(message)
+    return SupabaseStorage(supabase.url, supabase.secret_key)
 
 
 @pytest.fixture(scope="session")

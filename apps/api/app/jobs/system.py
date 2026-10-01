@@ -4,10 +4,11 @@ service and commits. Later tasks add their crons here and register them in `app/
 import logging
 from datetime import UTC, datetime, timedelta
 
+from app.integrations.storage import Storage
 from app.jobs.framework import NO_RETRY, JobRun, job
 from app.repositories.emails import scheduled_before
 from app.repositories.jobs import queued_report_jobs_before
-from app.services import credits, emails, invites
+from app.services import credits, emails, files, invites
 from app.services.jobs import JOB_FUNCTIONS
 
 logger = logging.getLogger("app.jobs")
@@ -51,3 +52,13 @@ async def requeue_stuck_work(run: JobRun) -> int:
             requeued += 1
     logger.info("requeue_stuck_work: %d jobs requeued", requeued)
     return requeued
+
+
+@job(retry=NO_RETRY)
+async def remove_storage_orphans(run: JobRun) -> int:
+    """Daily: deletes abandoned temp uploads and demo files older than 24 hours (FND-011,
+    STORAGE.md: Deletion)."""
+    storage: Storage = run.ctx["storage"]
+    deleted = await files.remove_orphans(storage)
+    logger.info("remove_storage_orphans: %d files deleted", deleted)
+    return deleted

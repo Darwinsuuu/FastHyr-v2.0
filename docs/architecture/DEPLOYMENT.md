@@ -19,7 +19,7 @@ One Supabase project per environment: `fasthyr-dev`, `fasthyr-qa`, `fasthyr-prod
 |---|---|---|
 | `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` | API / web | Project Settings → Data API → Project URL (`https://<project-ref>.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | web | Project Settings → API Keys → publishable (or legacy `anon`) key |
-| `SUPABASE_SERVICE_ROLE_KEY` | API, worker | Project Settings → API Keys → secret (or legacy `service_role`) key; server only, never in the web app |
+| `SUPABASE_SERVICE_ROLE_KEY` | API, worker | Project Settings → API Keys → secret (or legacy `service_role`) key; server only, never in the web app. Signs Storage URLs and moves files (FND-011) |
 | `DATABASE_URL` | API, worker | Connect → Session pooler connection string, with user `fasthyr_api.<project-ref>` and that role's password (below) |
 | `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` | web | The environment's two hosts, e.g. `https://dev.fasthyr.com` and `https://app.dev.fasthyr.com` (FND-005) |
 | `NEXT_PUBLIC_COOKIE_DOMAIN` | web | The hosts' shared parent so one sign-in covers both: `dev.fasthyr.com`, `qa.fasthyr.com`, `fasthyr.com`; locally `fasthyr.localhost` |
@@ -32,6 +32,8 @@ alter role fasthyr_api with login password '<random password>';
 Locally, `supabase/seed.sql` does this with the password `fasthyr_api_local`.
 
 **Email (FND-010).** The API and worker send through Resend when `RESEND_API_KEY` is set (Resend → API Keys, sending access for the `mail.fasthyr.com` domain). `SITE_URL` is the environment's site host (the invite link is `{SITE_URL}/join/{token}`). In Resend → Webhooks, add `https://<api host>/v1/webhooks/resend` for the delivered, bounced, complained and failed events and copy its signing secret into `RESEND_WEBHOOK_SECRET`. Without a key the API only logs the email's ID (locally it delivers to Mailpit). `POST /v1/dev/test-email` (development only) sends a test to yourself.
+
+**Storage (FND-011).** The buckets come from the migration `20261001120000_storage_buckets.sql`, so `supabase db push` creates them with their size limits and file types. Two settings live in the dashboard: Storage → Settings → global upload file size limit must be at least 500 MB (final interview recordings; needs the Pro plan, as the Free plan caps it at 50 MB), and no storage policies are added for `anon` or `authenticated` (the API signs every URL with `SUPABASE_SERVICE_ROLE_KEY`).
 
 Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/config.toml`. The OAuth client IDs and secrets go into each project's Authentication → Providers page, never into the repository. The one-time setup checklist is in the FND-002 task log.
 

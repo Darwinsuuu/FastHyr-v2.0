@@ -166,6 +166,55 @@ class AlreadyAMemberError(AppError):
     title = "This person is already a member"
 
 
+class PdfInvalidError(AppError):
+    """Base for a résumé or other PDF that failed the checks in services/pdfs.py (STORAGE.md)."""
+
+    status = 422
+    code = "pdf_invalid"
+    title = "This file can't be used"
+
+
+class PdfNotPdfError(PdfInvalidError):
+    code = "pdf_not_pdf"
+    title = "Upload a PDF file"
+
+
+class PdfTooLargeError(PdfInvalidError):
+    code = "pdf_too_large"
+    title = "This PDF is larger than 10 MB"
+
+
+class PdfMalformedError(PdfInvalidError):
+    code = "pdf_malformed"
+    title = "This PDF is damaged and can't be opened"
+
+
+class PdfEncryptedError(PdfInvalidError):
+    code = "pdf_encrypted"
+    title = "This PDF is password-protected"
+
+
+class PdfTooManyPagesError(PdfInvalidError):
+    code = "pdf_too_many_pages"
+    title = "This PDF has more than 20 pages"
+
+
+class UploadMissingError(AppError):
+    """The browser never finished uploading to its signed URL, or the file was already used."""
+
+    status = 422
+    code = "upload_missing"
+    title = "We didn't receive the file. Upload it again."
+
+
+class UploadExpiredError(AppError):
+    """The file arrived after its upload URL's 10-minute window (STORAGE.md)."""
+
+    status = 410
+    code = "upload_expired"
+    title = "The upload took too long. Upload the file again."
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

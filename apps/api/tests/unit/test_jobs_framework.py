@@ -110,13 +110,20 @@ def test_worker_registers_jobs_with_their_retry_policy() -> None:
 
 def test_crons_run_on_the_documented_schedule() -> None:
     schedule = {cron.name: cron for cron in CRON_JOBS}
-    assert set(schedule) == {"expire_credit_batches", "expire_invites", "requeue_stuck_work"}
+    assert set(schedule) == {
+        "expire_credit_batches",
+        "expire_invites",
+        "requeue_stuck_work",
+        "remove_storage_orphans",
+    }
     # Hourly crons name one minute of the hour; the sweeper runs every 10 minutes.
     assert isinstance(schedule["expire_credit_batches"].minute, int)
     assert isinstance(schedule["expire_invites"].minute, int)
     assert schedule["requeue_stuck_work"].minute == EVERY_10_MINUTES
+    # Daily crons name one hour and minute.
+    assert isinstance(schedule["remove_storage_orphans"].hour, int)
+    assert isinstance(schedule["remove_storage_orphans"].minute, int)
     for cron in CRON_JOBS:
-        assert cron.hour is None
         assert cron.unique  # one run per tick even with several workers
 
 

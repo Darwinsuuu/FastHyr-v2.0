@@ -43,5 +43,10 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 ## Sample data (FND-014)
 - `scripts/seed.py` builds the Acme Talent workspace from the design. When you add a table the screens show, extend it with the design's sample rows (synthetic people, `.test` emails) and move credits only through `app/services/credits.py`. `tests/unit/test_seed_data.py` checks the sample data stays consistent.
 
+## Files (FND-011)
+- Storage goes through `app/integrations/storage.py` (`Bucket`, path builders, `SupabaseStorage`); never call Supabase Storage elsewhere. Signed URLs are capped at 15 minutes.
+- Uploads the API must check: `services/files.create_upload()` → the browser uploads → `services/files.promote_pdf()` in the job. Build paths from IDs on your own workspace-scoped rows, never from request input.
+- PDF tests use the fixtures in `tests/pdf_fixtures.py`; Storage integration tests use the `storage` fixture (local Supabase with `storage-api`).
+
 ## Commands (from the repo root)
 `make api` · `make worker` · `make db-seed` · `make lint-api` · `make test-api` (integration tests need local Supabase and Redis) · `make db-drift` · `make api-client` (after changing the OpenAPI)

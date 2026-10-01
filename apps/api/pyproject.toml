@@ -16,6 +16,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "nh3>=0.3.7",
     "httpx2>=2.13.1",
+    "pikepdf>=10.16.0",
 ]
 
 [dependency-groups]

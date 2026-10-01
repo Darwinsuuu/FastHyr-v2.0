@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     supabase_jwks_url: str = ""
     supabase_jwt_issuer: str = ""
     supabase_jwt_audience: str = "authenticated"
+    # Redis for the arq job queue (FND-008). Local Redis runs in Docker (`make redis-start`).
+    redis_url: str = "redis://127.0.0.1:6379"
 
     @field_validator("web_origins", mode="before")
     @classmethod

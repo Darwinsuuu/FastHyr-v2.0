@@ -7,12 +7,13 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.api.routers import departments, invites, me, members, workspaces
+from app.api.routers import departments, dev, invites, jobs, me, members, workspaces
 from app.core.auth import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.errors import register_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.jobs.queue import JobQueue
 
 API_PREFIX = "/v1"
 
@@ -22,7 +23,9 @@ class HealthResponse(BaseModel):
 
 
 def create_app(
-    settings: Settings | None = None, token_verifier: TokenVerifier | None = None
+    settings: Settings | None = None,
+    token_verifier: TokenVerifier | None = None,
+    job_queue: JobQueue | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     configure_logging()
@@ -32,6 +35,7 @@ def create_app(
         engine = create_engine(settings)
         app.state.sessionmaker = create_sessionmaker(engine)
         yield
+        await app.state.job_queue.close()
         await engine.dispose()
 
     app = FastAPI(
@@ -44,6 +48,7 @@ def create_app(
     )
     app.state.settings = settings
     app.state.token_verifier = token_verifier or TokenVerifier.from_settings(settings)
+    app.state.job_queue = job_queue or JobQueue(settings.redis_url)
 
     register_error_handlers(app)
     app.add_middleware(
@@ -68,6 +73,9 @@ def create_app(
     v1.include_router(departments.router)
     v1.include_router(members.router)
     v1.include_router(invites.router)
+    v1.include_router(jobs.router)
+    if settings.app_env == "local":
+        v1.include_router(dev.router)
     app.include_router(v1)
 
     return app

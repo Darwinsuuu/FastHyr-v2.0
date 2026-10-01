@@ -1,7 +1,8 @@
-"""Tests that need local Supabase (`make db-start`, then `make db-reset`).
+"""Tests that need local Supabase (`make db-start`, then `make db-reset`) or local Redis
+(`make redis-start`).
 
-They skip when the database isn't reachable, unless FASTHYR_REQUIRE_DB=1 (CI), which makes a
-missing database a failure instead.
+They skip when the database or Redis isn't reachable, unless FASTHYR_REQUIRE_DB=1 or
+FASTHYR_REQUIRE_REDIS=1 (CI), which makes a missing service a failure instead.
 """
 
 import asyncio
@@ -11,6 +12,8 @@ from dataclasses import dataclass
 
 import asyncpg
 import pytest
+from redis.asyncio import Redis
+from redis.exceptions import RedisError
 
 from app.core.config import get_settings
 
@@ -55,19 +58,49 @@ def supabase() -> Supabase:
 
 
 async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID]) -> None:
-    """Removes test workspaces' audit log, ledger, batches and pipelines so the workspaces can be
+    """Removes test workspaces' report jobs, audit log, ledger, batches and pipelines so the
+    workspaces can be
     deleted. The audit log and ledger reject deletes, so this connects as the table owner with
     triggers switched off for the transaction."""
     connection = await asyncpg.connect(supabase.owner_database_url)
     try:
         async with connection.transaction():
             await connection.execute("set local session_replication_role = replica")
-            for table in ("audit_log", "credit_ledger", "credit_batches", "pipelines"):
+            for table in (
+                "report_jobs",
+                "audit_log",
+                "credit_ledger",
+                "credit_batches",
+                "pipelines",
+            ):
                 await connection.execute(
                     f"delete from {table} where workspace_id = any($1::uuid[])", workspace_ids
                 )
     finally:
         await connection.close()
+
+
+@pytest.fixture(scope="session")
+def redis_url() -> str:
+    """Local Redis for job tests (`make redis-start`). Skips when it isn't reachable, unless
+    FASTHYR_REQUIRE_REDIS=1 (CI)."""
+    url = get_settings().redis_url
+
+    async def ping() -> None:
+        client = Redis.from_url(url, socket_connect_timeout=3)
+        try:
+            await client.ping()
+        finally:
+            await client.aclose()
+
+    try:
+        asyncio.run(ping())
+    except (OSError, RedisError) as error:
+        message = f"local Redis is not reachable ({type(error).__name__}); run `make redis-start`"
+        if os.environ.get("FASTHYR_REQUIRE_REDIS") == "1":
+            pytest.fail(message)
+        pytest.skip(message)
+    return url
 
 
 # The tenancy harness (two workspaces, every role) for any test folder: see tests/tenancy.

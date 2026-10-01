@@ -12,6 +12,7 @@ from app.models.identity import (
     Workspace,
     WorkspaceMember,
 )
+from app.models.jobs import ReportJob
 from app.models.pipelines import Pipeline
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "MemberDepartment",
     "Pipeline",
     "Profile",
+    "ReportJob",
     "Workspace",
     "WorkspaceMember",
 ]

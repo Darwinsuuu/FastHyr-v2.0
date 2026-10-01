@@ -86,6 +86,11 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 
 ### Jobs
 | `POST /reports` `{kind, params}` · `GET /jobs/{id}` · `DELETE /jobs/{id}` · `GET /jobs/{id}/download-url` | PDF generation with progress |
+| `GET /jobs/{id}` | any member, own jobs only (anyone else gets 404): `{id, kind, status, step, steps_total, error, created_at, finished_at}`; `error` is a stable code. Poll until `status` is `done`, `failed` or `cancelled` (FND-008) |
+| `DELETE /jobs/{id}` | cancel a queued or running job (the worker stops before its next step); a finished job stays as it is; 204 (FND-008) |
+
+### Local only
+| `POST /dev/sample-job` `{steps, step_seconds, fail_tries}` | only when `APP_ENV=local`, left out of OpenAPI: queues the demo `sample_report_job` (202 with the job) to try the job framework by hand (FND-008) |
 
 ## Webhooks
 | `POST /webhooks/stripe` | signature-verified; stored in `stripe_events` then processed by the worker |

@@ -31,7 +31,7 @@ alter role fasthyr_api with login password '<random password>';
 ```
 Locally, `supabase/seed.sql` does this with the password `fasthyr_api_local`.
 
-**Email (FND-010).** The API and worker send through Resend when `RESEND_API_KEY` is set (Resend → API Keys, sending access for the `mail.fasthyr.com` domain). `SITE_URL` is the environment's site host (the invite link is `{SITE_URL}/join/{token}`). In Resend → Webhooks, add `https://<api host>/v1/webhooks/resend` for the delivered, bounced, complained and failed events and copy its signing secret into `RESEND_WEBHOOK_SECRET`. Without a key the API only logs the email's ID (locally it delivers to Mailpit). `POST /v1/dev/test-email` (development only) sends a test to yourself.
+**Email (FND-010).** The API and worker send through Resend when `RESEND_API_KEY` is set (Resend → API Keys, sending access for the verified `fasthyr.com` domain, see §7). `SITE_URL` is the environment's site host (the invite link is `{SITE_URL}/join/{token}`). In Resend → Webhooks, add `https://<api host>/v1/webhooks/resend` for the delivered, bounced, complained and failed events and copy its signing secret into `RESEND_WEBHOOK_SECRET`. Without a key the API only logs the email's ID (locally it delivers to Mailpit). `POST /v1/dev/test-email` (development only) sends a test to yourself.
 
 **Storage (FND-011).** The buckets come from the migration `20261001120000_storage_buckets.sql`, so `supabase db push` creates them with their size limits and file types. Two settings live in the dashboard: Storage → Settings → global upload file size limit must be at least 500 MB (final interview recordings; needs the Pro plan, as the Free plan caps it at 50 MB), and no storage policies are added for `anon` or `authenticated` (the API signs every URL with `SUPABASE_SERVICE_ROLE_KEY`).
 
@@ -69,14 +69,15 @@ make db-drift     # fail if app/models and the migrated database disagree
   - **API client up to date:** `make api-client`, then fails if `packages/api-client` differs from the committed one.
   - **Secrets and audits:** gitleaks over the whole history (allowlist in `.gitleaks.toml`: only the fixed local Supabase keys), `pnpm audit --audit-level=moderate` (low only warns), `pip-audit` on the locked API dependencies.
   - **End-to-end (Playwright):** Supabase, the API and a production build of the web app, then `make e2e`. The suite is small, so it runs on every PR for now; REL-001 decides whether the full suite moves to PRs into `release` plus a nightly run against QA.
-- Merges are blocked by making these five checks required in the branch rules for `develop`, `release` and `master` (GitHub settings, done by the owner; FND-007 covers the rest of branch protection).
+- Merges are blocked by the branch ruleset in §4 (imported by the owner, §7), which requires these five checks on `develop`, `release` and `master`.
 
 ## 4. Deploy
-- **Web:** Vercel Git integration — preview per PR; `develop`, `release` and `master` each deploy to their environment's domains.
-- **API + worker:** Render Blueprint (`render.yaml`) defines dev, QA and production services, auto-deploying `develop`, `release` and `master` respectively. Health check `GET /health` (DB + Redis). Worker restarts are safe (jobs idempotent).
-- **Database migrations:** a GitHub Action runs `supabase db push` against development on merge to `develop` and against QA on merge to `release`; production is a manual approval step on merge to `master`, run **before** the API deploy that depends on it. Migrations must be backward compatible with the currently running API (expand → migrate → contract).
+- **Web:** Vercel Git integration on `apps/web` (FND-007). `develop` deploys to the development hosts and `release` to the QA hosts (branch domains with branch-scoped Preview env vars); `master` is Vercel's production branch and gets its env vars and domains in REL-003. Every other branch and PR gets a preview that uses the development API; a preview has a single `*.vercel.app` host, so it shows the public site only, and sign-in is checked on the development hosts.
+- **API + worker:** Render Blueprint [`render.yaml`](../../render.yaml): per environment an API web service, a worker and a Key Value (Redis) instance in Singapore (`fasthyr-api-dev`, `fasthyr-worker-dev`, `fasthyr-redis-dev` on `develop`; `-qa` on `release`). Production services are added in REL-003. Each service builds `apps/api` with `uv sync --locked --no-dev`, deploys only when `apps/api/**` changed, and waits for the commit's GitHub checks to pass (`autoDeployTrigger: checksPass`), which includes the migrations workflow below. The API's health check is `GET /health` (the process is up and serving); a failing check keeps the previous deploy live. The worker reads the API service's secrets (`fromService … envVarKey`), so shared secrets are entered once per environment. Worker restarts are safe (jobs idempotent).
+- **Database migrations:** [`.github/workflows/migrate.yml`](../../.github/workflows/migrate.yml) runs `supabase db push` (migrations only, never `seed.sql`) against development on a push to `develop` and QA on a push to `release` that changes `supabase/migrations/`. Production runs only by hand from `master` (Actions → Migrations → Run workflow, environment `production`), which is the manual approval step, and runs **before** the production API deploy. Each project's connection string is a repository secret: `SUPABASE_DB_URL_DEVELOPMENT`, `SUPABASE_DB_URL_QA`, `SUPABASE_DB_URL_PRODUCTION`. Migrations must be backward compatible with the currently running API (expand → migrate → contract). Any of them can also be re-run by hand from its own branch.
+- **Branch protection:** [`.github/rulesets/protected-branches.json`](../../.github/rulesets/protected-branches.json) is a GitHub ruleset for `develop`, `release` and `master`: changes only by pull request, the five CI checks required, no force pushes or deletion, merge commits (promotions) and squash merges (working branches) allowed.
 - **Stripe:** products/prices created by a script (`apps/api/scripts/stripe_bootstrap.py`) per environment; price IDs stored in env config.
-- **Supabase Auth config** (providers, redirect URLs, SMTP, email templates) kept in `supabase/config.toml` and applied per environment.
+- **Supabase Auth config** (providers, redirect URLs, SMTP, email templates) kept in `supabase/config.toml` and applied per environment in the dashboard (§1 and §7); `supabase config push` isn't used because `config.toml` holds local-only values.
 
 ## 5. Observability
 - Sentry projects: `web`, `api`, `worker` with release tags = git SHA (FND-009).
@@ -89,3 +90,51 @@ make db-drift     # fail if app/models and the migrated database disagree
 
 ## 6. Launch checklist (summary; full list in task REL-003)
 Production Supabase with PITR, custom SMTP, OAuth apps verified (Google, Microsoft) with production redirect URLs; Stripe live mode + webhook; Resend domain verified; OpenAI spend limits; Sentry alerts; backups tested by a restore; legal pages published; rate limits and bot protection on.
+
+## 7. Cloud environment setup (owner checklist, FND-007)
+One-time steps in the owner's accounts for development (`develop`) and QA (`release`). Production follows the same pattern in REL-003. Nothing here goes in the repository; keep secrets in a password manager.
+
+**1. DNS.** Point these at the providers once each asks for its records: `dev.fasthyr.com`, `app.dev.fasthyr.com`, `qa.fasthyr.com`, `app.qa.fasthyr.com` (Vercel, step 5) and `api.dev.fasthyr.com`, `api.qa.fasthyr.com` (Render, step 4), plus Resend's records (step 6).
+
+**2. Supabase** (`fasthyr-dev` and `fasthyr-qa`, region Singapore, per FND-002).
+- Copy the **Session pooler** connection string for the `postgres` user (Connect → Session pooler, port 5432; GitHub runners have no IPv6, so not the direct connection), with the database password percent-encoded. It becomes the GitHub secret in step 3.
+- After the first migrations run (step 3), in the SQL editor: `alter role fasthyr_api with login password '<new random password>';` (§1). `DATABASE_URL` for Render is the same session pooler string with user `fasthyr_api.<project-ref>` and that password.
+- Authentication: Site URL = the environment's site host; redirect URLs = the environment's two `/auth/callback` URLs from `config.toml`; Google and Microsoft providers on (their consoles list `https://<project-ref>.supabase.co/auth/v1/callback` as a redirect URI); email templates and SMTP as in §1 "Auth emails". Storage settings as in §1 "Storage".
+
+**3. GitHub** (repository Settings).
+- Secrets and variables → Actions → New repository secret: `SUPABASE_DB_URL_DEVELOPMENT` and `SUPABASE_DB_URL_QA` (step 2). Then Actions → Migrations → Run workflow, once from `develop` (environment `development`) and once from `release` (`qa`), to bring each project up to date.
+- Rules → Rulesets → New ruleset → Import a ruleset: `.github/rulesets/protected-branches.json`. (Rulesets on a private repository need GitHub Pro, Team or Enterprise.)
+
+**4. Render** (New → Blueprint → this repository, branch `develop`). Render creates the six services in `render.yaml` and asks for each `sync: false` value:
+
+| Key | Where it comes from |
+|---|---|
+| `SUPABASE_URL` | Supabase → Project Settings → Data API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → API Keys → secret key |
+| `DATABASE_URL` | step 2 (`fasthyr_api` user) |
+| `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` | step 6 |
+| `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL` | OpenAI project key with a spend limit, and the text model name (FND-013) |
+| `SENTRY_DSN` | the api Sentry project on `fasthyr-api-*`, the worker project on `fasthyr-worker-*` (§5) |
+
+The worker services read the rest from their API service. Then Settings → Custom Domains: `api.dev.fasthyr.com` on `fasthyr-api-dev`, `api.qa.fasthyr.com` on `fasthyr-api-qa`. Plans: API `free` (it sleeps after 15 idle minutes and the next request waits about a minute; no Render Shell), worker `0.5c-512mb` (Render's smallest paid size; workers have no free plan), Key Value `free` (no persistence, so queued jobs are lost if it restarts; fine for development and QA). Suspend the QA services until the first RELEASE deployment reaches `release`.
+
+**5. Vercel** (Add New → Project → this repository).
+- Root Directory `apps/web` (framework Next.js; pnpm and Node 24 are detected). Settings → Git → Production Branch: `master`.
+- Settings → Environment Variables, scope **Preview**, once with branch `develop` (development values) and once with branch `release` (QA values); the same development values also go on Preview with no branch so other branches' previews build:
+
+| Key | Development (`develop`) | QA (`release`) |
+|---|---|---|
+| `NEXT_PUBLIC_APP_ENV` | `development` | `qa` |
+| `NEXT_PUBLIC_API_URL` | `https://api.dev.fasthyr.com` | `https://api.qa.fasthyr.com` |
+| `NEXT_PUBLIC_SITE_URL` | `https://dev.fasthyr.com` | `https://qa.fasthyr.com` |
+| `NEXT_PUBLIC_APP_URL` | `https://app.dev.fasthyr.com` | `https://app.qa.fasthyr.com` |
+| `NEXT_PUBLIC_COOKIE_DOMAIN` | `dev.fasthyr.com` | `qa.fasthyr.com` |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `fasthyr-dev` URL and publishable key | `fasthyr-qa` URL and publishable key |
+| `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | web Sentry project (§5; optional) | same |
+
+- Settings → Domains: add `dev.fasthyr.com` and `app.dev.fasthyr.com` with Git branch `develop`, and `qa.fasthyr.com` and `app.qa.fasthyr.com` with Git branch `release`. Redeploy the latest `develop` and `release` commits after the variables are in.
+- Vercel's Hobby plan is for non-commercial use; a team on Pro is needed before customers use it.
+
+**6. Resend.** Domains → Add `fasthyr.com` and add its DNS records (the From address is `no-reply@fasthyr.com`, and Resend only sends from the verified domain). API Keys → one sending key per environment. Webhooks → `https://api.dev.fasthyr.com/v1/webhooks/resend` (and the QA host) for delivered, bounced, complained and failed; each webhook's signing secret is that environment's `RESEND_WEBHOOK_SECRET`. The same key is the Supabase SMTP password (§1).
+
+**7. Smoke test** (each environment). `https://api.dev.fasthyr.com/health` returns `{"status":"ok"}`; sign in on `https://dev.fasthyr.com/login`, land on the app host and see your workspaces (the app called the API with your session); invite yourself from Settings → Members to check email; run `python -m app.core.observability --component worker` in the worker's Render shell to check Sentry (the free API has no shell; `make sentry-test` locally with the api DSN covers it). Repeat on the QA hosts.

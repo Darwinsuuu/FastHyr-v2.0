@@ -1,6 +1,6 @@
 # FastHyr monorepo commands. Run `make setup` once, then `make dev`.
 # Local Supabase runs in Docker, so Docker Desktop must be running for setup and db-* targets.
-.PHONY: setup dev stop down api worker web redis-start redis-stop lint lint-web lint-api test test-web test-api e2e api-client db-start db-stop db-status db-reset db-drift
+.PHONY: setup dev stop down api worker web redis-start redis-stop lint lint-web lint-api test test-web test-api e2e api-client db-start db-stop db-status db-reset db-seed db-drift
 
 API_DIR := apps/api
 
@@ -11,6 +11,7 @@ setup:
 	pnpm install
 	cd $(API_DIR) && uv sync
 	$(MAKE) db-start
+	$(MAKE) db-seed
 
 # One command for local development: opens Docker if needed, starts Supabase and Redis, then
 # runs web on :3000, API on :8000 and the job worker side by side. Ctrl+C stops the apps;
@@ -85,9 +86,15 @@ down:
 db-status:
 	pnpm supabase status
 
-# Recreates the local database from supabase/migrations and supabase/seed.sql.
+# Recreates the local database from supabase/migrations and supabase/seed.sql, then adds the
+# Acme Talent sample workspace.
 db-reset:
 	pnpm supabase db reset
+	$(MAKE) db-seed
+
+# Adds the Acme Talent sample workspace (apps/api/scripts/seed.py); does nothing if it's there.
+db-seed:
+	cd $(API_DIR) && uv run python scripts/seed.py
 
 # Fails if the SQLAlchemy models (apps/api/app/models) and the migrated database disagree.
 db-drift:

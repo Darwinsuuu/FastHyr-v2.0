@@ -45,7 +45,7 @@ Locally nothing is needed: `make db-start` loads the templates and Mailpit catch
 
 ## 2. Local development
 ```
-make setup        # pnpm install, uv sync, supabase start (applies migrations + seed)
+make setup        # pnpm install, uv sync, supabase start (migrations + seed.sql), db-seed
 make dev          # opens Docker if needed, supabase start, redis-start, then web + api + worker
 make worker       # just the job worker (restarts on code changes)
 make redis-start  # local Redis for the job queue (Docker container fasthyr-redis)
@@ -53,10 +53,11 @@ make stop         # supabase stop, redis-stop
 make api-client   # regenerate packages/api-client from the running API's OpenAPI
 make test         # web + api tests
 make lint         # eslint, prettier --check, ruff, mypy
-make db-reset     # supabase db reset (migrations + seed)
+make db-reset     # supabase db reset (migrations + seed.sql), then db-seed
+make db-seed      # add the Acme Talent sample workspace (skips if it's there)
 make db-drift     # fail if app/models and the migrated database disagree
 ```
-`supabase/seed.sql` loads the "Acme Talent" sample workspace from the design.
+`supabase/seed.sql` only sets the local API role password. `make db-seed` (`apps/api/scripts/seed.py`) adds the "Acme Talent" sample workspace from the design; sign in as `dana@acme-talent.test` (Admin, owner), `maria@acme-talent.test` (Recruiter) or `jomar@acme-talent.test` (Hiring manager) with the password `acme-talent-local`. CI runs no seeder, so tests never depend on it.
 
 ## 3. Branching and CI (GitHub Actions)
 - Branch flow: `feature/*` → `develop` → `release` → `master` (see `process/GIT_CONVENTIONS.md`).

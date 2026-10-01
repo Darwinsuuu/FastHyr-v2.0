@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 9 |
+| M0 Foundation | 14 | 10 |
 | M1 Access | 12 | 10 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -33,11 +33,11 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Ready | |
 | [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Done | #20 |
 | [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Ready | |
-| [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | In review | |
+| [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Done | #22 |
 | [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Ready | |
 | [FND-012](FND/FND-012-ui-kit-design-system-components.md) | UI kit (design-system components) | L | FND-005 | Done | #7, #8 |
 | [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | Done | #21 |
-| [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Ready | |
+| [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | In review | |
 
 ## M1 Access
 
@@ -80,7 +80,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [SCREEN-002](SCREEN/SCREEN-002-resume-assessment-and-decision.md) | Résumé assessment and decision | L | SCREEN-001, PIPE-001 | Backlog | |
 | [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Backlog | |
 | [INTV-001](INTV/INTV-001-interview-plan-generation.md) | Interview plan generation | M | SCREEN-002 | Backlog | |
-| [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Backlog | |
+| [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Ready | |
 | [MSG-002](MSG/MSG-002-email-templates-list-and-editor.md) | Email templates list and editor | M | MSG-001, DASH-001 | Backlog | |
 | [MSG-003](MSG/MSG-003-email-scheduling-and-sending-engine.md) | Email scheduling and sending engine | M | MSG-001, FND-008 | Backlog | |
 | [COMP-002](COMP/COMP-002-notices-and-consent-versioning.md) | Notices and consent versioning | S | FND-004 | Backlog | |

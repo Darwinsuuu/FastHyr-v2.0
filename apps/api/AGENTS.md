@@ -40,5 +40,8 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Add `app/ai/prompts/<name>@v1.md`, a schema in `app/ai/schemas/`, and a fake answer in `app/ai/fixtures/<name>@v1.json`; call `ai.structured(...)` from a service or job (never a router). Changing a prompt means a new `@vN` file and an `ai_eval` run.
 - Tests use `FakeAIClient` (or `AI_FAKE=1`); never call OpenAI from unit or integration tests.
 
+## Sample data (FND-014)
+- `scripts/seed.py` builds the Acme Talent workspace from the design. When you add a table the screens show, extend it with the design's sample rows (synthetic people, `.test` emails) and move credits only through `app/services/credits.py`. `tests/unit/test_seed_data.py` checks the sample data stays consistent.
+
 ## Commands (from the repo root)
-`make api` · `make worker` · `make lint-api` · `make test-api` (integration tests need local Supabase and Redis) · `make db-drift` · `make api-client` (after changing the OpenAPI)
+`make api` · `make worker` · `make db-seed` · `make lint-api` · `make test-api` (integration tests need local Supabase and Redis) · `make db-drift` · `make api-client` (after changing the OpenAPI)

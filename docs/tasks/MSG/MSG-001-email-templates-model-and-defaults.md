@@ -4,7 +4,7 @@
 |---|---|
 | Epic | MSG — Candidate emails |
 | Milestone | M3 Intake |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [FND-010](../FND/FND-010-email-infrastructure-resend.md), [AUTH-003](../AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) |
 | Requirements | FR-MSG-01, FR-MSG-03 |

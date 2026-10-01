@@ -4,7 +4,7 @@
 |---|---|
 | Epic | FND — Foundation |
 | Milestone | M0 Foundation |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-008](../FND/FND-008-background-worker-and-job-framework.md) |
 | Requirements | FR-MSG-04, FR-MSG-06 |

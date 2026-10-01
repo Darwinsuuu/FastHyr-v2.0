@@ -34,7 +34,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Done | #20 |
 | [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | In review | |
 | [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Done | #22 |
-| [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | In review | #24 |
+| [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Done | #24 |
 | [FND-012](FND/FND-012-ui-kit-design-system-components.md) | UI kit (design-system components) | L | FND-005 | Done | #7, #8 |
 | [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | Done | #21 |
 | [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Done | #23 |

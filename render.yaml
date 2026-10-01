@@ -2,7 +2,8 @@
 # Each environment has an API (web service), a job worker and a Key Value (Redis) instance:
 #   development  ← branch develop   (fasthyr-*-dev)
 #   QA           ← branch release   (fasthyr-*-qa)
-# Production services are added with the production cut-over (REL-003).
+# Production services are added with the production cut-over (REL-003). The APIs run on the free
+# plan for now; workers have no free plan, so they use the smallest paid size.
 #
 # Deploys wait for the commit's GitHub checks (CI and the migrations workflow) to pass, so the
 # API never starts before the migrations it needs. Only changes under apps/api trigger a deploy.
@@ -23,7 +24,8 @@ services:
   - type: web
     name: fasthyr-api-dev
     runtime: python
-    plan: 0.5c-512mb
+    # Free while in development: sleeps after 15 idle minutes, wakes on the next request.
+    plan: free
     region: singapore
     branch: develop
     rootDir: apps/api
@@ -118,7 +120,8 @@ services:
   - type: web
     name: fasthyr-api-qa
     runtime: python
-    plan: 0.5c-512mb
+    # Free while in development: sleeps after 15 idle minutes, wakes on the next request.
+    plan: free
     region: singapore
     branch: release
     rootDir: apps/api

@@ -116,7 +116,7 @@ One-time steps in the owner's accounts for development (`develop`) and QA (`rele
 | `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL` | OpenAI project key with a spend limit, and the text model name (FND-013) |
 | `SENTRY_DSN` | the api Sentry project on `fasthyr-api-*`, the worker project on `fasthyr-worker-*` (§5) |
 
-The worker services read the rest from their API service. Then Settings → Custom Domains: `api.dev.fasthyr.com` on `fasthyr-api-dev`, `api.qa.fasthyr.com` on `fasthyr-api-qa`. Plans: API and worker `0.5c-512mb` (Render's smallest paid size; workers have no free plan), Key Value `free` (no persistence, so queued jobs are lost if it restarts; fine for development and QA).
+The worker services read the rest from their API service. Then Settings → Custom Domains: `api.dev.fasthyr.com` on `fasthyr-api-dev`, `api.qa.fasthyr.com` on `fasthyr-api-qa`. Plans: API `free` (it sleeps after 15 idle minutes and the next request waits about a minute; no Render Shell), worker `0.5c-512mb` (Render's smallest paid size; workers have no free plan), Key Value `free` (no persistence, so queued jobs are lost if it restarts; fine for development and QA). Suspend the QA services until the first RELEASE deployment reaches `release`.
 
 **5. Vercel** (Add New → Project → this repository).
 - Root Directory `apps/web` (framework Next.js; pnpm and Node 24 are detected). Settings → Git → Production Branch: `master`.
@@ -137,4 +137,4 @@ The worker services read the rest from their API service. Then Settings → Cust
 
 **6. Resend.** Domains → Add `fasthyr.com` and add its DNS records (the From address is `no-reply@fasthyr.com`, and Resend only sends from the verified domain). API Keys → one sending key per environment. Webhooks → `https://api.dev.fasthyr.com/v1/webhooks/resend` (and the QA host) for delivered, bounced, complained and failed; each webhook's signing secret is that environment's `RESEND_WEBHOOK_SECRET`. The same key is the Supabase SMTP password (§1).
 
-**7. Smoke test** (each environment). `https://api.dev.fasthyr.com/health` returns `{"status":"ok"}`; sign in on `https://dev.fasthyr.com/login`, land on the app host and see your workspaces (the app called the API with your session); invite yourself from Settings → Members to check email; run `python -m app.core.observability --component api` in the API's Render shell to check Sentry. Repeat on the QA hosts.
+**7. Smoke test** (each environment). `https://api.dev.fasthyr.com/health` returns `{"status":"ok"}`; sign in on `https://dev.fasthyr.com/login`, land on the app host and see your workspaces (the app called the API with your session); invite yourself from Settings → Members to check email; run `python -m app.core.observability --component worker` in the worker's Render shell to check Sentry (the free API has no shell; `make sentry-test` locally with the api DSN covers it). Repeat on the QA hosts.

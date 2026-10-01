@@ -4,6 +4,7 @@ from app.models.ai import AICall
 from app.models.audit import AuditLog
 from app.models.base import Base
 from app.models.credits import CreditBatch, CreditLedgerEntry
+from app.models.emails import EmailMessage
 from app.models.identity import (
     CompanyProfile,
     Department,
@@ -24,6 +25,7 @@ __all__ = [
     "CreditBatch",
     "CreditLedgerEntry",
     "Department",
+    "EmailMessage",
     "Invite",
     "MemberDepartment",
     "Pipeline",

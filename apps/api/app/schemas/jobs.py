@@ -23,7 +23,7 @@ class Job(BaseModel):
 
 
 class SampleJobRequest(BaseModel):
-    """Local-only demo of the job framework: `fail_tries` makes the first tries fail."""
+    """Demo of the job framework (local and development); `fail_tries` fails the first tries."""
 
     steps: int = Field(default=3, ge=1, le=20)
     step_seconds: float = Field(default=1.0, ge=0, le=10)

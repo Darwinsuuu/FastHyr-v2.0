@@ -1,7 +1,7 @@
 """Application settings, read from environment variables (see .env.example)."""
 
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -24,6 +24,17 @@ class Settings(BaseSettings):
     supabase_jwt_audience: str = "authenticated"
     # Redis for the arq job queue (FND-008). Local Redis runs in Docker (`make redis-start`).
     redis_url: str = "redis://127.0.0.1:6379"
+    # Links in emails (FND-010) point at the site host.
+    site_url: str = "http://fasthyr.localhost:3000"
+    # Email (FND-010, ADR-008). `auto` sends through Resend when RESEND_API_KEY is set, else to
+    # local Mailpit over SMTP when APP_ENV is local, else only logs the message ID.
+    email_backend: Literal["auto", "resend", "smtp", "log"] = "auto"
+    email_from_address: str = "no-reply@fasthyr.com"
+    resend_api_key: str = ""
+    resend_webhook_secret: str = ""
+    # Local Supabase's Mailpit (supabase/config.toml [local_smtp] smtp_port).
+    smtp_host: str = "127.0.0.1"
+    smtp_port: int = 54325
 
     # OpenAI (FND-013, ADR-007). Model names are configuration, never hard-coded.
     openai_api_key: str = ""
@@ -41,6 +52,14 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @property
+    def resolved_email_backend(self) -> str:
+        if self.email_backend != "auto":
+            return self.email_backend
+        if self.resend_api_key:
+            return "resend"
+        return "smtp" if self.app_env == "local" else "log"
 
     @property
     def jwks_url(self) -> str:

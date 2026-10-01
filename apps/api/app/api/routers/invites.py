@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, status
 
-from app.api.deps import Session, require
+from app.api.deps import JobQueueDep, Session, SettingsDep, require
 from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
@@ -27,16 +27,29 @@ async def list_invites(ctx: Admin, session: Session) -> InviteList:
 
 
 @router.post("", response_model=Invite, status_code=status.HTTP_201_CREATED, responses=CONFLICT)
-async def create_invite(body: CreateInviteRequest, ctx: Admin, session: Session) -> Invite:
-    """Invites an email with a role and departments for 7 days, replacing any pending invite for
-    that email. Someone who already has access is `409 already_a_member`."""
-    return await invite_service.create_invite(session, ctx, body)
+async def create_invite(
+    body: CreateInviteRequest,
+    ctx: Admin,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+) -> Invite:
+    """Invites an email with a role and departments for 7 days and emails them the link and
+    code, replacing any pending invite for that email. Someone who already has access is
+    `409 already_a_member`."""
+    return await invite_service.create_invite(session, ctx, queue, settings, body)
 
 
 @router.post("/{invite_id}/resend", response_model=Invite)
-async def resend_invite(invite_id: uuid.UUID, ctx: Admin, session: Session) -> Invite:
-    """A new code and 7-day expiry; the previous link and code stop working."""
-    return await invite_service.resend_invite(session, ctx, invite_id)
+async def resend_invite(
+    invite_id: uuid.UUID,
+    ctx: Admin,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+) -> Invite:
+    """A new code, 7-day expiry and email; the previous link and code stop working."""
+    return await invite_service.resend_invite(session, ctx, queue, settings, invite_id)
 
 
 @router.delete("/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)

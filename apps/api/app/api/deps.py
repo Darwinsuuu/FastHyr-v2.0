@@ -13,6 +13,7 @@ from fastapi import Depends, Header, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, TokenVerifier, bearer_token
+from app.core.config import Settings
 from app.core.context import CandidateContext, RequestContext, Role
 from app.core.db import get_session
 from app.core.errors import (
@@ -34,6 +35,14 @@ def get_job_queue(request: Request) -> JobQueue:
 
 
 JobQueueDep = Annotated[JobQueue, Depends(get_job_queue)]
+
+
+def get_app_settings(request: Request) -> Settings:
+    settings: Settings = request.app.state.settings
+    return settings
+
+
+SettingsDep = Annotated[Settings, Depends(get_app_settings)]
 
 
 async def get_current_user(

@@ -5,13 +5,14 @@ import logging
 from datetime import UTC, datetime, timedelta
 
 from app.jobs.framework import NO_RETRY, JobRun, job
+from app.repositories.emails import scheduled_before
 from app.repositories.jobs import queued_report_jobs_before
-from app.services import credits, invites
+from app.services import credits, emails, invites
 from app.services.jobs import JOB_FUNCTIONS
 
 logger = logging.getLogger("app.jobs")
 
-# A report job still queued this long after it was created lost its enqueue.
+# Work still waiting this long after it was due lost its enqueue.
 STUCK_AFTER = timedelta(minutes=10)
 
 
@@ -36,7 +37,7 @@ async def expire_invites(run: JobRun) -> int:
 @job(retry=NO_RETRY)
 async def requeue_stuck_work(run: JobRun) -> int:
     """Every 10 minutes: queues again work that Postgres says is waiting but Redis lost
-    (ADR-009). Report jobs for now; the application and interview tasks add their stuck states.
+    (ADR-009): report jobs and due emails; the application and interview tasks add theirs.
     Re-enqueueing is safe: enqueue is keyed by the row ID and job bodies skip finished work."""
     requeued = 0
     for stuck in await queued_report_jobs_before(run.session, datetime.now(UTC) - STUCK_AFTER):
@@ -44,6 +45,9 @@ async def requeue_stuck_work(run: JobRun) -> int:
         if function and await run.queue.enqueue(
             function, stuck.workspace_id, stuck.job_id, key=stuck.job_id
         ):
+            requeued += 1
+    for message_id in await scheduled_before(run.session, datetime.now(UTC) - STUCK_AFTER):
+        if await run.queue.enqueue(emails.SEND_JOB, message_id, key=message_id):
             requeued += 1
     logger.info("requeue_stuck_work: %d jobs requeued", requeued)
     return requeued

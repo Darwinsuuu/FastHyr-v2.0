@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 7 |
+| M0 Foundation | 14 | 9 |
 | M1 Access | 12 | 10 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -30,13 +30,13 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | Done | #5 |
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Done | #6 |
 | [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | Done | #11 |
-| [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Backlog | |
-| [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | In review | |
-| [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Backlog | |
-| [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Backlog | |
+| [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Ready | |
+| [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Done | #20 |
+| [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Ready | |
+| [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | In review | |
 | [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Ready | |
 | [FND-012](FND/FND-012-ui-kit-design-system-components.md) | UI kit (design-system components) | L | FND-005 | Done | #7, #8 |
-| [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | In review | |
+| [FND-013](FND/FND-013-openai-integration-layer.md) | OpenAI integration layer | M | FND-004 | Done | #21 |
 | [FND-014](FND/FND-014-seed-data-acme-talent-sample-workspace.md) | Seed data: Acme Talent sample workspace | S | FND-003 | Ready | |
 
 ## M1 Access
@@ -60,13 +60,13 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | Backlog | |
+| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | Ready | |
 | [PIPE-002](PIPE/PIPE-002-new-pipeline-wizard-role-and-ai-interview-steps.md) | New pipeline wizard — Role and AI interview steps | L | PIPE-001, WS-002, FND-012 | Backlog | |
 | [PIPE-003](PIPE/PIPE-003-new-pipeline-wizard-scoring-schedule-credits-revie.md) | New pipeline wizard — Scoring, Schedule & credits, Review, Publish | L | PIPE-002 | Backlog | |
 | [PIPE-004](PIPE/PIPE-004-pipelines-list.md) | Pipelines list | M | PIPE-001, DASH-001 | Backlog | |
 | [PIPE-005](PIPE/PIPE-005-pipeline-lifecycle-actions.md) | Pipeline lifecycle actions | M | PIPE-004, FND-010 | Backlog | |
 | [PIPE-006](PIPE/PIPE-006-share-apply-link.md) | Share apply link | S | PIPE-001 | Backlog | |
-| [BILL-001](BILL/BILL-001-stripe-foundation-and-webhooks.md) | Stripe foundation and webhooks | M | FND-004, FND-008 | Backlog | |
+| [BILL-001](BILL/BILL-001-stripe-foundation-and-webhooks.md) | Stripe foundation and webhooks | M | FND-004, FND-008 | Ready | |
 
 ## M3 Intake
 

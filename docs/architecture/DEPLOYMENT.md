@@ -31,6 +31,8 @@ alter role fasthyr_api with login password '<random password>';
 ```
 Locally, `supabase/seed.sql` does this with the password `fasthyr_api_local`.
 
+**Email (FND-010).** The API and worker send through Resend when `RESEND_API_KEY` is set (Resend → API Keys, sending access for the `mail.fasthyr.com` domain). `SITE_URL` is the environment's site host (the invite link is `{SITE_URL}/join/{token}`). In Resend → Webhooks, add `https://<api host>/v1/webhooks/resend` for the delivered, bounced, complained and failed events and copy its signing secret into `RESEND_WEBHOOK_SECRET`. Without a key the API only logs the email's ID (locally it delivers to Mailpit). `POST /v1/dev/test-email` (development only) sends a test to yourself.
+
 Auth settings (providers, redirect URLs, password rules, SMTP) follow `supabase/config.toml`. The OAuth client IDs and secrets go into each project's Authentication → Providers page, never into the repository. The one-time setup checklist is in the FND-002 task log.
 
 **Auth emails (AUTH-002).** Supabase Auth sends the verification and password-reset emails itself, not the API. For each hosted project:

@@ -10,16 +10,15 @@ from typing import Any
 
 import asyncpg
 import pytest
-from arq.connections import RedisSettings
-from arq.worker import Worker
 from fastapi import FastAPI
 
 from app.core.context import Role
 from app.jobs.queue import JobQueue
 from app.jobs.system import requeue_stuck_work
 from app.main import create_app
-from app.worker import FUNCTIONS, shutdown, startup
+from app.worker import shutdown, startup
 from tests.conftest import Supabase
+from tests.integration.worker import drain
 from tests.tenancy.harness import Tenancy
 
 
@@ -32,31 +31,6 @@ def queue_name() -> str:
 @pytest.fixture
 def tenancy_app(redis_url: str, queue_name: str) -> Iterator[FastAPI]:
     yield create_app(job_queue=JobQueue(redis_url, queue_name=queue_name))
-
-
-async def _run_worker(redis_url: str, queue_name: str) -> None:
-    """Runs the real worker in burst mode: it exits once the queue (retries included) is
-    empty."""
-    worker = Worker(
-        functions=FUNCTIONS,
-        redis_settings=RedisSettings.from_dsn(redis_url),
-        queue_name=queue_name,
-        burst=True,
-        handle_signals=False,
-        on_startup=startup,
-        on_shutdown=shutdown,
-        keep_result=0,
-        poll_delay=0.05,
-        ctx={"queue_name": queue_name},
-    )
-    try:
-        await worker.main()
-    finally:
-        await worker.close()
-
-
-def drain(redis_url: str, queue_name: str) -> None:
-    asyncio.run(_run_worker(redis_url, queue_name))
 
 
 def start_sample(tenancy: Tenancy, **body: Any) -> dict[str, Any]:

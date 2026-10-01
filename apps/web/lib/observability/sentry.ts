@@ -32,7 +32,16 @@ export function sentryOptions(runtime: "browser" | "nodejs" | "edge") {
     enabled: sentryDsn !== "",
     environment: env.appEnv,
     initialScope: { tags: { component: "web", runtime } },
-    sendDefaultPii: false,
+    // SDK v11 ignores sendDefaultPii and collects user info (and lets Sentry infer the browser's
+    // IP address) unless dataCollection says otherwise.
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      stackFrameVariables: false,
+    },
     debug: process.env.SENTRY_DEBUG === "1",
     tracesSampleRate: 0,
     beforeSend: (event: ErrorEvent, hint: EventHint) => scrubEvent(tagApiError(event, hint)),

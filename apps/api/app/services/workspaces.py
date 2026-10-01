@@ -1,6 +1,7 @@
-"""Creating a workspace, joining one with an invite code, and remembering the active one
+"""Creating a workspace, joining one with an invite code or link, and remembering the active one
 (FR-AUTH-04 to FR-AUTH-06)."""
 
+import hashlib
 import re
 import unicodedata
 import uuid
@@ -18,10 +19,11 @@ from app.core.errors import (
     InviteWrongEmailError,
     NotFoundError,
 )
-from app.models import Workspace
+from app.models import Invite, Workspace
 from app.repositories.users import UserRepository
 from app.repositories.workspaces import WorkspaceSetupRepository
 from app.schemas.me import MyWorkspace
+from app.schemas.workspaces import InvitePreview, InviteState
 from app.services import credits
 from app.services.me import to_my_workspace
 
@@ -52,11 +54,46 @@ def next_free_slug(base: str, taken: set[str]) -> str:
     return f"{base}-{n}"[:SLUG_MAX]
 
 
-def normalize_invite_code(raw: str) -> str:
-    """Accepts what people paste: a bare code in any case, or a whole `/join/<code>` link."""
+# The format `invites.new_code()` makes. Anything else in a join link is the link token.
+INVITE_CODE = re.compile(r"[A-Z0-9]{4}-[A-Z0-9]{4}")
+
+
+def invite_key(raw: str) -> str:
+    """Accepts what people paste: a bare code or token, or a whole `/join/<key>` link."""
     value = raw.strip().rstrip("/")
-    value = value.rsplit("/", 1)[-1].split("?", 1)[0]
-    return value.strip().upper()
+    return value.rsplit("/", 1)[-1].split("?", 1)[0].strip()
+
+
+def normalize_invite_code(raw: str) -> str:
+    """A code in any case, or a whole `/join/<code>` link, as stored."""
+    return invite_key(raw).upper()
+
+
+def mask_email(email: str) -> str:
+    """Enough for the invitee to recognise which account to use: "d•••@acme.com"."""
+    local, _, domain = email.partition("@")
+    return f"{local[:1]}•••@{domain}"
+
+
+async def _find_invite(setup: WorkspaceSetupRepository, raw: str, *, lock: bool) -> Invite:
+    """The invite for a code (case-insensitive) or the link token from the invite email (exact;
+    only its SHA-256 is stored), or `404 invite_not_found`."""
+    key = invite_key(raw)
+    if INVITE_CODE.fullmatch(key.upper()):
+        invite = await setup.get_invite(code=key.upper(), lock=lock)
+    else:
+        token_hash = hashlib.sha256(key.encode()).hexdigest()
+        invite = await setup.get_invite(token_hash=token_hash, lock=lock)
+    if invite is None:
+        raise InviteNotFoundError()
+    return invite
+
+
+def _usable_or_raise(invite: Invite) -> None:
+    if invite.status in ("revoked", "accepted"):
+        raise InviteInvalidError()
+    if invite.status == "expired" or invite.expires_at <= datetime.now(UTC):
+        raise InviteExpiredError()
 
 
 async def grant_trial(session: AsyncSession, workspace: Workspace) -> None:
@@ -99,23 +136,47 @@ async def create_workspace(session: AsyncSession, user: CurrentUser, name: str) 
     return await _my_workspace(session, user, workspace.id)
 
 
-async def accept_invite(session: AsyncSession, user: CurrentUser, raw_code: str) -> MyWorkspace:
-    """Joins the invite's workspace with its role and departments (FR-AUTH-06). The invite must
-    be addressed to the signed-in email; that is checked before anything else about it shows."""
+async def preview_invite(session: AsyncSession, user: CurrentUser, raw: str) -> InvitePreview:
+    """What the join page shows (S-04), by the same rules and in the same order as accepting: a
+    different account only learns the masked address the invite was sent to."""
     setup = WorkspaceSetupRepository(session)
-    invite = await setup.get_invite_by_code(normalize_invite_code(raw_code))
-    if invite is None:
-        raise InviteNotFoundError()
+    invite = await _find_invite(setup, raw, lock=False)
+    if (user.email or "").lower() != invite.email:
+        return InvitePreview(state=InviteState.WRONG_EMAIL, masked_email=mask_email(invite.email))
+    member = await setup.get_member(invite.workspace_id, user.user_id)
+    if member is not None and member.status == "active":
+        return InvitePreview(state=InviteState.ALREADY_MEMBER, workspace_id=invite.workspace_id)
+    try:
+        _usable_or_raise(invite)
+    except InviteInvalidError:
+        return InvitePreview(state=InviteState.INVALID)
+    except InviteExpiredError:
+        return InvitePreview(state=InviteState.EXPIRED)
+    workspace_name, inviter, departments = await setup.invite_details(invite)
+    role = Role(invite.role)
+    return InvitePreview(
+        state=InviteState.READY,
+        workspace_id=invite.workspace_id,
+        workspace_name=workspace_name,
+        invited_by_name=inviter,
+        role=role,
+        departments=[] if role is Role.ADMIN else departments,
+    )
+
+
+async def accept_invite(session: AsyncSession, user: CurrentUser, raw: str) -> MyWorkspace:
+    """Joins the invite's workspace with its role and departments (FR-AUTH-06), by code or link
+    token. The invite must be addressed to the signed-in email; that is checked before anything
+    else about it shows."""
+    setup = WorkspaceSetupRepository(session)
+    invite = await _find_invite(setup, raw, lock=True)
     if (user.email or "").lower() != invite.email:
         raise InviteWrongEmailError()
 
     member = await setup.get_member(invite.workspace_id, user.user_id)
     already_member = member is not None and member.status == "active"
     if not already_member:
-        if invite.status in ("revoked", "accepted"):
-            raise InviteInvalidError()
-        if invite.status == "expired" or invite.expires_at <= datetime.now(UTC):
-            raise InviteExpiredError()
+        _usable_or_raise(invite)
         if member is None:
             member = await setup.add_member(
                 workspace_id=invite.workspace_id, user_id=user.user_id, role=invite.role

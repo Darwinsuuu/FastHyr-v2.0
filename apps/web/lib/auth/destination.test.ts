@@ -44,4 +44,21 @@ describe("chooseDestination", () => {
     expect(chooseDestination({ ...base, next: "//evil.example" }).path).toBe("/");
     expect(chooseDestination({ ...base, next: "https://evil.example" }).path).toBe("/");
   });
+
+  it("returns to an invite on the site host, with or without workspaces", () => {
+    for (const workspaceIds of [[], [A]]) {
+      expect(
+        chooseDestination({
+          next: "/join/AB12-CD34",
+          lastWorkspaceId: null,
+          cookieWorkspaceId: null,
+          workspaceIds,
+        }),
+      ).toEqual({ host: "site", path: "/join/AB12-CD34", workspaceId: null });
+    }
+    // Anything that isn't exactly one join segment is treated as an app path.
+    const base = { lastWorkspaceId: null, cookieWorkspaceId: null, workspaceIds: [A] };
+    expect(chooseDestination({ ...base, next: "/join/a/b" }).host).toBe("app");
+    expect(chooseDestination({ ...base, next: "/join/" }).host).toBe("app");
+  });
 });

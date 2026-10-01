@@ -1,6 +1,7 @@
 """AUTH-003: create a workspace, join one with an invite code, remember the active workspace."""
 
 import asyncio
+import hashlib
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -105,8 +106,10 @@ def add_invite(
     department_ids: list[uuid.UUID] | None = None,
     status: str = "pending",
     expires_in: timedelta = timedelta(days=7),
+    token: str | None = None,
 ) -> str:
     code = f"{uuid.uuid4().hex[:4]}-{uuid.uuid4().hex[:4]}".upper()
+    token_hash = hashlib.sha256(token.encode()).hexdigest() if token else uuid.uuid4().hex
     inviter = fetch(supabase, "select owner_id from workspaces where id = $1", workspace_id)[0][0]
     fetch(
         supabase,
@@ -118,7 +121,7 @@ def add_invite(
         role,
         department_ids or [],
         code,
-        uuid.uuid4().hex,
+        token_hash,
         inviter,
         status,
         datetime.now(UTC) + expires_in,
@@ -292,6 +295,129 @@ def test_join_only_with_an_invite_addressed_to_you(
     assert (wrong.status_code, wrong.json()["code"]) == (403, "invite_wrong_email")
     assert (unknown.status_code, unknown.json()["code"]) == (404, "invite_not_found")
     assert "example.com" not in wrong.text
+
+
+def test_join_with_the_link_token(
+    tenancy: Tenancy, client: TestClient, users: list[User], supabase: Supabase
+) -> None:
+    token = f"tok_{uuid.uuid4().hex}-Mixed_Case"
+    add_invite(supabase, tenancy.workspace("a").id, users[0].email, token=token)
+
+    # Tokens are exact: the same token in upper case is no invite.
+    wrong_case = client.post(
+        "/v1/invites/accept", json={"token": token.upper()}, headers=users[0].headers
+    )
+    joined = client.post(
+        "/v1/invites/accept",
+        json={"token": f"https://fasthyr.com/join/{token}"},
+        headers=users[0].headers,
+    )
+    both = client.post(
+        "/v1/invites/accept", json={"code": "AB12-CD34", "token": token}, headers=users[0].headers
+    )
+
+    assert (wrong_case.status_code, wrong_case.json()["code"]) == (404, "invite_not_found")
+    assert joined.status_code == 200, joined.text
+    assert joined.json()["id"] == str(tenancy.workspace("a").id)
+    assert both.status_code == 422
+
+
+# --- Join page preview ---------------------------------------------------------------------
+
+
+def test_preview_shows_the_invite_to_its_addressee(
+    tenancy: Tenancy, client: TestClient, users: list[User], supabase: Supabase
+) -> None:
+    workspace = tenancy.workspace("a")
+    token = f"tok_{uuid.uuid4().hex}"
+    code = add_invite(
+        supabase,
+        workspace.id,
+        users[0].email,
+        department_ids=[workspace.department_id],
+        token=token,
+    )
+
+    by_code = client.get(f"/v1/invites/{code.lower()}", headers=users[0].headers)
+    by_token = client.get(f"/v1/invites/{token}", headers=users[0].headers)
+
+    assert by_code.status_code == 200, by_code.text
+    assert by_code.json() == by_token.json()
+    body = by_code.json()
+    assert body["state"] == "ready"
+    assert body["workspace_id"] == str(workspace.id)
+    assert body["workspace_name"]
+    assert body["invited_by_name"]
+    assert body["role"] == "recruiter"
+    assert body["departments"] == ["Engineering"]
+    assert body["masked_email"] is None
+
+
+def test_preview_tells_another_account_only_the_masked_email(
+    tenancy: Tenancy, client: TestClient, users: list[User], supabase: Supabase
+) -> None:
+    code = add_invite(supabase, tenancy.workspace("a").id, users[0].email)
+    # A member of the invite's own workspace is still the wrong account.
+    other_member = tenancy.client("a", Role.RECRUITER)
+
+    wrong = client.get(f"/v1/invites/{code}", headers=users[1].headers)
+    member = other_member.get(f"/v1/invites/{code}")
+    unknown = client.get("/v1/invites/ZZZZ-0000", headers=users[1].headers)
+
+    for response in (wrong, member):
+        assert response.status_code == 200
+        assert response.json() == {
+            "state": "wrong_email",
+            "workspace_id": None,
+            "workspace_name": None,
+            "invited_by_name": None,
+            "role": None,
+            "departments": [],
+            "masked_email": f"{users[0].email[0]}•••@example.com",
+        }
+    assert (unknown.status_code, unknown.json()["code"]) == (404, "invite_not_found")
+
+
+@pytest.mark.parametrize(
+    ("status", "expires_in", "state"),
+    [
+        ("pending", timedelta(seconds=-1), "expired"),
+        ("expired", timedelta(days=1), "expired"),
+        ("revoked", timedelta(days=1), "invalid"),
+        ("accepted", timedelta(days=1), "invalid"),
+    ],
+)
+def test_preview_of_an_invite_that_cannot_be_used(
+    tenancy: Tenancy,
+    client: TestClient,
+    users: list[User],
+    supabase: Supabase,
+    status: str,
+    expires_in: timedelta,
+    state: str,
+) -> None:
+    code = add_invite(
+        supabase, tenancy.workspace("a").id, users[0].email, status=status, expires_in=expires_in
+    )
+
+    response = client.get(f"/v1/invites/{code}", headers=users[0].headers)
+
+    assert response.status_code == 200
+    assert response.json()["state"] == state
+    assert response.json()["workspace_name"] is None
+
+
+def test_preview_after_joining_points_to_the_workspace(
+    tenancy: Tenancy, client: TestClient, users: list[User], supabase: Supabase
+) -> None:
+    code = add_invite(supabase, tenancy.workspace("a").id, users[0].email, role="admin")
+    assert client.get(f"/v1/invites/{code}", headers=users[0].headers).json()["departments"] == []
+    client.post("/v1/invites/accept", json={"code": code}, headers=users[0].headers)
+
+    response = client.get(f"/v1/invites/{code}", headers=users[0].headers)
+
+    assert response.json()["state"] == "already_member"
+    assert response.json()["workspace_id"] == str(tenancy.workspace("a").id)
 
 
 # --- Last workspace ------------------------------------------------------------------------

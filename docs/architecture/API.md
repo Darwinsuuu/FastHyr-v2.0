@@ -20,8 +20,8 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 | `GET /me/workspaces` | active memberships: id, name, slug, role, owner flag, member count |
 | `PUT /me/last-workspace` | `{workspace_id}`: remembers the active workspace for the next sign-in on any device (FR-AUTH-04); not a member → 404; 204 |
 | `POST /workspaces` | `{name}` (1–120 chars): create workspace; caller becomes owner (Admin); unique slug from the name; company profile stub; trial grant (BILL-002 adds the credits); becomes last workspace; 201 with the `/me/workspaces` row. Verified email only |
-| `POST /invites/accept` | `{code}` (bare code in any case, or a pasted `/join/<code>` link) or `{token}` (AUTH-004): joins with the invite's role and departments, becomes last workspace; returns the `/me/workspaces` row, also if already a member. Verified email only |
-| `GET /invites/{code}` | invite preview for the join page (AUTH-004) |
+| `POST /invites/accept` | `{code}` (bare code in any case, or a pasted `/join/<code>` link) or `{token}` (the link token from the invite email, exact; a pasted `/join/<token>` link also works as `code`): joins with the invite's role and departments, becomes last workspace; returns the `/me/workspaces` row, also if already a member. Errors: `404 invite_not_found`, `403 invite_wrong_email`, `410 invite_expired` / `invite_invalid`. Verified email only (AUTH-003, AUTH-004) |
+| `GET /invites/{code}` | join page preview by code or link token (AUTH-004). Verified email only. `{state, workspace_id, workspace_name, invited_by_name, role, departments, masked_email}`; `state` is `ready` (details filled in), `already_member` (`workspace_id` only), `wrong_email` (`masked_email` only, e.g. `d•••@acme.com`), `expired` or `invalid` (nothing else). Unknown is `404 invite_not_found` |
 
 ## Candidate (signed-in candidate)
 | `POST /candidate/pipelines/{pipeline_id}/resume-upload` | signed upload URL |

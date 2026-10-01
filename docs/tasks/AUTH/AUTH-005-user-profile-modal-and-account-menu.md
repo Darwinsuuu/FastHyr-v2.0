@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AUTH — Authentication & workspaces |
 | Milestone | M1 Access |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [DASH-001](../DASH/DASH-001-app-shell.md) |
 | Requirements | FR-AUTH-08, FR-AUTH-09 |

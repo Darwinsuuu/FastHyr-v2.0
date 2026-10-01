@@ -23,6 +23,16 @@ class Settings(BaseSettings):
     supabase_jwt_issuer: str = ""
     supabase_jwt_audience: str = "authenticated"
 
+    # OpenAI (FND-013, ADR-007). Model names are configuration, never hard-coded.
+    openai_api_key: str = ""
+    openai_text_model: str = ""
+    openai_timeout_seconds: float = 60
+    # USD per million tokens, per model, for ai_calls.cost_usd, as JSON:
+    # {"<model>": {"input": 0.0, "output": 0.0}}. A model without a price logs a null cost.
+    openai_prices: dict[str, dict[str, float]] = {}
+    # AI_FAKE=1 answers every AI call from fixtures (app/ai/fixtures/), with no network.
+    ai_fake: bool = False
+
     @field_validator("web_origins", mode="before")
     @classmethod
     def split_origins(cls, value: object) -> object:

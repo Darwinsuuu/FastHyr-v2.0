@@ -22,6 +22,7 @@ from app.core.config import Settings, get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.errors import register_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.core.observability import init_sentry
 from app.jobs.queue import JobQueue
 
 API_PREFIX = "/v1"
@@ -37,7 +38,8 @@ def create_app(
     job_queue: JobQueue | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
-    configure_logging()
+    configure_logging(settings.log_level, settings.resolved_log_format)
+    init_sentry(settings, "api")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

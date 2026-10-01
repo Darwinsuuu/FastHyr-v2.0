@@ -9,6 +9,7 @@ import uuid
 from collections.abc import Callable, Coroutine
 from typing import Annotated, Any
 
+import sentry_sdk
 from fastapi import Depends, Header, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +23,7 @@ from app.core.errors import (
     NotAMemberError,
     WorkspaceRequiredError,
 )
+from app.core.logging import bind_ids
 from app.core.permissions import Action, can
 from app.jobs.queue import JobQueue
 from app.repositories.users import UserRepository
@@ -50,7 +52,10 @@ async def get_current_user(
     authorization: Annotated[str | None, Header(include_in_schema=False)] = None,
 ) -> CurrentUser:
     verifier: TokenVerifier = request.app.state.token_verifier
-    return await verifier.verify(bearer_token(authorization))
+    user = await verifier.verify(bearer_token(authorization))
+    bind_ids(user_id=user.user_id)
+    sentry_sdk.set_user({"id": str(user.user_id)})
+    return user
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]
@@ -85,6 +90,7 @@ async def get_request_context(
     member = await users.get_active_membership(workspace_id)
     if member is None:
         raise NotAMemberError()
+    bind_ids(workspace_id=workspace_id)
     context = RequestContext(
         user_id=user.user_id,
         workspace_id=workspace_id,

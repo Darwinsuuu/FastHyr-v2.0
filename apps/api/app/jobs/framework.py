@@ -8,6 +8,8 @@ exponential backoff, and a failure hook once the last try fails.
 Job bodies are thin and idempotent (BACKEND.md §2): a retry, a duplicate enqueue or a sweeper
 re-enqueue may run the same body again, so it checks the row's state before doing the work.
 Exceptions are logged by class name only, never with arguments that could hold personal data.
+Log lines and Sentry events from a job carry `job`, `job_id` and `job_try`; the last failed try
+is sent to Sentry (FND-009).
 """
 
 import functools
@@ -17,10 +19,13 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, Concatenate
 
+import sentry_sdk
+import structlog
 from arq import Retry
 from arq.typing import WorkerCoroutine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.logging import bind_ids
 from app.jobs.queue import JobQueue
 
 logger = logging.getLogger("app.jobs")
@@ -79,6 +84,14 @@ def job(
     def decorator(body: JobBody) -> WorkerFunction:
         @functools.wraps(body)
         async def run(ctx: dict[Any, Any], *args: Any, **kwargs: Any) -> Any:
+            # Each job gets its own Sentry scope and log context, tagged with IDs only.
+            with sentry_sdk.isolation_scope():
+                structlog.contextvars.clear_contextvars()
+                bind_ids(job=body.__name__, job_id=ctx.get("job_id") or None)
+                sentry_sdk.set_tag("job_try", str(ctx.get("job_try", 1)))
+                return await run_try(ctx, *args, **kwargs)
+
+        async def run_try(ctx: dict[Any, Any], *args: Any, **kwargs: Any) -> Any:
             sessionmaker: async_sessionmaker[AsyncSession] = ctx["sessionmaker"]
             job_try: int = ctx.get("job_try", 1)
             name = body.__name__
@@ -106,6 +119,7 @@ def job(
                     logger.error(
                         "job %s failed after %d tries (%s)", name, job_try, type(error).__name__
                     )
+                    sentry_sdk.capture_exception(error)
                     if on_failure is not None:
                         async with sessionmaker() as failure_session:
                             await on_failure(failure_session, error, args)

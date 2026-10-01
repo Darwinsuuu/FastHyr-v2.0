@@ -6,6 +6,7 @@ Bodies never carry personal data: no emails, names or submitted values, only cod
 import logging
 from typing import Any, ClassVar
 
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -288,6 +289,7 @@ async def _validation_error(request: Request, exc: Exception) -> JSONResponse:
 
 async def _unexpected_error(request: Request, exc: Exception) -> JSONResponse:
     logger.exception("unhandled error", extra={"error_type": type(exc).__name__})
+    sentry_sdk.capture_exception(exc)
     return problem_response(
         request, status=500, code="internal_error", title="Something went wrong on our side"
     )

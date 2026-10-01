@@ -24,6 +24,10 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Raise an `AppError` subclass from `app/core/errors.py` (or add one with a new stable `code`); never `HTTPException`. Add `responses=PROBLEM_RESPONSES` to new routers.
 - Tenancy tests: use the `tenancy` fixture (`tests/tenancy/harness.py`): two workspaces, every role, real sign-ins. `tenancy.client("a", Role.RECRUITER)` calls as that member; `tenancy.assert_hidden_from_other_workspace(method, url)` checks every role of the other workspace gets 404.
 
+## Logs and Sentry (FND-009)
+- Log with `logging.getLogger("app.<area>")` (or `get_logger()` from `app.core.logging` for key=value fields). Lines are structlog JSON on hosted environments and carry `request_id` / `job_id` automatically; add IDs with `bind_ids(...)`. Log IDs and error class names, never values people typed.
+- Unhandled API errors (the 500 handler) and a job's last failed try go to Sentry; handled `AppError`s and log lines don't. Sentry is off while `SENTRY_DSN` is empty. Scrub rules: `app/core/scrub.py`. Test event: `make sentry-test`; local `POST /v1/dev/error` raises through the real handler.
+
 ## Adding a job (FND-008)
 - Write the body in `app/jobs/` as `@job(retry=RetryPolicy(...))` `async def name(run: JobRun, workspace_id, entity_id)`: load by ID through a workspace-scoped repository, call a service, commit. It must be safe to run twice (check the row's state first).
 - Register it in `app/worker.py` (`register(...)` in `FUNCTIONS`, or `cron(...)` in `CRON_JOBS` with `NO_RETRY`).

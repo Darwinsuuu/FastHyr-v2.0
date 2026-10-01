@@ -44,8 +44,10 @@ Locally nothing is needed: `make db-start` loads the templates and Mailpit catch
 ## 2. Local development
 ```
 make setup        # pnpm install, uv sync, supabase start (applies migrations + seed)
-make dev          # opens Docker if needed, supabase start, then web + api (+ worker, redis later)
-make stop         # supabase stop
+make dev          # opens Docker if needed, supabase start, redis-start, then web + api + worker
+make worker       # just the job worker (restarts on code changes)
+make redis-start  # local Redis for the job queue (Docker container fasthyr-redis)
+make stop         # supabase stop, redis-stop
 make api-client   # regenerate packages/api-client from the running API's OpenAPI
 make test         # web + api tests
 make lint         # eslint, prettier --check, ruff, mypy
@@ -58,7 +60,7 @@ make db-drift     # fail if app/models and the migrated database disagree
 - Branch flow: `feature/*` → `develop` → `release` → `master` (see `process/GIT_CONVENTIONS.md`).
 - On every PR (into `develop`, `release` or `master`) and every push to those branches, `.github/workflows/ci.yml` runs five parallel jobs, each built from `make` targets so a red job reproduces locally:
   - **Web:** `make lint-web` (Prettier, token and contrast checks, ESLint, typecheck), `make test-web`, `next build`.
-  - **API and database:** `make lint-api` (ruff, mypy), then the pinned Supabase CLI starts a fresh local stack (every migration and the seed applied), `make test-api` with `FASTHYR_REQUIRE_DB=1` (unit, integration and tenancy; a missing database fails instead of skipping), and `make db-drift` (SQLAlchemy models vs migrations). The db checks share this job so Supabase starts once.
+  - **API and database:** `make lint-api` (ruff, mypy), then the pinned Supabase CLI starts a fresh local stack (every migration and the seed applied), `make test-api` with `FASTHYR_REQUIRE_DB=1` and `FASTHYR_REQUIRE_REDIS=1` against a Redis service container (unit, integration and tenancy; a missing database or Redis fails instead of skipping), and `make db-drift` (SQLAlchemy models vs migrations). The db checks share this job so Supabase starts once.
   - **API client up to date:** `make api-client`, then fails if `packages/api-client` differs from the committed one.
   - **Secrets and audits:** gitleaks over the whole history (allowlist in `.gitleaks.toml`: only the fixed local Supabase keys), `pnpm audit --audit-level=moderate` (low only warns), `pip-audit` on the locked API dependencies.
   - **End-to-end (Playwright):** Supabase, the API and a production build of the web app, then `make e2e`. The suite is small, so it runs on every PR for now; REL-001 decides whether the full suite moves to PRs into `release` plus a nightly run against QA.

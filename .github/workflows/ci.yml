@@ -46,6 +46,14 @@ jobs:
     name: API and database
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      # The arq job queue (FND-008); job tests run the real worker against it.
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -56,8 +64,9 @@ jobs:
       - name: Tests (make test-api)
         run: make test-api
         env:
-          # A missing database fails the run instead of skipping the integration and tenancy tests.
+          # A missing database or Redis fails the run instead of skipping the integration tests.
           FASTHYR_REQUIRE_DB: "1"
+          FASTHYR_REQUIRE_REDIS: "1"
       - name: Models match migrations (make db-drift)
         run: make db-drift
 

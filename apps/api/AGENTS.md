@@ -24,9 +24,16 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Raise an `AppError` subclass from `app/core/errors.py` (or add one with a new stable `code`); never `HTTPException`. Add `responses=PROBLEM_RESPONSES` to new routers.
 - Tenancy tests: use the `tenancy` fixture (`tests/tenancy/harness.py`): two workspaces, every role, real sign-ins. `tenancy.client("a", Role.RECRUITER)` calls as that member; `tenancy.assert_hidden_from_other_workspace(method, url)` checks every role of the other workspace gets 404.
 
+## Adding a job (FND-008)
+- Write the body in `app/jobs/` as `@job(retry=RetryPolicy(...))` `async def name(run: JobRun, workspace_id, entity_id)`: load by ID through a workspace-scoped repository, call a service, commit. It must be safe to run twice (check the row's state first).
+- Register it in `app/worker.py` (`register(...)` in `FUNCTIONS`, or `cron(...)` in `CRON_JOBS` with `NO_RETRY`).
+- Enqueue from a service **after** `commit()`: `await queue.enqueue("name", workspace_id, entity_id, key=entity_id)`. Routers get the queue from `JobQueueDep`.
+- Progress a user waits on goes in `report_jobs` via `services/jobs.py` (`start_report_job`, `Progress`); add the kind to `JOB_FUNCTIONS`.
+- Integration tests run the real worker in burst mode on their own queue (see `tests/integration/test_jobs.py`); they need `make redis-start`.
+
 ## Calling a model (FND-013)
 - Add `app/ai/prompts/<name>@v1.md`, a schema in `app/ai/schemas/`, and a fake answer in `app/ai/fixtures/<name>@v1.json`; call `ai.structured(...)` from a service or job (never a router). Changing a prompt means a new `@vN` file and an `ai_eval` run.
 - Tests use `FakeAIClient` (or `AI_FAKE=1`); never call OpenAI from unit or integration tests.
 
 ## Commands (from the repo root)
-`make api` · `make lint-api` · `make test-api` (integration tests need local Supabase) · `make db-drift` · `make api-client` (after changing the OpenAPI)
+`make api` · `make worker` · `make lint-api` · `make test-api` (integration tests need local Supabase and Redis) · `make db-drift` · `make api-client` (after changing the OpenAPI)

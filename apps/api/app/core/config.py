@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     supabase_jwks_url: str = ""
     supabase_jwt_issuer: str = ""
     supabase_jwt_audience: str = "authenticated"
+    # Redis for the arq job queue (FND-008). Local Redis runs in Docker (`make redis-start`).
+    redis_url: str = "redis://127.0.0.1:6379"
 
     # OpenAI (FND-013, ADR-007). Model names are configuration, never hard-coded.
     openai_api_key: str = ""

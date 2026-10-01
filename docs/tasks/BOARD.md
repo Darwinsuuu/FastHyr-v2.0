@@ -11,7 +11,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | Milestone | Tasks | Done |
 |---|---|---|
 | M0 Foundation | 14 | 7 |
-| M1 Access | 12 | 6 |
+| M1 Access | 12 | 10 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
@@ -31,7 +31,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Done | #6 |
 | [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | Done | #11 |
 | [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Backlog | |
-| [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Ready | |
+| [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | In review | |
 | [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Backlog | |
 | [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Backlog | |
 | [FND-011](FND/FND-011-storage-service-and-pdf-handling.md) | Storage service and PDF handling | M | FND-004 | Ready | |
@@ -46,7 +46,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-001](AUTH/AUTH-001-employer-sign-in.md) | Employer sign-in | M | FND-005, FND-012 | Done | #9 |
 | [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | Done | #10 |
 | [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Done | #12 |
-| [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | In review | |
+| [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Done | #19 |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Done | |
 | [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |
 | [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |

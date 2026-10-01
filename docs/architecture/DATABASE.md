@@ -105,7 +105,7 @@ A trigger rejects updates to setup columns when `locked_at is not null`.
 ### Ava and reports
 **ava_threads** — `id`, `workspace_id`, `member_id`, `scope` (`pipeline|workspace`), `pipeline_id`, `created_at`.
 **ava_messages** — `id`, `workspace_id`, `thread_id`, `role` (`user|assistant`), `content jsonb` (paras, table, bullets, note, sources[]), `refused bool`, `model`, `created_at`.
-**report_jobs** — `id`, `workspace_id`, `requested_by`, `kind` (`candidate_report|pipelines_report|resume_download`), `params jsonb`, `status` (`queued|running|done|failed|cancelled`), `step`, `steps_total`, `file_path`, `error`, `created_at`, `finished_at`.
+**report_jobs** — `id`, `workspace_id`, `requested_by`, `kind` (`candidate_report|pipelines_report|resume_download|sample`; `sample` is the local-only demo job, FND-008), `params jsonb`, `status` (`queued|running|done|failed|cancelled`), `step`, `steps_total`, `file_path`, `error` (stable code, never a message), `created_at`, `finished_at`. Only the member in `requested_by` sees a job. Redis only queues the work; this row is the state people see (ADR-009).
 
 ### Billing
 **subscriptions** — `workspace_id` PK, `stripe_subscription_id`, `plan` (`starter|growth|scale`), `status` (Stripe status), `current_period_start`, `current_period_end`, `pending_plan`, `cancel_at_period_end`, `default_payment_method_brand`, `default_payment_method_last4`, `default_payment_method_exp`.

@@ -1,8 +1,14 @@
-"""AUTH-003: workspace slugs and pasted invite codes."""
+"""AUTH-003 and AUTH-004: workspace slugs, pasted invite codes and the join page's masked email."""
 
 import pytest
 
-from app.services.workspaces import SLUG_MAX, next_free_slug, normalize_invite_code, slugify
+from app.services.workspaces import (
+    SLUG_MAX,
+    mask_email,
+    next_free_slug,
+    normalize_invite_code,
+    slugify,
+)
 
 
 @pytest.mark.parametrize(
@@ -42,3 +48,11 @@ def test_next_free_slug_counts_up_past_taken_ones() -> None:
 )
 def test_invite_codes_are_accepted_as_pasted(pasted: str) -> None:
     assert normalize_invite_code(pasted) == "AB12-CD34"
+
+
+@pytest.mark.parametrize(
+    ("email", "masked"),
+    [("dana.cruz@acme.com", "d•••@acme.com"), ("j@x.io", "j•••@x.io")],
+)
+def test_masked_email_keeps_the_first_letter_and_domain(email: str, masked: str) -> None:
+    assert mask_email(email) == masked

@@ -101,8 +101,32 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Accept Invite */
+        /**
+         * Accept Invite
+         * @description Joins with the invite's role and departments, by `code` or link `token`.
+         */
         post: operations["accept_invite_v1_invites_accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/invites/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview Invite
+         * @description The join page's view of an invite, by code or link token (S-04). Unknown keys are
+         *     `404 invite_not_found`; details only show to the email the invite was sent to.
+         */
+        get: operations["preview_invite_v1_invites__key__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -265,10 +289,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AcceptInviteRequest */
+        /**
+         * AcceptInviteRequest
+         * @description `code` is what people type or paste (a code in any case, or a `/join/<code>` link);
+         *     `token` is the link token from the invite email (AUTH-004). Exactly one.
+         */
         AcceptInviteRequest: {
             /** Code */
-            code: string;
+            code?: string | null;
+            /** Token */
+            token?: string | null;
         };
         /** CreateDepartmentRequest */
         CreateDepartmentRequest: {
@@ -393,6 +423,34 @@ export interface components {
             /** Invites */
             invites: components["schemas"]["Invite"][];
         };
+        /**
+         * InvitePreview
+         * @description What the join page (S-04) shows for an invite link. Details are only filled in for the
+         *     person the invite is addressed to: `wrong_email` carries just the masked address, so they
+         *     know which account to sign in with; `already_member` carries the workspace to open.
+         */
+        InvitePreview: {
+            state: components["schemas"]["InviteState"];
+            /** Workspace Id */
+            workspace_id?: string | null;
+            /** Workspace Name */
+            workspace_name?: string | null;
+            /** Invited By Name */
+            invited_by_name?: string | null;
+            role?: components["schemas"]["Role"] | null;
+            /**
+             * Departments
+             * @default []
+             */
+            departments: string[];
+            /** Masked Email */
+            masked_email?: string | null;
+        };
+        /**
+         * InviteState
+         * @enum {string}
+         */
+        InviteState: "ready" | "already_member" | "wrong_email" | "expired" | "invalid";
         /** LastWorkspaceRequest */
         LastWorkspaceRequest: {
             /**
@@ -892,6 +950,68 @@ export interface operations {
             };
             /** @description Gone */
             410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    preview_invite_v1_invites__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitePreview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

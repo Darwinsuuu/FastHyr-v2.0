@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api/client";
+import { env } from "@/lib/env";
 import { workspaceCookie } from "@/lib/workspace";
 
 /**
@@ -14,4 +15,10 @@ export async function activateWorkspace(workspaceId: string): Promise<void> {
   await api
     .PUT("/v1/me/last-workspace", { body: { workspace_id: workspaceId } })
     .catch(() => undefined);
+}
+
+/** Makes the workspace active, then leaves for the app host (a full load, so no stale cache). */
+export async function openWorkspace(workspaceId: string, path: string): Promise<void> {
+  await activateWorkspace(workspaceId);
+  window.location.assign(new URL(path, env.appUrl).toString());
 }

@@ -3,6 +3,7 @@
 export const keys = {
   me: () => ["me"] as const,
   myWorkspaces: () => ["me", "workspaces"] as const,
+  invitePreview: (inviteKey: string) => ["invite", inviteKey] as const,
   workspace: (workspaceId: string) => ["ws", workspaceId] as const,
   departments: (workspaceId: string) => ["ws", workspaceId, "departments"] as const,
   members: (workspaceId: string) => ["ws", workspaceId, "members"] as const,

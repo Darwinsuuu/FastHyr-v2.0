@@ -6,8 +6,16 @@ import { safeNextPath } from "@/lib/hosts";
 export type Destination =
   /** An app-host path, with the workspace to make active first. */
   | { host: "app"; path: string; workspaceId: string | null }
-  /** Choose workspace (/workspaces on the site host): the user has no workspace yet. */
-  | { host: "site"; path: "/workspaces"; workspaceId: null };
+  /**
+   * A site-host page: Choose workspace (/workspaces) when the user has no workspace yet, or the
+   * invite they opened before signing in (/join/{code}).
+   */
+  | { host: "site"; path: string; workspaceId: null };
+
+/** Join a workspace from an invite (S-04) lives on the site host. */
+export function isJoinPath(next: string | null): next is string {
+  return !!next && /^\/join\/[^/?#\\]+$/.test(next);
+}
 
 export interface DestinationInput {
   /** The `next` query parameter, if any. Only same-host paths are honoured. */
@@ -26,6 +34,10 @@ export function chooseDestination({
   cookieWorkspaceId,
   workspaceIds,
 }: DestinationInput): Destination {
+  // An invitee usually has no workspace yet; they still go back to the invite they opened.
+  if (isJoinPath(next)) {
+    return { host: "site", path: next, workspaceId: null };
+  }
   if (workspaceIds.length === 0) {
     return { host: "site", path: "/workspaces", workspaceId: null };
   }

@@ -9,12 +9,17 @@ import { t } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { workspaceCookie } from "@/lib/workspace";
 
-/** Ends the session on this device only (FR-AUTH-09) and returns to the sign-in page. */
-export async function logOut() {
+/**
+ * Ends the session on this device only (FR-AUTH-09) and returns to the sign-in page, which sends
+ * the next sign-in to `next` if given (the join page uses this to come back to the invite).
+ */
+export async function logOut(next?: string) {
   await supabaseBrowser().auth.signOut({ scope: "local" });
   // The next person on this device shouldn't open in this user's workspace.
   document.cookie = workspaceCookie(null);
-  window.location.assign(new URL("/login", env.siteUrl).toString());
+  const login = new URL("/login", env.siteUrl);
+  if (next) login.searchParams.set("next", next);
+  window.location.assign(login.toString());
 }
 
 export function LogOutButton(props: Omit<ButtonProps, "onClick" | "loading">) {

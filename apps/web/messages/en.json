@@ -559,5 +559,28 @@
         "failed": "We couldn't save that. Try again."
       }
     }
+  },
+  "join": {
+    "pageTitle": "Join a workspace",
+    "loading": "Checking your invite",
+    "eyebrow": "You’re invited",
+    "invitedBy": "{inviter} invited you to join {workspace} as {role}.",
+    "invited": "You’ve been invited to join {workspace} as {role}.",
+    "departments": "Your departments",
+    "departmentsHint": "You’ll see pipelines and candidates in these departments.",
+    "allDepartments": "Admins see every department.",
+    "join": "Join {workspace}",
+    "openingYours": "You’re already in this workspace. Opening it now.",
+    "wrongEmailTitle": "This invite is for another account",
+    "wrongEmail": "This invite was sent to {email}. Sign in with that email to accept it.",
+    "expiredTitle": "This invite has expired",
+    "invalidTitle": "This invite is no longer valid",
+    "askAdmin": "Ask your workspace admin to send a new one.",
+    "notFoundTitle": "We couldn’t find that invite",
+    "notFound": "Check the link in your invite email, or ask your workspace admin to send a new one.",
+    "failedTitle": "We couldn’t load this invite",
+    "failed": "Check your connection and try again.",
+    "retry": "Try again",
+    "toWorkspaces": "Go to your workspaces"
   }
 }

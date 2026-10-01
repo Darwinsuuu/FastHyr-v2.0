@@ -1,106 +1,31 @@
 "use client";
 
-import {
-  ArrowRightIcon,
-  CaretDownIcon,
-  PlusIcon,
-  SignInIcon,
-  SignOutIcon,
-  UserCircleIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon, PlusIcon, SignInIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { type FormEvent, type ReactNode, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 
-import { TurnMark } from "@/components/brand/turn-mark";
-import { logOut } from "@/components/auth/log-out-button";
-import { ProfileDialog } from "@/components/auth/profile-dialog";
-import { Avatar, WorkspaceAvatar } from "@/components/ui/avatar";
+import { SignedInAs, WorkspaceSelectShell } from "@/components/auth/workspace-select-shell";
+import { WorkspaceAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Menu } from "@/components/ui/menu";
 import { api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
+import type { ClaimsUser } from "@/lib/auth/claims";
 import { cn } from "@/lib/cn";
-import { env } from "@/lib/env";
 import { type MessageKey, plural, t } from "@/lib/i18n";
-import { activateWorkspace } from "@/lib/workspaces/activate";
+import { openWorkspace } from "@/lib/workspaces/activate";
 import { createErrorKey, joinErrorKey, workspaceNameError } from "@/lib/workspaces/errors";
 
-export interface ChooseWorkspaceUser {
-  id: string;
-  email: string;
-  fullName: string;
-  avatarUrl: string | null;
-}
-
-/** Makes the workspace active, then leaves for the app host (a full load, so no stale cache). */
-async function openWorkspace(workspaceId: string, path: string) {
-  await activateWorkspace(workspaceId);
-  window.location.assign(new URL(path, env.appUrl).toString());
-}
-
-export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
+export function ChooseWorkspace({ user }: { user: ClaimsUser }) {
   const firstName = user.fullName.split(" ")[0] ?? "";
-  const displayName = user.fullName || user.email;
-  const [profileOpen, setProfileOpen] = useState(false);
-  const accountButton = useRef<HTMLButtonElement>(null);
   const workspaces = useQuery({
     queryKey: keys.myWorkspaces(),
     queryFn: async () => unwrap(await api.GET("/v1/me/workspaces")),
   });
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-surface">
-      <svg
-        viewBox="0 0 32 32"
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-[140px] -bottom-[180px] hidden size-[520px] opacity-35 lg:block"
-      >
-        <ellipse cx="10" cy="13" rx="10" ry="13" className="fill-sage" />
-        <ellipse cx="22" cy="19" rx="8" ry="10" className="fill-persimmon-soft" />
-      </svg>
-
-      <header className="page-gutter relative flex h-16 shrink-0 items-center justify-between gap-4 md:h-[72px]">
-        <Link href="/" aria-label={t("auth.homeLink")} className="flex items-center gap-2.5">
-          <TurnMark size={28} />
-          <span className="font-display text-[20px] font-semibold tracking-[-0.02em]">
-            {t("site.name")}
-          </span>
-        </Link>
-        <Menu
-          title={displayName}
-          items={[
-            {
-              label: t("auth.profile.open"),
-              icon: <UserCircleIcon aria-hidden="true" />,
-              onSelect: () => setProfileOpen(true),
-            },
-            {
-              label: t("auth.logOut"),
-              icon: <SignOutIcon aria-hidden="true" />,
-              destructive: true,
-              onSelect: () => void logOut(),
-            },
-          ]}
-          trigger={
-            <button
-              ref={accountButton}
-              type="button"
-              aria-label={t("workspaces.account")}
-              className="flex min-h-11 items-center gap-2.5 rounded-pill border border-line bg-surface-raised py-1.5 pr-2.5 pl-1.5 text-ink hover:bg-surface-sunk data-[state=open]:bg-surface-sunk"
-            >
-              <Avatar id={user.id} name={displayName} src={user.avatarUrl} size="md" />
-              <span className="hidden max-w-[200px] truncate text-[14px] font-semibold md:block">
-                {displayName}
-              </span>
-              <CaretDownIcon aria-hidden="true" className="size-4 text-ink-muted" />
-            </button>
-          }
-        />
-      </header>
-
+    <WorkspaceSelectShell user={user}>
       <main className="page-gutter relative flex flex-1 flex-col items-center gap-8 pt-6 pb-12 md:gap-10 md:pt-10 lg:justify-center lg:pt-0 lg:pb-18">
         <div className="flex max-w-[640px] flex-col items-center gap-3 text-center">
           <p className="type-label text-evergreen uppercase">{t("workspaces.eyebrow")}</p>
@@ -132,26 +57,9 @@ export function ChooseWorkspace({ user }: { user: ChooseWorkspaceUser }) {
           <JoinWorkspaceCard email={user.email} />
         </div>
 
-        <p className="text-center text-[14px] text-ink-muted">
-          {t("workspaces.signedInAs")}{" "}
-          <span className="font-semibold break-all text-ink">{user.email}</span> ·{" "}
-          <button
-            type="button"
-            onClick={() => void logOut()}
-            className="font-semibold text-evergreen underline-offset-2 hover:underline"
-          >
-            {t("workspaces.notYou")}
-          </button>
-        </p>
+        <SignedInAs email={user.email} />
       </main>
-
-      <ProfileDialog
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-        user={{ id: user.id, name: displayName, avatarUrl: user.avatarUrl }}
-        returnFocusTo={accountButton}
-      />
-    </div>
+    </WorkspaceSelectShell>
   );
 }
 

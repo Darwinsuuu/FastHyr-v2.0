@@ -1,14 +1,14 @@
 """Creating and joining workspaces (API.md "Me"). Any verified signed-in user; no
 `X-Workspace-Id`, since the caller isn't a member yet."""
 
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Path, status
 
 from app.api.deps import Session, VerifiedUserDep
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.schemas.me import MyWorkspace
-from app.schemas.workspaces import AcceptInviteRequest, CreateWorkspaceRequest
+from app.schemas.workspaces import AcceptInviteRequest, CreateWorkspaceRequest, InvitePreview
 from app.services import workspaces as workspace_service
 
 router = APIRouter(tags=["workspaces"], responses=PROBLEM_RESPONSES)
@@ -27,4 +27,14 @@ async def create_workspace(
 async def accept_invite(
     body: AcceptInviteRequest, user: VerifiedUserDep, session: Session
 ) -> MyWorkspace:
-    return await workspace_service.accept_invite(session, user, body.code)
+    """Joins with the invite's role and departments, by `code` or link `token`."""
+    return await workspace_service.accept_invite(session, user, body.key)
+
+
+@router.get("/invites/{key}", response_model=InvitePreview)
+async def preview_invite(
+    key: Annotated[str, Path(max_length=200)], user: VerifiedUserDep, session: Session
+) -> InvitePreview:
+    """The join page's view of an invite, by code or link token (S-04). Unknown keys are
+    `404 invite_not_found`; details only show to the email the invite was sent to."""
+    return await workspace_service.preview_invite(session, user, key)

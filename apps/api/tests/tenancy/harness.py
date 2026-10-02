@@ -73,6 +73,10 @@ class Tenancy:
             "X-Workspace-Id": str(target.id),
         }
 
+    def anonymous(self) -> "RoleClient":
+        """A client with no sign-in, for public routes."""
+        return RoleClient(self._app, {})
+
     def client(self, workspace: str, role: Role) -> "RoleClient":
         """Calls the app signed in as `role`, with `workspace` in `X-Workspace-Id`."""
         return RoleClient(self._app, self.headers(workspace, role))
@@ -154,6 +158,11 @@ async def _insert_workspace(
                 owner,
             )
             await connection.execute(
+                "insert into company_profiles (workspace_id, company_name) values ($1, $2)",
+                workspace.id,
+                f"Tenancy {workspace.key.upper()}",
+            )
+            await connection.execute(
                 "insert into departments (id, workspace_id, name) values ($1, $2, 'Engineering')",
                 workspace.department_id,
                 workspace.id,
@@ -185,7 +194,13 @@ async def _delete_workspaces(supabase: Supabase, ids: list[uuid.UUID]) -> None:
     connection = await asyncpg.connect(supabase.database_url)
     try:
         async with connection.transaction():
-            for table in ("invites", "member_departments", "workspace_members", "departments"):
+            for table in (
+                "invites",
+                "member_departments",
+                "workspace_members",
+                "departments",
+                "company_profiles",
+            ):
                 await connection.execute(
                     f"delete from {table} where workspace_id = any($1::uuid[])", ids
                 )

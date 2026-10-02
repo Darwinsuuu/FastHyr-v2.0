@@ -53,6 +53,11 @@ def demo_resume_path(demo_session_id: uuid.UUID) -> str:
     return f"{demo_session_id}/resume.pdf"
 
 
+def branding_path(workspace_id: uuid.UUID, kind: str, extension: str) -> str:
+    """`kind` is "logo" or "banner"; `extension` is "png" or "jpg"."""
+    return f"{workspace_id}/{kind}.{extension}"
+
+
 def report_path(workspace_id: uuid.UUID, report_job_id: uuid.UUID) -> str:
     return f"{workspace_id}/{report_job_id}.pdf"
 

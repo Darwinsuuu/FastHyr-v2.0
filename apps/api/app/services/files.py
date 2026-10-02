@@ -1,5 +1,6 @@
 """File flows on top of the storage integration (STORAGE.md): upload URLs for files the API checks
-before using, promoting a checked PDF to its final path, and cleaning up what's left behind.
+before using, promoting a checked PDF or branding image to its final path, and cleaning up
+what's left behind.
 
 Feature code checks permissions first, then calls these with IDs from its own workspace-scoped
 rows, so a path never comes from the browser.
@@ -10,7 +11,12 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from app.core.errors import PdfInvalidError, UploadExpiredError, UploadMissingError
+from app.core.errors import (
+    ImageInvalidError,
+    PdfInvalidError,
+    UploadExpiredError,
+    UploadMissingError,
+)
 from app.core.ids import new_id
 from app.integrations.storage import (
     TEMP_PREFIX,
@@ -18,8 +24,10 @@ from app.integrations.storage import (
     Bucket,
     SignedUpload,
     Storage,
+    branding_path,
     temp_upload_path,
 )
+from app.services.images import BrandingKind, clean_branding_image
 from app.services.pdfs import sanitise_pdf, validate_pdf
 
 logger = logging.getLogger("app.storage")
@@ -67,15 +75,11 @@ async def promote_pdf(
     raised; a file that arrived after the upload window raises `UploadExpiredError`.
     """
     temp_path = temp_upload_path(workspace_id, upload_id)
-    uploaded = await storage.info(bucket, temp_path)
-    if uploaded is None:
+    data = await _claim(storage, bucket, temp_path, upload_id)
+    if data is None:
         if await storage.info(bucket, destination) is not None:
             return await storage.download(bucket, destination)
         raise UploadMissingError()
-    if uploaded.created_at - issued_at(upload_id) > UPLOAD_WINDOW:
-        await storage.delete(bucket, [temp_path])
-        raise UploadExpiredError()
-    data = await storage.download(bucket, temp_path)
     try:
         validate_pdf(data)
         clean = sanitise_pdf(data)
@@ -86,6 +90,44 @@ async def promote_pdf(
     await storage.upload(bucket, destination, clean, content_type="application/pdf", upsert=True)
     await storage.delete(bucket, [temp_path])
     return clean
+
+
+async def promote_branding_image(
+    storage: Storage, *, workspace_id: uuid.UUID, upload_id: uuid.UUID, kind: BrandingKind
+) -> str:
+    """Checks the logo or banner uploaded for `upload_id`, stores a re-encoded copy at its
+    branding path (replacing the previous one) and deletes the upload. Returns the stored path.
+    A file that fails a check is deleted and its `ImageInvalidError` raised."""
+    temp_path = temp_upload_path(workspace_id, upload_id)
+    data = await _claim(storage, Bucket.BRANDING, temp_path, upload_id)
+    if data is None:
+        raise UploadMissingError()
+    try:
+        image = clean_branding_image(data, kind)
+    except ImageInvalidError as error:
+        await storage.delete(Bucket.BRANDING, [temp_path])
+        logger.info("upload %s rejected (%s)", upload_id, error.code)
+        raise
+    destination = branding_path(workspace_id, kind, image.extension)
+    await storage.upload(
+        Bucket.BRANDING, destination, image.data, content_type=image.content_type, upsert=True
+    )
+    await storage.delete(Bucket.BRANDING, [temp_path])
+    return destination
+
+
+async def _claim(
+    storage: Storage, bucket: Bucket, temp_path: str, upload_id: uuid.UUID
+) -> bytes | None:
+    """The uploaded bytes, or None when nothing is at `temp_path`. An upload that arrived after
+    its window is deleted and `UploadExpiredError` raised."""
+    uploaded = await storage.info(bucket, temp_path)
+    if uploaded is None:
+        return None
+    if uploaded.created_at - issued_at(upload_id) > UPLOAD_WINDOW:
+        await storage.delete(bucket, [temp_path])
+        raise UploadExpiredError()
+    return await storage.download(bucket, temp_path)
 
 
 async def remove_orphans(storage: Storage, *, now: datetime | None = None) -> int:

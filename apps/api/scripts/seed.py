@@ -264,9 +264,11 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
                 workspace_id=workspace.id,
                 company_name="Acme Talent",
                 website=f"https://{EMAIL_DOMAIN}",
-                industry="Technology",
-                hq_country="Philippines",
+                industry="technology",
+                company_size="51-200",
+                hq_country="PH",
                 timezone="Asia/Manila",
+                careers_url=f"https://{EMAIL_DOMAIN}/careers",
                 about=(
                     "Acme Talent builds hiring software for growing teams across Southeast "
                     "Asia. Sample company for local development."

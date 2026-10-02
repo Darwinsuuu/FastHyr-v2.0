@@ -12,7 +12,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 |---|---|---|
 | M0 Foundation | 14 | 14 |
 | M1 Access | 12 | 10 |
-| M2 Pipelines | 7 | 0 |
+| M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
 | M5 Review | 18 | 0 |
@@ -48,7 +48,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Done | #12 |
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Done | #19 |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Done | #18 |
-| [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |
+| [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | In review | |
 | [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |
 | [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Done | #16 |
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Done | #17 |
@@ -60,9 +60,9 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | Done | |
-| [PIPE-002](PIPE/PIPE-002-new-pipeline-wizard-role-and-ai-interview-steps.md) | New pipeline wizard — Role and AI interview steps | L | PIPE-001, WS-002, FND-012 | Done | |
-| [PIPE-003](PIPE/PIPE-003-new-pipeline-wizard-scoring-schedule-credits-revie.md) | New pipeline wizard — Scoring, Schedule & credits, Review, Publish | L | PIPE-002 | In review | |
+| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | Done | #27 |
+| [PIPE-002](PIPE/PIPE-002-new-pipeline-wizard-role-and-ai-interview-steps.md) | New pipeline wizard — Role and AI interview steps | L | PIPE-001, WS-002, FND-012 | Done | #28 |
+| [PIPE-003](PIPE/PIPE-003-new-pipeline-wizard-scoring-schedule-credits-revie.md) | New pipeline wizard — Scoring, Schedule & credits, Review, Publish | L | PIPE-002 | Done | #29 |
 | [PIPE-004](PIPE/PIPE-004-pipelines-list.md) | Pipelines list | M | PIPE-001, DASH-001 | Ready | |
 | [PIPE-005](PIPE/PIPE-005-pipeline-lifecycle-actions.md) | Pipeline lifecycle actions | M | PIPE-004, FND-010 | Backlog | |
 | [PIPE-006](PIPE/PIPE-006-share-apply-link.md) | Share apply link | S | PIPE-001 | Ready | |

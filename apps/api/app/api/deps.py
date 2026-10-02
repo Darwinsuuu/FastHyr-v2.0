@@ -25,6 +25,7 @@ from app.core.errors import (
 )
 from app.core.logging import bind_ids
 from app.core.permissions import Action, can
+from app.integrations.storage import Storage
 from app.jobs.queue import JobQueue
 from app.repositories.users import UserRepository
 
@@ -37,6 +38,14 @@ def get_job_queue(request: Request) -> JobQueue:
 
 
 JobQueueDep = Annotated[JobQueue, Depends(get_job_queue)]
+
+
+def get_storage(request: Request) -> Storage:
+    storage: Storage = request.app.state.storage
+    return storage
+
+
+StorageDep = Annotated[Storage, Depends(get_storage)]
 
 
 def get_app_settings(request: Request) -> Settings:

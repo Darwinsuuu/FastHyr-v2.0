@@ -242,6 +242,34 @@ class UploadExpiredError(AppError):
     title = "The upload took too long. Upload the file again."
 
 
+class ImageInvalidError(AppError):
+    """Base for a logo or banner that failed the checks in services/images.py (FR-WS-01)."""
+
+    status = 422
+    code = "image_invalid"
+    title = "This image can't be used. Upload a PNG or JPG file."
+
+
+class ImageTooLargeError(ImageInvalidError):
+    code = "image_too_large"
+    title = "This image is larger than 2 MB"
+
+
+class ImageDimensionsTooLargeError(ImageInvalidError):
+    code = "image_too_big"
+    title = "This image is more than 4096 pixels wide or tall"
+
+
+class LogoNotSquareError(ImageInvalidError):
+    code = "logo_not_square"
+    title = "The logo must be square"
+
+
+class LogoTooSmallError(ImageInvalidError):
+    code = "logo_too_small"
+    title = "The logo must be at least 256 pixels wide and tall"
+
+
 class WorkspaceRequiredError(AppError):
     status = 400
     code = "workspace_required"

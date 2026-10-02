@@ -175,6 +175,69 @@ export interface paths {
         patch: operations["update_department_v1_departments__department_id__patch"];
         trace?: never;
     };
+    "/v1/workspace/company-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Company Profile */
+        get: operations["get_company_profile_v1_workspace_company_profile_get"];
+        /**
+         * Update Company Profile
+         * @description Saves the whole form. Uploaded images are checked here: `image_invalid`,
+         *     `image_too_large`, `image_too_big`, `logo_not_square`, `logo_too_small`, `upload_missing`
+         *     or `upload_expired`.
+         */
+        put: operations["update_company_profile_v1_workspace_company_profile_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspace/company-profile/branding-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Branding Upload
+         * @description A signed URL for one logo or banner upload, valid for 10 minutes.
+         */
+        post: operations["create_branding_upload_v1_workspace_company_profile_branding_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/branding/{workspace_id}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Branding Image
+         * @description The company logo or email banner. No sign-in: emails link to it.
+         */
+        get: operations["get_branding_image_v1_public_branding__workspace_id___kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pipelines": {
         parameters: {
             query?: never;
@@ -575,6 +638,66 @@ export interface components {
             code?: string | null;
             /** Token */
             token?: string | null;
+        };
+        /**
+         * BrandingKind
+         * @enum {string}
+         */
+        BrandingKind: "logo" | "banner";
+        /**
+         * BrandingUpload
+         * @description PUT the file to `url` (or `uploadToSignedUrl(path, token, file)` in supabase-js) within
+         *     10 minutes, then send `upload_id` with the profile.
+         */
+        BrandingUpload: {
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+            /** Url */
+            url: string;
+            /** Path */
+            path: string;
+            /** Token */
+            token: string;
+            /**
+             * Max Bytes
+             * @description Largest file the API accepts
+             */
+            max_bytes: number;
+        };
+        /** BrandingUploadRequest */
+        BrandingUploadRequest: {
+            kind: components["schemas"]["BrandingKind"];
+        };
+        /** CompanyProfile */
+        CompanyProfile: {
+            /** Company Name */
+            company_name: string;
+            /** Website */
+            website: string | null;
+            /** Industry */
+            industry: string | null;
+            /** Company Size */
+            company_size: string | null;
+            /** Hq Country */
+            hq_country: string | null;
+            /** Timezone */
+            timezone: string | null;
+            /** About */
+            about: string | null;
+            /** Careers Url */
+            careers_url: string | null;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Banner Url */
+            banner_url: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** CreateDepartmentRequest */
         CreateDepartmentRequest: {
@@ -1108,6 +1231,45 @@ export interface components {
              * @enum {integer}
              */
             credits: 25 | 50 | 100 | 200;
+        };
+        /**
+         * UpdateCompanyProfileRequest
+         * @description The whole form. Optional fields sent as null or "" are cleared.
+         *
+         *     `logo_upload_id` / `banner_upload_id` attach the image uploaded with that ID from
+         *     `POST /workspace/company-profile/branding-upload`; `remove_logo` / `remove_banner` drop it.
+         */
+        UpdateCompanyProfileRequest: {
+            /** Company Name */
+            company_name: string;
+            /** Website */
+            website?: string | null;
+            /** Industry */
+            industry?: ("technology" | "finance" | "healthcare" | "bpo" | "retail" | "manufacturing" | "government" | "other") | null;
+            /** Company Size */
+            company_size?: ("1-50" | "51-200" | "201-1000" | "1001-5000" | "5000+") | null;
+            /** Hq Country */
+            hq_country?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+            /** About */
+            about?: string | null;
+            /** Careers Url */
+            careers_url?: string | null;
+            /** Logo Upload Id */
+            logo_upload_id?: string | null;
+            /** Banner Upload Id */
+            banner_upload_id?: string | null;
+            /**
+             * Remove Logo
+             * @default false
+             */
+            remove_logo: boolean;
+            /**
+             * Remove Banner
+             * @default false
+             */
+            remove_banner: boolean;
         };
         /**
          * UpdateDepartmentRequest
@@ -1797,6 +1959,264 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_company_profile_v1_workspace_company_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyProfile"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    update_company_profile_v1_workspace_company_profile_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCompanyProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyProfile"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    create_branding_upload_v1_workspace_company_profile_branding_upload_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandingUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingUpload"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_branding_image_v1_public_branding__workspace_id___kind__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                kind: components["schemas"]["BrandingKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
+                    "image/jpeg": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

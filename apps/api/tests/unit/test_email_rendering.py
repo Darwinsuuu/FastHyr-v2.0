@@ -5,7 +5,7 @@ import time
 from datetime import UTC, datetime
 
 from app.emails import system
-from app.emails.render import Button, html_to_text, render, sanitize
+from app.emails.render import Branding, Button, html_to_text, render, sanitize
 from app.integrations.resend_webhook import sign, verify
 
 SECRET = "whsec_dGVzdC1zZWNyZXQtZm9yLWZhc3RoeXI="
@@ -115,3 +115,23 @@ def test_webhook_signature_must_match_and_be_recent() -> None:
     assert not check(now=now + 6 * 60)  # replayed too late
     assert not check(signatures=None)
     assert not verify("", message_id="msg_1", timestamp=stamp, signatures=good, body=body)
+
+
+def test_company_header_uses_banner_then_logo_then_name() -> None:
+    def header(**branding: str) -> str:
+        email = system.test_email(
+            site_url="https://fasthyr.com",
+            branding=Branding(company_name="Acme & Co", **branding),
+        )
+        return email.html.split('<td style="background:#FFFCF7')[0]
+
+    banner = "https://api.fasthyr.com/v1/public/branding/x/banner?v=1"
+    logo = "https://api.fasthyr.com/v1/public/branding/x/logo?v=1"
+    both = header(banner_url=banner, logo_url=logo)
+    assert f'src="{banner}"' in both
+    assert logo not in both
+    only_logo = header(logo_url=logo)
+    assert f'src="{logo}"' in only_logo
+    assert 'alt="Acme &amp; Co"' in only_logo
+    assert "<img" not in header()
+    assert "Acme &amp; Co" in header()

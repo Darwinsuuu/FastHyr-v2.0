@@ -19,6 +19,8 @@ dependencies = [
     "pikepdf>=10.16.0",
     "sentry-sdk[fastapi]>=2.71.0",
     "structlog>=26.1.0",
+    "pillow>=12.3.0",
+    "tzdata>=2026.4",
 ]
 
 [dependency-groups]

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | APPLY — Apply |
 | Milestone | M3 Intake |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md), [WS-001](../WS/WS-001-company-profile.md), [FND-012](../FND/FND-012-ui-kit-design-system-components.md) |
 | Requirements | FR-APPLY-01, FR-APPLY-06 |

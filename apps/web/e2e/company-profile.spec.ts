@@ -44,7 +44,7 @@ test("an Admin saves the company profile with an SVG logo", async ({ page }) => 
   await expect(page.getByText("Enter a web address like yourcompany.com.")).toBeVisible();
   await page.getByLabel("Website").fill("northwind.example.com");
   await save.click();
-  await expect(page.getByText("Company profile saved")).toBeVisible();
+  await expect(page.getByText("Company profile saved", { exact: true })).toBeVisible();
 
   await page.reload();
   await expect(page.getByLabel("Company name")).toHaveValue("Northwind Hiring");

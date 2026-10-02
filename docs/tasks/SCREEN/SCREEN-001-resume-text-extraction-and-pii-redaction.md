@@ -4,7 +4,7 @@
 |---|---|
 | Epic | SCREEN — Résumé screening |
 | Milestone | M3 Intake |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [FND-011](../FND/FND-011-storage-service-and-pdf-handling.md), [FND-013](../FND/FND-013-openai-integration-layer.md) |
 | Requirements | FR-SCREEN-01, FR-SCREEN-02 |

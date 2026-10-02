@@ -35,6 +35,8 @@ Stripe price IDs are env/config per environment. Prices are shown from config, n
 
 After a consume: if `credits_used == credits_reserved` → pipeline `paused_no_credits` (+ Overview alert, email to pipeline owner). If Balance reaches 0 → every live pipeline in the workspace → `paused_no_credits`.
 
+Back to live (PIPE-001, `services/pipelines.py`): a top-up of a `paused_no_credits` pipeline resumes it when the workspace has credits. Code that grants credits (BILL-001 plan renewals, BILL-005 packs) calls `pipelines.resume_after_credits_added()` in the same transaction, so pipelines paused only because the balance hit 0 resume too. Any action that makes a pipeline live (publish, start now, scheduled open, resume) lands in `paused_no_credits` instead when it has no reserve or the workspace no credits left.
+
 ## 4. Edge cases
 - **Reserve larger than balance after expiry** (plan credits expired but pipelines still hold reserves): Free goes negative; the UI shows "Your reserves are bigger than your credits" and consumption still stops at Balance 0. Buying or renewing fixes it automatically.
 - **Race at the last credit:** the consume transaction locks the pipeline row; the second applicant gets `409 pipeline_not_accepting` and no credit is used.

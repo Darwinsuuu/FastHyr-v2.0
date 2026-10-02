@@ -49,10 +49,10 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 
 ### Pipelines
 | `GET /pipelines?tab=&q=&page=` | list (scoped) |
-| `POST /pipelines` · `GET/PATCH /pipelines/{id}` | draft create/edit (PATCH rejected when locked: `pipeline_locked`) |
-| `POST /pipelines/{id}/publish` | `{confirm: "I understand"}` → live or scheduled |
-| `POST /pipelines/{id}/start-now` · `/pause` · `/resume` · `/close` `{notify}` · `/cancel` · `/archive` · `/duplicate` | lifecycle |
-| `POST /pipelines/{id}/top-up` ⚷ `{credits}` | reserve more from free credits |
+| `POST /pipelines` · `GET/PATCH /pipelines/{id}` | draft create/edit (PIPE-001). Every setup field is optional so a draft saves at any step; PATCH changes only the fields sent and works on drafts and on scheduled pipelines until they open (not their `open_mode` or `credits_to_reserve`). Opened pipelines: `409 pipeline_locked`. A Recruiter's pipeline must be in one of their departments (`422 unknown_department`); weights that are all set must total 100 (`422 pipeline_incomplete`) |
+| `POST /pipelines/{id}/publish` | `{confirm: "I understand"}` → live (`open_mode: now`) or scheduled. Reserves `credits_to_reserve` (min 10, steps of 10; `409 insufficient_free_credits`) and fixes the slug. `422 pipeline_incomplete` lists the missing fields in `errors[].loc` |
+| `POST /pipelines/{id}/start-now` · `/pause` · `/resume` · `/close` `{notify}` · `/cancel` · `/archive` · `/duplicate` | lifecycle (PIPE-001; `{notify}` on close comes with PIPE-005). An action the status doesn't allow is `409 invalid_transition` (WORKFLOW.md §2). Going live with no reserve or workspace credits left lands in `paused_no_credits`. `/duplicate` returns the new draft (201) |
+| `POST /pipelines/{id}/top-up` ⚷ `{credits: 25\|50\|100\|200}` | reserve more from free credits; a pipeline paused for credits goes back to live |
 | `GET /pipelines/{id}/share-links` | tagged URLs per source |
 | `GET /pipelines/{id}/dashboard` | KPIs, funnel, daily, histogram, sources, drop-offs |
 | `POST /pipelines/{id}/reinvite` `{scope: "all_unfinished"}` | re-invite |

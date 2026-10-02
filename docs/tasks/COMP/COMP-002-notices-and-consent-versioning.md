@@ -4,7 +4,7 @@
 |---|---|
 | Epic | COMP — Compliance |
 | Milestone | M3 Intake |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [FND-004](../FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) |
 | Requirements | FR-COMP-01 |

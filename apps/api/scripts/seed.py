@@ -10,8 +10,8 @@ email + password; the local password is printed at the end. Against any other da
 `SEED_USER_PASSWORD`.
 
 Credits go through `app.services.credits`, so batches, reserves and the ledger add up exactly as
-they would in the product. Each epic extends this file as its tables arrive: pipelines get their
-titles in PIPE-001, candidates and assessments later (titles are already listed below).
+they would in the product. Each epic extends this file as its tables arrive: pipelines have their
+full setup, slugs and dates since PIPE-001; candidates and assessments come later.
 """
 
 import asyncio
@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.core.slugs import slugify
 from app.models import (
     CompanyProfile,
     Department,
@@ -130,6 +131,63 @@ PIPELINES = (
     SamplePipeline("Office Administrator", None, "closed", 150, 118),
 )
 
+# Who owns each department's pipelines: the Recruiter assigned to it, else the owner (Admin).
+PIPELINE_OWNERS = {
+    "Engineering": "maria",
+    "Design": "maria",
+    "Customer Support": "angela",
+}
+# Pipelines closed on their date ("Completed"); the other closed ones were closed by hand.
+CLOSED_ON_SCHEDULE = {"QA Automation Engineer", "Office Administrator"}
+
+
+def pipeline_setup(sample: SamplePipeline, index: int, now: datetime) -> dict[str, object]:
+    """A complete, plausible setup for a sample pipeline, with dates that fit its status."""
+    setup: dict[str, object] = {
+        "title": sample.title,
+        "employment_type": "full_time",
+        "work_setup": ("hybrid", "remote", "on_site")[index % 3],
+        "location": "Makati City, Metro Manila",
+        "jd_text": (
+            f"Acme Talent is hiring a {sample.title} to join a growing team. You'll own your work "
+            "end to end, collaborate across teams and help shape how we build. Sample job "
+            "description for local development."
+        ),
+        "must_haves": ["2+ years in a similar role", "Clear written English", "Team player"],
+        "nice_to_haves": ["Startup experience"],
+        "open_to": ["career_changers", "returners"],
+        "interview_format": "video_voice" if index % 4 else "voice_only",
+        "tone": ("warm", "professional", "direct")[index % 3],
+        "seniority": ("mid", "senior", "entry", "lead")[index % 4],
+        "skills_to_probe": ["Problem solving", "Communication", "Ownership"],
+        "weight_technical": 50,
+        "weight_communication": 30,
+        "weight_culture": 20,
+        "credits_to_reserve": max(10, sample.reserve // 10 * 10),
+    }
+    if sample.status == "draft":
+        return {**setup, "open_mode": "now", "skills_to_probe": [], "credits_to_reserve": None}
+    duration_days = 60
+    if sample.status in {"scheduled", "cancelled"}:
+        opens_at = now + timedelta(days=7 * (index % 4 + 1))
+        duration_days = 30
+        setup["open_mode"] = "scheduled"
+    elif sample.status == "closed":
+        opens_at = now - timedelta(days=100 + index)
+        setup["open_mode"] = "now"
+    else:
+        opens_at = now - timedelta(days=5 + 3 * index)
+        setup["open_mode"] = "now"
+    return setup | {
+        "duration_days": duration_days,
+        "opens_at": opens_at,
+        "closes_at": opens_at + timedelta(days=duration_days),
+        "slug": slugify(sample.title),
+        "published_at": opens_at - timedelta(days=2),
+        "locked_at": None if sample.status in {"scheduled", "cancelled"} else opens_at,
+    }
+
+
 PLAN_CREDITS = 300
 # Frame CreditUsage: 1,640 available, 110 of them left in the plan, the rest in a credit pack.
 EXTRA_LEFT = 1530
@@ -217,6 +275,7 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
         )
 
         departments: dict[str, uuid.UUID] = {}
+        members: dict[str, uuid.UUID] = {}
         for name, description, created_on in DEPARTMENTS:
             department = Department(
                 workspace_id=workspace.id,
@@ -239,6 +298,7 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
             )
             session.add(member)
             await session.flush()
+            members[user.key] = member.id
             for name in user.departments:
                 session.add(
                     MemberDepartment(
@@ -267,7 +327,7 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
             )
         await session.commit()
 
-        await seed_credits(session, workspace.id, departments, created, now)
+        await seed_credits(session, workspace.id, departments, members, created, now)
     return True
 
 
@@ -275,6 +335,7 @@ async def seed_credits(
     session: AsyncSession,
     workspace_id: uuid.UUID,
     departments: dict[str, uuid.UUID],
+    members: dict[str, uuid.UUID],
     created: datetime,
     now: datetime,
 ) -> None:
@@ -289,11 +350,15 @@ async def seed_credits(
     await session.commit()
 
     pipelines: dict[str, Pipeline] = {}
-    for sample in PIPELINES:
+    for index, sample in enumerate(PIPELINES):
+        owner = members[PIPELINE_OWNERS.get(sample.department or "", USERS[0].key)]
         pipeline = Pipeline(
             workspace_id=workspace_id,
             department_id=departments[sample.department] if sample.department else None,
             status="live" if sample.used else sample.status,
+            owner_id=owner,
+            published_by=None if sample.status == "draft" else owner,
+            **pipeline_setup(sample, index, now),
         )
         session.add(pipeline)
         await session.flush()
@@ -318,6 +383,9 @@ async def seed_credits(
             await credits.consume(session, workspace_id, pipelines[sample.title].id)
     for sample in PIPELINES:
         pipelines[sample.title].status = sample.status
+        if sample.status == "closed":
+            closed_on_schedule = sample.title in CLOSED_ON_SCHEDULE
+            pipelines[sample.title].closed_reason = "schedule" if closed_on_schedule else "manual"
     await session.commit()
 
 

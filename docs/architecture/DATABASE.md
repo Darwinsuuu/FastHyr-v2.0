@@ -44,19 +44,19 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 **invites** — `id`, `workspace_id`, `email`, `role`, `department_ids uuid[]`, `code` (short, e.g. `AB12-CD34`, unique), `token_hash`, `invited_by`, `status` (`pending|accepted|revoked|expired`), `expires_at` (+7 days), `accepted_by`, `created_at`. Email stored lowercase; one pending invite per email per workspace (resend rotates `code` and `token_hash` on the same row).
 
 ### Pipelines
-**pipelines** (BILL-002 created the table with the credit columns, `status`, `created_at` and `updated_at`; PIPE-001 adds the rest)
+**pipelines** (BILL-002 created the table with the credit columns, `status`, `created_at` and `updated_at`; PIPE-001 added the rest. Setup columns are nullable because a draft saves at any wizard step; publishing checks the setup is complete)
 | Column | Notes |
 |---|---|
-| `id`, `workspace_id`, `department_id` (nullable = No department), `owner_id` (member who created) | |
-| `slug` | unique per workspace, fixed after publish |
+| `id`, `workspace_id`, `department_id` (nullable = No department), `owner_id` (workspace member who created it) | |
+| `slug` | set on publish from the title (`-2`, `-3`… when taken), unique per workspace, fixed after publish; null on drafts |
 | `title`, `employment_type` (`full_time|part_time|contract|internship`), `work_setup` (`on_site|hybrid|remote`), `location`, `jd_text` | Role |
 | `must_haves text[]` (≥3), `nice_to_haves text[]`, `open_to text[]` (`fresh_grads|career_changers|returners|no_degree|step_up|relocating`), `resume_pass_bar int` (0–100, default 60) | Screening (ADR-013) |
 | `interview_format` (`video_voice|voice_only`), `tone` (`warm|professional|direct`), `seniority` (`entry|mid|senior|lead`), `skills_to_probe text[]` (≥3), `link_expiry_days` (3/5/7/14), `reminder_enabled`, `integrity_enabled` | AI interview |
 | `weight_technical`, `weight_communication`, `weight_culture` (sum = 100, check), `pass_mark` (0–100, default 70), `email_resume_reject`, `email_post_interview` | Scoring |
-| `open_mode` (`now|scheduled`), `opens_at`, `duration_days` (30/60/90/120), `closes_at` | Schedule |
+| `open_mode` (`now|scheduled`), `opens_at`, `duration_days` (30/60/90/120), `closes_at` (= when it opens + duration), `credits_to_reserve` (the wizard's reserve, min 10, steps of 10; publish reserves it) | Schedule |
 | `credits_reserved int`, `credits_used int` | Reserve (see BILLING.md); check `credits_used between 0 and credits_reserved` |
-| `status` (`draft|scheduled|live|paused|paused_no_credits|closed|cancelled`), `closed_reason` (`schedule|manual`), `archived_at`, `published_at`, `published_by`, `locked_at`, `duplicated_from_id` | Lifecycle (WORKFLOW.md §2) |
-A trigger rejects updates to setup columns when `locked_at is not null`.
+| `status` (`draft|scheduled|live|paused|paused_no_credits|closed|cancelled`), `closed_reason` (`schedule|manual`, only on closed), `archived_at` (closed/cancelled only), `published_at`, `published_by` (member), `locked_at`, `duplicated_from_id` | Lifecycle (WORKFLOW.md §2) |
+The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Scoring and Schedule columns once `locked_at` is set (`department_id` may still become null, for department deletion), and any slug change after publish. Checks: enums and ranges, weights total 100 when set, `published_at`/`slug` set exactly when past draft.
 
 ### Candidates and applications
 **candidates** — `id`, `workspace_id`, `auth_user_id`, `email`, `full_name`, `phone_country_code`, `phone`, `city`, `profile_url`, `first_applied_at`, `last_activity_at`, `deleted_at`. Unique `(workspace_id, auth_user_id)`.

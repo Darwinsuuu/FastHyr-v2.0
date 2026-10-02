@@ -36,9 +36,11 @@ class AppError(Exception):
     code: ClassVar[str] = "bad_request"
     title: ClassVar[str] = "Bad request"
 
-    def __init__(self, title: str | None = None) -> None:
+    def __init__(self, title: str | None = None, *, errors: list[dict[str, Any]] | None = None):
         super().__init__(title or self.title)
         self.detail_title = title or self.title
+        # Which fields are wrong, as `{loc, type, msg}` like validation errors; never values.
+        self.errors = errors
 
 
 class UnauthenticatedError(AppError):
@@ -119,6 +121,30 @@ class PipelineNotAcceptingError(AppError):
     status = 409
     code = "pipeline_not_accepting"
     title = "This pipeline isn't accepting applications"
+
+
+class InvalidTransitionError(AppError):
+    """The pipeline's status doesn't allow this action (WORKFLOW.md §2)."""
+
+    status = 409
+    code = "invalid_transition"
+    title = "This pipeline can't do that right now"
+
+
+class PipelineLockedError(AppError):
+    """The setup of a pipeline that has opened can't change (WORKFLOW.md §2 lock rule)."""
+
+    status = 409
+    code = "pipeline_locked"
+    title = "This pipeline's setup is locked"
+
+
+class PipelineIncompleteError(AppError):
+    """Publishing a draft whose setup is missing something; `errors` names the fields."""
+
+    status = 422
+    code = "pipeline_incomplete"
+    title = "Finish the pipeline setup first"
 
 
 class DepartmentNameTakenError(AppError):
@@ -266,7 +292,9 @@ _HTTP_CODES = {
 
 async def _app_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)
-    return problem_response(request, status=exc.status, code=exc.code, title=exc.detail_title)
+    return problem_response(
+        request, status=exc.status, code=exc.code, title=exc.detail_title, errors=exc.errors
+    )
 
 
 async def _http_error(request: Request, exc: Exception) -> JSONResponse:

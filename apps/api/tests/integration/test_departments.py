@@ -3,6 +3,7 @@ is reserved; deleting one moves its pipelines to No department and removes membe
 
 import asyncio
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -23,12 +24,18 @@ def db(tenancy: Tenancy, query: str, *args: object) -> list[asyncpg.Record]:
 
 
 def add_pipeline(tenancy: Tenancy, key: str, department_id: uuid.UUID | None, status: str) -> None:
+    """A bare pipeline row; anything past draft gets the published fields the checks need."""
+    published = status != "draft"
     db(
         tenancy,
-        "insert into pipelines (workspace_id, department_id, status) values ($1, $2, $3)",
+        "insert into pipelines (workspace_id, department_id, status, slug, published_at,"
+        " closed_reason, locked_at) values ($1, $2, $3, $4, $5, $6, $5)",
         tenancy.workspace(key).id,
         department_id,
         status,
+        f"role-{uuid.uuid4().hex[:8]}" if published else None,
+        datetime.now(UTC) if published else None,
+        "manual" if status == "closed" else None,
     )
 
 

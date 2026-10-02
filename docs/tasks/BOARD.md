@@ -10,7 +10,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | Milestone | Tasks | Done |
 |---|---|---|
-| M0 Foundation | 14 | 10 |
+| M0 Foundation | 14 | 14 |
 | M1 Access | 12 | 10 |
 | M2 Pipelines | 7 | 0 |
 | M3 Intake | 12 | 0 |
@@ -30,7 +30,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [FND-004](FND/FND-004-api-skeleton-auth-request-context-permissions-erro.md) | API skeleton: auth, request context, permissions, errors | M | FND-003 | Done | #5 |
 | [FND-005](FND/FND-005-web-skeleton-hosts-tokens-fonts-auth-session-api-c.md) | Web skeleton: hosts, tokens, fonts, auth session, API client | M | FND-004 | Done | #6 |
 | [FND-006](FND/FND-006-ci-pipeline.md) | CI pipeline | S | FND-005 | Done | #11 |
-| [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | In review | |
+| [FND-007](FND/FND-007-deployments-vercel-render-blueprint-dev-and-qa-env.md) | Deployments: Vercel, Render blueprint, dev and QA environments | M | FND-006, FND-008 | Done | #26 |
 | [FND-008](FND/FND-008-background-worker-and-job-framework.md) | Background worker and job framework | M | FND-004 | Done | #20 |
 | [FND-009](FND/FND-009-observability-sentry-structured-logs.md) | Observability: Sentry, structured logs | S | FND-005, FND-008 | Done | #25 |
 | [FND-010](FND/FND-010-email-infrastructure-resend.md) | Email infrastructure (Resend) | M | FND-008 | Done | #22 |
@@ -47,11 +47,11 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-002](AUTH/AUTH-002-password-reset-and-email-verification.md) | Password reset and email verification | S | AUTH-001, FND-010 | Done | #10 |
 | [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Done | #12 |
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Done | #19 |
-| [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Done | |
+| [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Done | #18 |
 | [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Backlog | |
 | [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |
 | [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Done | #16 |
-| [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Done | |
+| [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Done | #17 |
 | [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Ready | |
 | [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Done | #14 |
 | [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Done | #13 |
@@ -60,7 +60,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | Ready | |
+| [PIPE-001](PIPE/PIPE-001-pipeline-model-and-state-machine.md) | Pipeline model and state machine | M | FND-003, FND-008, BILL-002 | In review | |
 | [PIPE-002](PIPE/PIPE-002-new-pipeline-wizard-role-and-ai-interview-steps.md) | New pipeline wizard — Role and AI interview steps | L | PIPE-001, WS-002, FND-012 | Backlog | |
 | [PIPE-003](PIPE/PIPE-003-new-pipeline-wizard-scoring-schedule-credits-revie.md) | New pipeline wizard — Scoring, Schedule & credits, Review, Publish | L | PIPE-002 | Backlog | |
 | [PIPE-004](PIPE/PIPE-004-pipelines-list.md) | Pipelines list | M | PIPE-001, DASH-001 | Backlog | |
@@ -76,14 +76,14 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [APPLY-002](APPLY/APPLY-002-candidate-sign-in-on-the-apply-page.md) | Candidate sign-in on the apply page | S | APPLY-001, AUTH-001 | Backlog | |
 | [APPLY-003](APPLY/APPLY-003-application-submission-and-credit-use.md) | Application submission and credit use | L | APPLY-002, FND-011, BILL-002, COMP-002 | Backlog | |
 | [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | Backlog | |
-| [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Backlog | |
+| [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Ready | |
 | [SCREEN-002](SCREEN/SCREEN-002-resume-assessment-and-decision.md) | Résumé assessment and decision | L | SCREEN-001, PIPE-001 | Backlog | |
 | [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Backlog | |
 | [INTV-001](INTV/INTV-001-interview-plan-generation.md) | Interview plan generation | M | SCREEN-002 | Backlog | |
 | [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Ready | |
 | [MSG-002](MSG/MSG-002-email-templates-list-and-editor.md) | Email templates list and editor | M | MSG-001, DASH-001 | Backlog | |
 | [MSG-003](MSG/MSG-003-email-scheduling-and-sending-engine.md) | Email scheduling and sending engine | M | MSG-001, FND-008 | Backlog | |
-| [COMP-002](COMP/COMP-002-notices-and-consent-versioning.md) | Notices and consent versioning | S | FND-004 | Backlog | |
+| [COMP-002](COMP/COMP-002-notices-and-consent-versioning.md) | Notices and consent versioning | S | FND-004 | Ready | |
 
 ## M4 AI interview
 
@@ -138,11 +138,11 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
 | [INTV-010](INTV/INTV-010-public-demo.md) | Public demo | L | INTV-005, SCREEN-001 | Backlog | |
-| [WEB-001](WEB/WEB-001-main-landing-page.md) | Main landing page | M | FND-012 | Backlog | |
-| [WEB-002](WEB/WEB-002-talent-acquisition-landing-and-contact-form.md) | Talent acquisition landing and contact form | M | FND-012, FND-010 | Backlog | |
-| [WEB-003](WEB/WEB-003-for-candidates-page-marketing.md) | For candidates page (marketing) | S | FND-012 | Backlog | |
+| [WEB-001](WEB/WEB-001-main-landing-page.md) | Main landing page | M | FND-012 | Ready | |
+| [WEB-002](WEB/WEB-002-talent-acquisition-landing-and-contact-form.md) | Talent acquisition landing and contact form | M | FND-012, FND-010 | Ready | |
+| [WEB-003](WEB/WEB-003-for-candidates-page-marketing.md) | For candidates page (marketing) | S | FND-012 | Ready | |
 | [WEB-004](WEB/WEB-004-pricing-page.md) | Pricing page | S | FND-012, BILL-001 | Backlog | |
-| [WEB-005](WEB/WEB-005-legal-and-ai-in-hiring-pages.md) | Legal and AI-in-hiring pages | S | FND-012 | Backlog | |
+| [WEB-005](WEB/WEB-005-legal-and-ai-in-hiring-pages.md) | Legal and AI-in-hiring pages | S | FND-012 | Ready | |
 
 ## M8 Launch readiness
 

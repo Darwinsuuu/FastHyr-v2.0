@@ -8,7 +8,7 @@ from app.integrations.storage import Storage
 from app.jobs.framework import NO_RETRY, JobRun, job
 from app.repositories.emails import scheduled_before
 from app.repositories.jobs import queued_report_jobs_before
-from app.services import credits, emails, files, invites
+from app.services import credits, emails, files, invites, pipelines
 from app.services.jobs import JOB_FUNCTIONS
 
 logger = logging.getLogger("app.jobs")
@@ -33,6 +33,17 @@ async def expire_invites(run: JobRun) -> int:
     await run.session.commit()
     logger.info("expire_invites: %d invites expired", expired)
     return expired
+
+
+@job(retry=NO_RETRY)
+async def open_and_close_pipelines(run: JobRun) -> int:
+    """Every minute: opens scheduled pipelines at `opens_at` and closes open ones at `closes_at`
+    (PIPE-001). Each pipeline commits on its own, so one failure doesn't hold up the rest."""
+    opened = await pipelines.open_due(run.session)
+    closed = await pipelines.close_due(run.session)
+    if opened or closed:
+        logger.info("open_and_close_pipelines: %d opened, %d closed", opened, closed)
+    return opened + closed
 
 
 @job(retry=NO_RETRY)

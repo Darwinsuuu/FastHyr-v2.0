@@ -14,6 +14,7 @@ from app.api.routers import (
     jobs,
     me,
     members,
+    pipelines,
     webhooks_resend,
     workspaces,
 )
@@ -82,6 +83,7 @@ def create_app(
     v1.include_router(me.router)
     v1.include_router(workspaces.router)
     v1.include_router(departments.router)
+    v1.include_router(pipelines.router)
     v1.include_router(members.router)
     v1.include_router(invites.router)
     v1.include_router(jobs.router)

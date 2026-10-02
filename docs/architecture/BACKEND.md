@@ -71,8 +71,7 @@ apps/api/
 | `send_email(message_id)` | scheduled time | sends the already-rendered row through Resend (Mailpit locally); FND-010 |
 | `generate_report(job_id)` | TA request | candidate / pipelines report PDF |
 | `stripe_event(event_id)` | webhook | grant credits etc. |
-| cron `open_scheduled_pipelines` | every minute | |
-| cron `close_due_pipelines` | every 5 min | releases reserves |
+| cron `open_and_close_pipelines` | every minute | opens scheduled pipelines at `opens_at` and closes open ones at `closes_at` (releasing their unused reserve), one transaction per pipeline (PIPE-001) |
 | cron `expire_interview_links` / `send_interview_reminders` / `nudge_unfinished` | every 10 min | |
 | cron `expire_credit_batches` | hourly | ledger entries |
 | cron `dispatch_scheduled_emails` | every minute | |

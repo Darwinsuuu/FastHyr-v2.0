@@ -80,7 +80,14 @@ def workspace_id(supabase: Supabase) -> Iterator[uuid.UUID]:
 
 
 async def add_pipeline(session: AsyncSession, workspace_id: uuid.UUID) -> uuid.UUID:
-    pipeline = Pipeline(workspace_id=workspace_id, status="live")
+    pipeline_id = uuid.uuid4()
+    pipeline = Pipeline(
+        id=pipeline_id,
+        workspace_id=workspace_id,
+        status="live",
+        slug=f"role-{pipeline_id.hex[:8]}",
+        published_at=NOW,
+    )
     session.add(pipeline)
     await session.flush()
     return pipeline.id

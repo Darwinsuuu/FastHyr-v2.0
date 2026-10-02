@@ -4,7 +4,7 @@
 |---|---|
 | Epic | WEB — Public website |
 | Milestone | M7 Public site & demo |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [FND-012](../FND/FND-012-ui-kit-design-system-components.md), [FND-010](../FND/FND-010-email-infrastructure-resend.md) |
 | Requirements | FR-WEB-01, FR-WEB-02 |

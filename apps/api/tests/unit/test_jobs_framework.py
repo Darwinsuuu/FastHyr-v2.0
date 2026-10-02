@@ -115,7 +115,11 @@ def test_crons_run_on_the_documented_schedule() -> None:
         "expire_invites",
         "requeue_stuck_work",
         "remove_storage_orphans",
+        "open_and_close_pipelines",
     }
+    # Every minute, so a scheduled pipeline opens within a minute of its date (PIPE-001).
+    every_minute = schedule["open_and_close_pipelines"]
+    assert (every_minute.minute, every_minute.hour, every_minute.second) == (None, None, 0)
     # Hourly crons name one minute of the hour; the sweeper runs every 10 minutes.
     assert isinstance(schedule["expire_credit_batches"].minute, int)
     assert isinstance(schedule["expire_invites"].minute, int)

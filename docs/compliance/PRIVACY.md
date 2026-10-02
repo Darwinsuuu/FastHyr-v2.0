@@ -27,7 +27,15 @@ Retention periods are defaults to confirm with counsel; later they become worksp
 Versioned texts stored in `apps/api/app/compliance/notices/` with version IDs saved on each record:
 - **Apply consent** (apply form): employer reviews application with FastHyr; AI screens the résumé against job-related criteria; if matched, AI interview by video/voice that is recorded and shared with the employer's hiring team; a person makes hiring decisions; how to request review, accommodation or deletion; link to Privacy and AI-in-hiring pages.
 - **Interview consent** (device check): talking with an AI interviewer; recorded; shared with the employer; what is evaluated; integrity checks and, where video is used, a **separate biometric consent** for the same-face check.
+- **Biometric consent** (device check, video + integrity checks only): FastHyr compares the candidate's face across the session to confirm it's the same person; face data isn't stored after the check; the result never scores or rejects anyone on its own.
 - **Jurisdiction add-ons** (e.g. NYC AEDT notice) appended when the pipeline's location requires it (post-OQ-4).
+
+How versioning works (COMP-002):
+- Each text is `apps/api/app/compliance/notices/<kind>@v<N>.toml` (`apply`, `interview`, `biometric`): the checkbox `statement`, the `details` shown under "What this means", `links` (`privacy`, `ai_in_hiring`, `terms`) and `choices` (wording that depends on the pipeline, such as the interview format). Placeholders are `{company}` and the `choices` keys.
+- A released file is never edited. `versions.lock` holds each file's SHA-256; the API refuses to start, and CI fails, if a released file changed, lost its file or has no lock line. To change a text: copy it to the next version, edit the copy, run `cd apps/api && uv run python -m app.compliance.notices lock`, and have the change reviewed (counsel review before launch, see `AI_HIRING_REGULATIONS.md`).
+- The highest version is current. `GET /v1/public/notices` serves it; older versions stay readable by number.
+- When a candidate agrees, the page sends the notice id (e.g. `apply@v1`) and the API stores it with the time through `services/consents.accept()`: on `applications.consent_version / consent_at` (APPLY-003) and on `interviews.consent_version / consent_at / biometric_consent_version` (INTV-003). Agreeing to an older version is `409 notice_outdated`, so the candidate sees the current words first.
+- The web renders notices only from the API with `components/consent/consent-checkbox.tsx` (never from `messages/en.json`), so the words shown are exactly the stored version's.
 
 ## 4. Candidate rights
 - **Access / deletion / correction requests** go to the employer (controller). In MVP the employer's Admin deletes a candidate from the Candidates pool ("Delete candidate data", FR-COMP-05). FastHyr support can assist on request.

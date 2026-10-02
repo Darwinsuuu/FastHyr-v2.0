@@ -1,0 +1,15 @@
+# Interview consent: the first checkbox on the device check (frame DemoDeviceCheck, S-01,
+# PRIVACY.md §3). Released texts are never edited. To change it, copy this file to
+# interview@v2.toml, edit the copy, then run `python -m app.compliance.notices lock` (COMP-002).
+
+statement = "I understand I’ll be talking with an AI interviewer and that this session is recorded and shared with the {company} hiring team."
+
+details = [
+  "You’ll talk with an AI interviewer about your experience and this role. You can ask it questions about the role at any time.",
+  "The session is recorded. The recording, transcript and assessment are shared only with the {company} hiring team.",
+  "Your answers are assessed on the skills this role needs, such as technical knowledge, communication and how you approach the work. Your appearance, voice and accent are not assessed.",
+  "FastHyr also checks that the interview runs fairly, for example that no one else is answering. These checks never reject anyone on their own; a person reviews them.",
+  "A person on the {company} team makes every hiring decision. You can ask {company} for an accommodation, or ask for your data to be deleted.",
+]
+
+links = ["ai_in_hiring", "privacy"]

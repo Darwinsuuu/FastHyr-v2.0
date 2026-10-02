@@ -799,6 +799,19 @@
       "body": "The link may be mistyped, or the employer may have taken this role down. Check the link in the job post, or look for the role on the employer’s careers page."
     }
   },
+  "consent": {
+    "details": "What this means",
+    "newTab": "(opens in a new tab)",
+    "link": {
+      "privacy": "Privacy Policy",
+      "aiInHiring": "How AI is used in hiring",
+      "terms": "Terms"
+    },
+    "required": {
+      "apply": "Please agree before sending your application.",
+      "interview": "Please agree before starting your interview."
+    }
+  },
   "error": {
     "title": "Something went wrong",
     "body": "We hit a problem showing this page and our team has been told. Try again, or come back in a few minutes.",

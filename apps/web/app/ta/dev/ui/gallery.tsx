@@ -42,6 +42,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Toggle } from "@/components/ui/toggle";
 
+import { ConsentSection } from "./gallery-consent";
 import { DataSections } from "./gallery-data";
 import { Row, Section } from "./gallery-parts";
 
@@ -522,6 +523,7 @@ export function Gallery() {
       <Feedback />
       <Identity />
       <DataSections />
+      <ConsentSection />
     </main>
   );
 }

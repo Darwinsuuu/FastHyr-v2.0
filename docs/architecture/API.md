@@ -10,6 +10,8 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 | Method & path | Purpose |
 |---|---|
 | `GET /public/pipelines/{workspace_slug}/{pipeline_slug}` | Apply page data (APPLY-001): candidate-safe pipeline fields (title, department name, employment type, work setup, location, JD, "Also open to", interview format, open and close dates), `availability` (`accepting` live · `opens_later` scheduled · `not_accepting` paused or out of credits · `closed`), the time zone dates are shown in, and the company profile (name, logo link through the public branding route, website, industry, size, HQ country, about, careers URL). Never must-haves, nice-to-haves, skills to probe, tone, seniority, rubric or credits. Drafts, cancelled pipelines and unknown links are `404` |
+| `GET /public/notices` | Current version of every candidate notice (COMP-002): `{apply, interview, biometric}`, each `{id, kind, version, statement, details, links, choices}`. `id` (`<kind>@v<N>`) is what a consent request sends back and the record stores. The page fills `{company}` and each `choices` key (e.g. `{interview}` from the pipeline's interview format) |
+| `GET /public/notices/{kind}` · `GET /public/notices/{kind}/{version}` | One notice: the current version, or any released version so a record's consent can be shown word for word. Unknown version `404`; unknown kind `422` |
 | `GET /public/branding/{workspace_id}/{logo\|banner}` | Branding image proxy for emails: no sign-in, `Cache-Control: immutable`; links carry `?v=<updated_at>` so a new image gets a new URL (WS-001) |
 | `POST /public/contact` | Contact form (rate-limited) |
 | `GET /public/review-requests/{token}` · `POST …` | Human-review request page (ADR-015) |

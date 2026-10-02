@@ -362,3 +362,19 @@ PROBLEM_RESPONSES: dict[int | str, dict[str, Any]] = {
     status: {"model": Problem, "content": {PROBLEM_JSON: {}}} for status in (401, 403, 404, 422)
 }
 """Pass as `responses=` on routers so the OpenAPI schema documents the error shape."""
+
+
+class NoticeUnknownError(AppError):
+    """The consent names a notice that was never released, or one of another kind (FR-COMP-01)."""
+
+    status = 422
+    code = "notice_unknown"
+    title = "This notice isn't one we show"
+
+
+class NoticeOutdatedError(AppError):
+    """The candidate agreed to an older version of a notice; the page shows the current one."""
+
+    status = 409
+    code = "notice_outdated"
+    title = "This notice has been updated. Read it again and agree to continue."

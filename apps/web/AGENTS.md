@@ -26,6 +26,9 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/FRONTEND.md
 - Lists use `Table` (it switches to cards on phones) with `Pagination`; charts come from `components/charts` and take a `title`, which names the screen-reader table. In a CSS grid, give chart cards `min-w-0`.
 - A new colour pairing needs a line in `scripts/check-contrast.mjs`; `pnpm --filter web lint` checks it in both themes.
 
+## Candidate consent (COMP-002)
+- Consent and notice words come from the API (`loadNotices()` in `lib/notices` on the server, `useNotices()` in client code), never from `messages/en.json`. Render them with `ConsentCheckbox` (`components/consent`) and send `notice.id` with the form.
+
 ## Errors and Sentry (FND-009)
 - `instrumentation.ts` (server, edge) and `instrumentation-client.ts` (browser) start Sentry with the options in `lib/observability/sentry.ts`; it is off while `NEXT_PUBLIC_SENTRY_DSN` is empty. Uncaught errors land on `app/global-error.tsx`.
 - Scrub rules live in `lib/observability/scrub.ts`; API errors are tagged with the API's `request_id`. Session replay stays off. Try it at `/dev/sentry` on the app host (local and development).

@@ -17,10 +17,12 @@ from app.api.routers import (
     me,
     members,
     pipelines,
+    public_notices,
     public_pipelines,
     webhooks_resend,
     workspaces,
 )
+from app.compliance.notices import released
 from app.core.auth import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db import create_engine, create_sessionmaker
@@ -46,6 +48,8 @@ def create_app(
     settings = settings or get_settings()
     configure_logging(settings.log_level, settings.resolved_log_format)
     init_sentry(settings, "api")
+    # A notice edited after release stops the API from starting (COMP-002).
+    released()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -93,6 +97,7 @@ def create_app(
     v1.include_router(company_profile.public_router)
     v1.include_router(pipelines.router)
     v1.include_router(public_pipelines.router)
+    v1.include_router(public_notices.router)
     v1.include_router(credits.router)
     v1.include_router(members.router)
     v1.include_router(invites.router)

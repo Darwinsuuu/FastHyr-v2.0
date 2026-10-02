@@ -11,7 +11,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | Milestone | Tasks | Done |
 |---|---|---|
 | M0 Foundation | 14 | 14 |
-| M1 Access | 12 | 10 |
+| M1 Access | 12 | 11 |
 | M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 0 |
 | M4 AI interview | 8 | 0 |
@@ -48,7 +48,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [AUTH-003](AUTH/AUTH-003-workspaces-create-join-by-code-select-switch.md) | Workspaces: create, join by code, select, switch | M | AUTH-001, FND-003, BILL-002 | Done | #12 |
 | [AUTH-004](AUTH/AUTH-004-invite-accept-page.md) | Invite accept page | S | WS-004 | Done | #19 |
 | [AUTH-005](AUTH/AUTH-005-user-profile-modal-and-account-menu.md) | User profile modal and account menu | S | DASH-001 | Done | #18 |
-| [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | In review | |
+| [WS-001](WS/WS-001-company-profile.md) | Company profile | M | DASH-001, FND-011 | Done | #30 |
 | [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |
 | [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Done | #16 |
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Done | #17 |
@@ -72,7 +72,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [APPLY-001](APPLY/APPLY-001-public-apply-page.md) | Public apply page | M | PIPE-001, WS-001, FND-012 | Backlog | |
+| [APPLY-001](APPLY/APPLY-001-public-apply-page.md) | Public apply page | M | PIPE-001, WS-001, FND-012 | In review | |
 | [APPLY-002](APPLY/APPLY-002-candidate-sign-in-on-the-apply-page.md) | Candidate sign-in on the apply page | S | APPLY-001, AUTH-001 | Backlog | |
 | [APPLY-003](APPLY/APPLY-003-application-submission-and-credit-use.md) | Application submission and credit use | L | APPLY-002, FND-011, BILL-002, COMP-002 | Backlog | |
 | [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | Backlog | |

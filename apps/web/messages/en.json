@@ -704,6 +704,73 @@
     "retry": "Try again",
     "toWorkspaces": "Go to your workspaces"
   },
+  "apply": {
+    "pageTitle": "{title} at {company}",
+    "careers": "Careers",
+    "hiringWith": "Hiring with",
+    "status": {
+      "accepting": "Accepting applications",
+      "acceptingUntil": "Accepting applications · closes {date}",
+      "opensOn": "Opens on {date}",
+      "opensLater": "Opening soon",
+      "notAccepting": "Not taking applications right now",
+      "closed": "This role is closed"
+    },
+    "applyNow": "Apply now",
+    "applyHint": "You’ll sign in with Google or Microsoft first",
+    "unavailable": {
+      "opensOn": "You can apply from {date}.",
+      "opensLater": "You can apply once applications open.",
+      "notAccepting": "This role isn’t taking applications right now. Check back later.",
+      "closed": "Applications for this role have closed."
+    },
+    "aboutRole": "About the role",
+    "openToTitle": "Coming from a different path? We’d still like to hear from you.",
+    "howItWorks": {
+      "title": "How applying works",
+      "step1Title": "Apply in a few minutes",
+      "step1Body": "Sign in with Google or Microsoft, upload your résumé as a PDF and add your contact details.",
+      "step2Title": "We review your résumé",
+      "step2Body": "It’s checked against what this role needs. You’ll hear back by email either way.",
+      "step3Title": "Take your AI interview",
+      "step3BodyVideo": "If it’s a match, you’ll get a link to an interview by video and voice. Take it whenever suits you before the link expires.",
+      "step3BodyVoice": "If it’s a match, you’ll get a link to an interview by voice. Take it whenever suits you before the link expires."
+    },
+    "fairness": "Your name, photo, address, age and graduation year are never used to review your résumé or score your interview. A person on the {company} team makes every hiring decision.",
+    "facts": {
+      "title": "Role at a glance",
+      "department": "Department",
+      "employmentType": "Employment type",
+      "workSetup": "Work setup",
+      "location": "Location",
+      "interview": "Interview",
+      "interviewVideo": "AI interview · video + voice",
+      "interviewVoice": "AI interview · voice only",
+      "opens": "Applications open",
+      "closes": "Applications close"
+    },
+    "company": {
+      "title": "About the company",
+      "industry": "Industry",
+      "size": "Company size",
+      "sizeValue": "{size} people",
+      "headquarters": "Headquarters",
+      "website": "Visit website",
+      "otherRoles": "See other roles",
+      "newTab": "(opens in a new tab)",
+      "logoAlt": "{company} logo"
+    },
+    "footer": "Applications for {company} are handled by FastHyr.",
+    "soon": {
+      "title": "Applying opens soon",
+      "body": "We’re finishing sign-in for candidates. Come back to this page shortly to apply.",
+      "close": "Close"
+    },
+    "notFound": {
+      "title": "We couldn’t find this role",
+      "body": "The link may be mistyped, or the employer may have taken this role down. Check the link in the job post, or look for the role on the employer’s careers page."
+    }
+  },
   "error": {
     "title": "Something went wrong",
     "body": "We hit a problem showing this page and our team has been told. Try again, or come back in a few minutes.",

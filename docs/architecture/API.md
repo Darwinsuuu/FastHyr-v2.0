@@ -9,7 +9,7 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 ## Public (no auth)
 | Method & path | Purpose |
 |---|---|
-| `GET /public/pipelines/{workspace_slug}/{pipeline_slug}` | Apply page data: candidate-safe pipeline fields, status banner, company profile |
+| `GET /public/pipelines/{workspace_slug}/{pipeline_slug}` | Apply page data (APPLY-001): candidate-safe pipeline fields (title, department name, employment type, work setup, location, JD, "Also open to", interview format, open and close dates), `availability` (`accepting` live · `opens_later` scheduled · `not_accepting` paused or out of credits · `closed`), the time zone dates are shown in, and the company profile (name, logo link through the public branding route, website, industry, size, HQ country, about, careers URL). Never must-haves, nice-to-haves, skills to probe, tone, seniority, rubric or credits. Drafts, cancelled pipelines and unknown links are `404` |
 | `GET /public/branding/{workspace_id}/{logo\|banner}` | Branding image proxy for emails: no sign-in, `Cache-Control: immutable`; links carry `?v=<updated_at>` so a new image gets a new URL (WS-001) |
 | `POST /public/contact` | Contact form (rate-limited) |
 | `GET /public/review-requests/{token}` · `POST …` | Human-review request page (ADR-015) |

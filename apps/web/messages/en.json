@@ -587,5 +587,194 @@
     "title": "Something went wrong",
     "body": "We hit a problem showing this page and our team has been told. Try again, or come back in a few minutes.",
     "retry": "Try again"
+  },
+  "pipelines": {
+    "newPipeline": "New pipeline",
+    "wizard": {
+      "newTitle": "New pipeline",
+      "editTitle": "Edit pipeline setup",
+      "back": "Pipelines",
+      "saveDraft": "Save as draft",
+      "saved": "Draft saved",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "stepsLabel": "Pipeline setup steps",
+      "stepOf": "Step {step} of {total}",
+      "continue": "Continue",
+      "previous": "Back",
+      "next": "Next: {step}",
+      "loadFailed": "We couldn't load this pipeline. Refresh the page to try again.",
+      "notFound": "We couldn't find that pipeline. It may have been deleted, or it's in a department you can't see.",
+      "lockedTitle": "This pipeline's setup is locked",
+      "lockedBody": "Once a pipeline opens, its role, interview, scoring and schedule stay fixed so every candidate is assessed the same way. You can still pause it, close it or add credits from the Pipelines page.",
+      "goToPipelines": "Go to pipelines",
+      "comingTitle": "This step is on its way",
+      "comingBody": "Your draft is saved. Scoring, scheduling and publishing will be available here soon.",
+      "steps": {
+        "role": {
+          "label": "Role",
+          "hint": "Job details and must-haves",
+          "title": "Tell us about the role",
+          "intro": "This is what FastHyr uses to screen résumés and plan each interview. Take your time: once a pipeline is live, its setup can't be changed."
+        },
+        "interview": {
+          "label": "AI interview",
+          "hint": "Format, tone and skills",
+          "title": "Shape the AI interview",
+          "intro": "Choose how candidates are interviewed and what the interviewer should dig into."
+        },
+        "scoring": {
+          "label": "Scoring",
+          "hint": "Rubric and messages",
+          "title": "Decide what a good interview looks like",
+          "intro": "You set the weights and the pass mark. FastHyr explains every score."
+        },
+        "schedule": {
+          "label": "Schedule & credits",
+          "hint": "Dates and budget",
+          "title": "Set the schedule and credits",
+          "intro": "Choose when the apply link opens, how long it stays open, and how many applicants it can take."
+        },
+        "review": {
+          "label": "Review",
+          "hint": "Check and publish",
+          "title": "Review and publish",
+          "intro": "Check everything carefully before you publish. After that, the setup is locked."
+        }
+      },
+      "blocked": {
+        "mustHaves": "Add at least 3 must-haves to continue",
+        "skills": "Add at least 3 skills to probe to continue"
+      },
+      "errors": {
+        "saveFailed": "We couldn't save your draft. Check your connection and try again.",
+        "locked": "This pipeline has opened, so its setup can't be changed any more.",
+        "department": "You can only file pipelines under your own departments. Pick one of yours."
+      },
+      "hiddenFromCandidates": "Hidden from candidates",
+      "countMin": "{count} of 3 minimum",
+      "countAdded": "{count} added",
+      "role": {
+        "title": "Job title",
+        "titlePlaceholder": "e.g. Senior Backend Engineer",
+        "department": "Department",
+        "departmentHint": "Optional. Defaults to No department.",
+        "departmentHintRecruiter": "Pipelines go in one of your departments.",
+        "manageDepartments": "Manage departments",
+        "noDepartments": "You aren't in any department yet, so you can't save a pipeline. Ask an Admin to give you access to one.",
+        "employmentType": "Employment type",
+        "employmentTypes": {
+          "full_time": "Full-time",
+          "part_time": "Part-time",
+          "contract": "Contract",
+          "internship": "Internship"
+        },
+        "workSetup": "Work setup",
+        "workSetups": {
+          "on_site": "On-site",
+          "hybrid": "Hybrid",
+          "remote": "Remote"
+        },
+        "location": "Location",
+        "locationPlaceholder": "e.g. Makati, Metro Manila",
+        "jd": "Job description",
+        "jdPlaceholder": "Paste the full job description here: responsibilities, requirements and what success looks like.",
+        "jdHint": "Shown to candidates on your apply page. FastHyr also reads it to screen résumés and plan each interview.",
+        "mustHaves": "Résumé must-haves",
+        "mustHavesHint": "Hidden criteria FastHyr looks for when reading each résumé. It checks for related experience, not an exact match, so close or transferable experience still counts. Add at least 3, as they're also used to score candidates. Candidates won't see this list, but you can still mention these in the job description so applicants are aware of them.",
+        "mustHavesPlaceholder": "Add a must-have, e.g. 3+ years with Kubernetes, then press Enter",
+        "fairness": "FastHyr never screens on name, photo, address, age or graduation year, even if they appear in a résumé.",
+        "niceToHaves": "Nice-to-haves",
+        "optional": "(optional)",
+        "niceToHavesHint": "Extra skills or experience that add to the résumé score but aren't required.",
+        "niceToHavesPlaceholder": "Add a nice-to-have, then press Enter",
+        "passBar": "Résumé pass bar",
+        "passBarValue": "{value} / 100",
+        "passBarHint": "Résumés at or above this score, with every must-have, are invited to interview. Most teams start at 60.",
+        "openTo": "Also open to",
+        "openToHint": "Tick anyone you'd welcome even without the usual track record. The résumé screen and the AI interviewer will look for potential and transferable skills in these candidates, not just years in the role.",
+        "openToOptions": {
+          "fresh_grads": {
+            "label": "Fresh graduates",
+            "short": "fresh graduates",
+            "description": "Internships, school and personal projects count as experience."
+          },
+          "career_changers": {
+            "label": "Career changers",
+            "short": "career changers",
+            "description": "Skills from another field are matched to what this role needs."
+          },
+          "returners": {
+            "label": "Returning to work",
+            "short": "people returning to work",
+            "description": "Career gaps are never held against a candidate."
+          },
+          "no_degree": {
+            "label": "No degree required",
+            "short": "candidates without a degree",
+            "description": "Self-taught, bootcamp and certification paths are weighed equally."
+          },
+          "step_up": {
+            "label": "Ready for a step up",
+            "short": "people stepping up",
+            "description": "Welcomes candidates one level below the role who show they can grow into it."
+          },
+          "relocating": {
+            "label": "Relocating or remote-first",
+            "short": "relocating candidates",
+            "description": "Location on the résumé isn't treated as a gap."
+          }
+        },
+        "openToNote": "We won't screen out {list} just for missing years of experience. The interviewer will also ask about their projects, transferable skills and how they learn.",
+        "or": "or"
+      },
+      "interview": {
+        "format": "Interview format",
+        "formats": {
+          "video_voice": {
+            "label": "Video + voice",
+            "description": "Candidates talk to the AI on camera. Best when presence and integrity checks matter."
+          },
+          "voice_only": {
+            "label": "Voice only",
+            "description": "Audio only, no camera. Lower pressure and easier on slow connections."
+          }
+        },
+        "adaptiveTitle": "Every interview is adaptive.",
+        "adaptiveBody": "There's no fixed number of questions and no timer per question. The AI builds questions from each résumé and this job, then follows up on answers the way a person would.",
+        "tone": "Interviewer tone",
+        "tones": {
+          "warm": {
+            "label": "Warm",
+            "description": "Encouraging and relaxed. Puts nervous candidates at ease."
+          },
+          "professional": {
+            "label": "Professional",
+            "description": "Friendly but focused, like a structured panel."
+          },
+          "direct": {
+            "label": "Direct",
+            "description": "Brisk and probing. Pushes back on vague answers."
+          }
+        },
+        "seniority": "Seniority and depth",
+        "seniorities": {
+          "entry": "Entry",
+          "mid": "Mid-level",
+          "senior": "Senior",
+          "lead": "Lead"
+        },
+        "skills": "Skills to probe",
+        "skillsHint": "The interviewer makes sure each of these comes up. Add at least 3, as they're also used to score candidates. Candidates won't see this list, but you can still mention these skills in the job description so applicants are aware of them.",
+        "skillsPlaceholder": "Add a skill, e.g. Incident response, then press Enter",
+        "linkHeading": "Interview link and integrity",
+        "expiry": "Interview link expires after",
+        "expiryDays": "{days} days",
+        "reminder": "Remind candidates before their link expires",
+        "reminderHint": "One friendly nudge 24 hours before, to cut drop-off.",
+        "integrity": "Flag possible impersonation",
+        "integrityHint": "Second voice, face mismatch or read-aloud answers. Flags never auto-reject."
+      }
+    }
   }
 }

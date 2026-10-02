@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M2 Pipelines |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md) |
 | Requirements | FR-PIPE-10 |

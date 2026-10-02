@@ -4,7 +4,7 @@
 |---|---|
 | Epic | SCREEN — Résumé screening |
 | Milestone | M3 Intake |
-| Status | In review |
+| Status | Done |
 | Size | L |
 | Depends on | [SCREEN-001](../SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md), [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md) |
 | Requirements | FR-SCREEN-03, FR-SCREEN-04, FR-SCREEN-05, FR-SCREEN-06 |
@@ -62,3 +62,4 @@ _(Branch name, decisions, deviations, PR links, review files.)_
 - 2026-10-02: Darwin ran the golden set with gpt-4.1-mini. Two findings, both fixed: (1) the model left school names in the fresh-graduate pair's Education section, so redaction rules are now `rules@v2` and mask school names found there (a run of capitalised words with an institution word such as University, College or Institute) everywhere in the text; (2) the quote check rejected two nice-to-have quotes, so it now compares words in order with case, punctuation and line breaks ignored, and accepts a quote shortened with "..." when every part is found in order. The eval now prints any quotes it couldn't find.
 - 2026-10-02 (second golden-set run): the model joins evidence from several sections into one quote ("BS Statistics … \nSkills\n… statistics"), so a quote is now split at line breaks and "..." and every piece must be in the résumé; and it masked "Engr." with the referee's name in one résumé of a pair but not the other, so titles directly before `[NAME]` (Engr., Dr., Mr., Ms. …) are now always removed.
 - 2026-10-02 (third run): Darwin ran `tests/ai_eval` with gpt-4.1-mini: redaction and assessment golden sets both pass (4 passed).
+- 2026-10-02: merged as PR #37.

@@ -65,7 +65,7 @@ apps/api/
 | Job | Trigger | Notes |
 |---|---|---|
 | `screen_resume(application_id)` | apply | extract → redact → score → decide → next job/email |
-| `plan_interview(application_id)` | screen pass | creates `interview_plans`, then invitation email |
+| `plan_interview(application_id)` | screen pass | creates `interview_plans` (INTV-001; after the last failed try the failure hook stores the plain skills plan), then invitation email (SCREEN-003) |
 | `finalize_recording(interview_id)` | interview complete | remux chunks → single file, extract audio/frames |
 | `transcribe_interview(interview_id)` | after finalize | authoritative transcript |
 | `score_interview(interview_id)` | after transcribe | assessment + stage |

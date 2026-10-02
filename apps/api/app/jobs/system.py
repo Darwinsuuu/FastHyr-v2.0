@@ -6,8 +6,10 @@ from datetime import UTC, datetime, timedelta
 
 from app.integrations.storage import Storage
 from app.jobs.framework import NO_RETRY, JobRun, job
+from app.jobs.interviews import PLAN_JOB
 from app.jobs.screening import SCREEN_JOB
 from app.repositories.emails import scheduled_before
+from app.repositories.interviews import passed_without_plan_before
 from app.repositories.jobs import queued_report_jobs_before
 from app.repositories.screening import pending_before
 from app.services import credits, emails, files, invites, pipelines
@@ -51,8 +53,8 @@ async def open_and_close_pipelines(run: JobRun) -> int:
 @job(retry=NO_RETRY)
 async def requeue_stuck_work(run: JobRun) -> int:
     """Every 10 minutes: queues again work that Postgres says is waiting but Redis lost
-    (ADR-009): report jobs, due emails and résumé screens (SCREEN-001); the interview tasks add
-    theirs.
+    (ADR-009): report jobs, due emails, résumé screens (SCREEN-001) and interview plans
+    (INTV-001); the other interview tasks add theirs.
     Re-enqueueing is safe: enqueue is keyed by the row ID and job bodies skip finished work."""
     requeued = 0
     for stuck in await queued_report_jobs_before(run.session, datetime.now(UTC) - STUCK_AFTER):
@@ -66,6 +68,11 @@ async def requeue_stuck_work(run: JobRun) -> int:
             requeued += 1
     for application_id in await pending_before(run.session, datetime.now(UTC) - STUCK_AFTER):
         if await run.queue.enqueue(SCREEN_JOB, application_id, key=application_id):
+            requeued += 1
+    for application_id in await passed_without_plan_before(
+        run.session, datetime.now(UTC) - STUCK_AFTER
+    ):
+        if await run.queue.enqueue(PLAN_JOB, application_id, key=application_id):
             requeued += 1
     logger.info("requeue_stuck_work: %d jobs requeued", requeued)
     return requeued

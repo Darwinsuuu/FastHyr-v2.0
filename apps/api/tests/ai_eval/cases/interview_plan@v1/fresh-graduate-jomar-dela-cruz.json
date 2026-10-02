@@ -1,0 +1,21 @@
+{
+  "assessment_case": "fresh-graduate-jomar-dela-cruz",
+  "tone": "warm",
+  "interview_format": "voice_only",
+  "skills_to_probe": [
+    "SQL",
+    "Data cleaning in Python",
+    "Dashboards and storytelling"
+  ],
+  "company_about": "Kinetiq helps retailers understand their sales with simple reports.",
+  "expect": {
+    "topics": [
+      4,
+      7
+    ],
+    "resume_quotes": [
+      2,
+      30
+    ]
+  }
+}

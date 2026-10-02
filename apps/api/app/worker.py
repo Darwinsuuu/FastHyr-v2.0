@@ -20,6 +20,7 @@ from app.integrations.email import sender_from_settings
 from app.integrations.storage import storage_from_settings
 from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
+from app.jobs.interviews import plan_interview
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.reports import sample_report_job
 from app.jobs.screening import screen_resume
@@ -42,6 +43,7 @@ FUNCTIONS: list[Function] = [
     register(sample_report_job),
     register(send_email),
     register(screen_resume),
+    register(plan_interview),
 ]
 
 CRON_JOBS: list[CronJob] = [

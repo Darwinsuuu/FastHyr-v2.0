@@ -81,6 +81,60 @@ def resume_assessment(variables: dict[str, str]) -> dict[str, Any]:
     }
 
 
+def interview_plan(variables: dict[str, str]) -> dict[str, Any]:
+    """Warm-up, one topic per skill to probe anchored in the résumé, then the candidate's
+    questions, so local runs and e2e get a plan that passes every check."""
+    resume = variables["resume_text"]
+    quote = _quote(resume) if resume != "Not available" else ""
+    skills = _items(variables["skills_to_probe"])
+    topics: list[dict[str, Any]] = [
+        {
+            "kind": "warm_up",
+            "title": "Getting started",
+            "goal": "Hear how the candidate describes their recent work.",
+            "skills": [],
+            "seeds": [
+                {
+                    "question": "Could you walk me through your most recent role?",
+                    "resume_quote": quote,
+                }
+            ],
+        }
+    ]
+    topics += [
+        {
+            "kind": "skills",
+            "title": skill[:60],
+            "goal": f"Understand the depth of the candidate's experience with {skill}.",
+            "skills": [skill],
+            "seeds": [
+                {
+                    "question": f"Tell me about a project where you used {skill}.",
+                    "resume_quote": quote,
+                }
+            ],
+        }
+        for skill in skills[:5]
+    ]
+    if len(skills) > 5:
+        topics[-1]["skills"] += skills[5:]
+    topics.append(
+        {
+            "kind": "candidate_questions",
+            "title": "Your questions",
+            "goal": "Answer the candidate's questions about the role and the team.",
+            "skills": [],
+            "seeds": [
+                {"question": "What would you like to know about the role?", "resume_quote": ""}
+            ],
+        }
+    )
+    claim = {"claim": "Recent work described in the résumé", "resume_quote": quote}
+    claims = [{**claim, "skill": skills[0]}] if quote and skills else []
+    return {"topics": topics, "claims_to_verify": claims}
+
+
 BUILDERS: dict[str, Callable[[dict[str, str]], dict[str, Any]]] = {
     "resume_assessment@v1": resume_assessment,
+    "interview_plan@v1": interview_plan,
 }

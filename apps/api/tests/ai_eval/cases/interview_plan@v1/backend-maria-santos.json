@@ -1,0 +1,22 @@
+{
+  "assessment_case": "backend-maria-santos",
+  "tone": "warm",
+  "interview_format": "video_voice",
+  "skills_to_probe": [
+    "Service design and trade-offs",
+    "PostgreSQL performance",
+    "Running services in production",
+    "Mentoring"
+  ],
+  "company_about": "PayLane runs the payments and logistics APIs behind 2,000 merchants in Southeast Asia.",
+  "expect": {
+    "topics": [
+      4,
+      7
+    ],
+    "resume_quotes": [
+      2,
+      30
+    ]
+  }
+}

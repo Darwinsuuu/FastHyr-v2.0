@@ -1,0 +1,27 @@
+{
+  "pair": "fresh-graduate",
+  "variables": {
+    "resume_text": "Jomar dela Cruz\nJunior Data Analyst\nEmail: jomar.dc@example.com\nMobile: 0917 555 0101\nDate of birth: 14 March 2001\nGender: Male\nCivil status: Single\nNationality: Filipino\n\nObjective\nRecent graduate looking for a junior data analyst role where I can use SQL and Python to help a team make better decisions.\n\nEducation\nPolytechnic University of the Philippines\nBS Statistics, Class of 2023\nThesis: Forecasting rice prices with ARIMA models\n\nProjects\n- Built a dashboard in Power BI tracking jeepney ridership for a city transport study.\n- Cleaned and analysed 200,000 survey rows in Python (pandas) for a public health NGO.\n\nExperience\nData Intern, Kalinga Health Foundation\nJune 2023 - August 2023\n- Automated a weekly Excel report with Python, saving the team six hours a week.\n\nSkills\nSQL, Python, pandas, Power BI, Excel, statistics",
+    "full_name": "Jomar dela Cruz"
+  },
+  "must_remove": [
+    "Jomar dela Cruz",
+    "jomar.dc@example.com",
+    "0917 555 0101",
+    "14 March 2001",
+    "Male",
+    "Polytechnic University of the Philippines",
+    "Class of 2023"
+  ],
+  "must_keep": [
+    "Python",
+    "pandas",
+    "June 2023 - August 2023"
+  ],
+  "fake_spans": [
+    {
+      "kind": "school",
+      "text": "Polytechnic University of the Philippines"
+    }
+  ]
+}

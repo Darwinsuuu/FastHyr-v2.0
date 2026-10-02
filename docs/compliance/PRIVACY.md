@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | Candidate identity (name, email, avatar) | Google/Microsoft sign-in | Application, communication | `candidates`, Supabase Auth | 24 months after last activity in that workspace |
 | Contact details (phone, city, profile URL) | Apply form | Employer contact | `candidates` | same |
-| Résumé PDF + extracted/redacted text | Apply form | Screening, interview plan, TA review | `resumes` bucket, `resume_assessments` | same |
+| Résumé PDF + extracted/redacted text | Apply form | Screening, interview plan, TA review | `resumes` bucket, `resume_texts` (redacted only), `resume_assessments` | same |
 | Recording (video/audio) | Interview | Assessment, TA review | `recordings` bucket | 12 months after the interview |
 | Transcript, assessment, flags | Derived | TA review | DB | with candidate data |
 | Face embeddings | Derived during integrity check | Same-face check | memory only | not stored |

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | APPLY — Apply |
 | Milestone | M3 Intake |
-| Status | In review |
+| Status | Done |
 | Size | S |
 | Depends on | [APPLY-003](../APPLY/APPLY-003-application-submission-and-credit-use.md) |
 | Requirements | FR-APPLY-05, FR-APPLY-06, FR-APPLY-07 |

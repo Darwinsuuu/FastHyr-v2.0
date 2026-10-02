@@ -19,7 +19,8 @@ apps/api/
 │   ├── models/                  # SQLAlchemy models (mirror supabase/migrations)
 │   ├── repositories/            # ONLY place that builds queries; every method takes workspace_id
 │   ├── services/                # business rules (pipelines, applications, credits, interviews, billing…)
-│   ├── ai/                      # OpenAI wrappers, prompts/, schemas/, redaction, evaluation fixtures
+│   ├── ai/                      # OpenAI wrappers, prompts/, schemas/, evaluation fixtures
+│   ├── screening/               # résumé text extraction and redaction rules (no database; SCREEN-001)
 │   ├── media/                   # recording finalise, transcription, frame sampling, face checks
 │   ├── integrations/            # stripe_client, resend_client, storage (Supabase Storage)
 │   ├── jobs/                    # arq job functions (thin: load → call service → save)

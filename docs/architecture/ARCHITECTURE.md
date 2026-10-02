@@ -39,7 +39,7 @@
 1. Candidate opens `/apply/{ws}/{pipeline}?source=linkedin` → web fetches `GET /public/pipelines/{ws}/{slug}`.
 2. Candidate signs in with Google/Microsoft (Supabase OAuth) → web calls `POST /candidate/applications/{pipeline_id}/upload-url` → uploads PDF directly to Storage.
 3. `POST /candidate/applications` → API checks pipeline is live, consumes 1 credit (transaction), creates candidate + application (`processing_resume`), enqueues `screen_resume`.
-4. Worker extracts + redacts text, scores with OpenAI, writes `resume_assessments` + `ai_decisions`, then either enqueues `plan_interview` + sends invitation, or schedules the rejection email.
+4. Worker extracts + redacts text (stored in `resume_texts`), scores with OpenAI, writes `resume_assessments` + `ai_decisions`, then either enqueues `plan_interview` + sends invitation, or schedules the rejection email.
 
 ### Interview
 1. Candidate opens `/interview/{token}` → `GET /candidate/interviews/{token}` (must be the same Supabase user).

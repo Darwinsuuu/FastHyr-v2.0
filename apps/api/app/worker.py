@@ -11,6 +11,7 @@ from arq.connections import RedisSettings
 from arq.cron import CronJob
 from arq.worker import Function, func
 
+from app.ai.client import ai_client_from_settings
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
@@ -62,9 +63,10 @@ async def startup(ctx: dict[str, Any]) -> None:
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests pass a fake email sender or storage, and their own queue's name in `ctx`.
+    # Tests pass a fake email sender, storage or AI client, and their own queue's name in `ctx`.
     ctx.setdefault("email_sender", sender_from_settings(settings))
     ctx.setdefault("storage", storage_from_settings(settings))
+    ctx.setdefault("ai", ai_client_from_settings(settings, ctx["sessionmaker"]))
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 

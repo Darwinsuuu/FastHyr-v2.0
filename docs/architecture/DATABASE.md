@@ -12,6 +12,7 @@ workspaces ─┬─ company_profiles (1:1)
             ├─ workspace_members ─< member_departments >─ departments
             ├─ invites
             ├─ pipelines ─< applications >─ candidates
+            │                  ├─ resume_texts (1:1, redacted)
             │                  ├─ resume_assessments (1:1)
             │                  ├─ interview_plans (1:1)
             │                  ├─ interviews ─< interview_attempts, recording_chunks, transcript_segments, integrity_flags
@@ -76,7 +77,9 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 | `credit_ledger_id` | the consumption entry |
 | `applied_at` | |
 
-**resume_assessments** — `application_id` PK, `workspace_id`, `score`, `breakdown jsonb` (must_haves, nice_to_haves, experience, skill_depth: score, weight, detail), `must_have_results jsonb` (criterion, met, evidence quote), `nice_to_have_results jsonb`, `impact jsonb`, `claims jsonb` (requirement, type, found, strength 1–3), `experience_timeline jsonb`, `career_snapshot jsonb`, `redacted_text` (encrypted column or storage path), `passed bool`, `model`, `prompt_version`, `screened_at`, `duration_ms`.
+**resume_texts** (SCREEN-001) — `application_id` PK (FK to the application, deleted with it), `workspace_id`, `redacted_text` (the only résumé text any AI step sees; the original text is never stored, the PDF stays the original), `characters` (non-space characters extracted), `pages`, `column_pages` (pages read as two columns), `masked jsonb` (counts per mask kind, never the hidden text), `redaction_version` (`rules@v1+resume_redaction@v1`), `created_at`. Written once by `services/screening.py`; an unreadable résumé gets no row.
+
+**resume_assessments** — `application_id` PK, `workspace_id`, `score`, `breakdown jsonb` (must_haves, nice_to_haves, experience, skill_depth: score, weight, detail), `must_have_results jsonb` (criterion, met, evidence quote), `nice_to_have_results jsonb`, `impact jsonb`, `claims jsonb` (requirement, type, found, strength 1–3), `experience_timeline jsonb`, `career_snapshot jsonb`, `passed bool`, `model`, `prompt_version`, `screened_at`, `duration_ms`.
 
 **interview_plans** — `application_id` PK, `workspace_id`, `topics jsonb` (ordered: title, goal, seeds[{question, resume_quote}], skills), `claims_to_verify jsonb`, `instructions_version`, `model`, `prompt_version`, `created_at`.
 

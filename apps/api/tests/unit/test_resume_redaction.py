@@ -21,6 +21,8 @@ CASES = Path(__file__).parent.parent / "ai_eval" / "cases" / "resume_redaction@v
 class StubAI:
     """Answers `resume_redaction` with the spans a correct model finds, recording what it saw."""
 
+    model = "stub"
+
     def __init__(self, spans: list[dict[str, str]]) -> None:
         self.spans = spans
         self.seen: list[str] = []

@@ -1,0 +1,32 @@
+{
+  "resume_case": "backend-paolo-reyes",
+  "pipeline": {
+    "job_title": "ICU Staff Nurse",
+    "job_description": "Provide critical care to adult ICU patients in a 24-bed unit.",
+    "must_haves": [
+      "Philippine nursing licence",
+      "2+ years of ICU or critical care nursing",
+      "Basic and advanced cardiac life support"
+    ],
+    "nice_to_haves": [
+      "Ventilator management"
+    ],
+    "seniority": "mid",
+    "open_to": [],
+    "pass_bar": 60
+  },
+  "expect": {
+    "score": [
+      0,
+      45
+    ],
+    "passed": [
+      0,
+      0
+    ],
+    "must_haves_met": [
+      0,
+      0
+    ]
+  }
+}

@@ -32,6 +32,7 @@ from openai.types.responses import ResponseTextConfigParam
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.ai import fakes
 from app.ai.prompts import Prompt, RenderedPrompt
 from app.core.config import Settings
 from app.models import AICall
@@ -57,6 +58,8 @@ class AIUnavailableError(Exception):
 
 
 class AIClient(Protocol):
+    model: str  # recorded with every result that depends on the answer
+
     async def structured[T: BaseModel](
         self,
         *,
@@ -207,8 +210,9 @@ class OpenAIClient:
 
 
 class FakeAIClient:
-    """`AI_FAKE=1`: answers from `fixtures/<prompt>@v<N>.json` (or `responses` passed in tests),
-    validated against the schema like a real answer, and logged with model `fake`."""
+    """`AI_FAKE=1`: answers from `responses` passed in tests, else a builder in `fakes.py` for
+    prompts whose answer mirrors their input, else `fixtures/<prompt>@v<N>.json`; validated
+    against the schema like a real answer, and logged with model `fake`."""
 
     def __init__(
         self,
@@ -217,15 +221,18 @@ class FakeAIClient:
         responses: dict[str, list[str]] | None = None,
         fixtures_dir: Path = FIXTURES_DIR,
     ) -> None:
+        self.model = "fake"
         self.log = _CallLog(sessionmaker, {})
         self.responses = responses or {}
         self.fixtures_dir = fixtures_dir
         self.calls: list[RenderedPrompt] = []
 
-    def _answer(self, version: str) -> str:
+    def _answer(self, version: str, variables: dict[str, str]) -> str:
         queued = self.responses.get(version)
         if queued:
             return queued.pop(0)
+        if version in fakes.BUILDERS:
+            return json.dumps(fakes.BUILDERS[version](variables))
         path = self.fixtures_dir / f"{version}.json"
         if not path.is_file():
             raise AIUnavailableError(f"no fake answer for {version}")
@@ -246,11 +253,11 @@ class FakeAIClient:
         self.calls.append(rendered)
         for _ in range(OUTPUT_TRIES):
             started = time.monotonic()
-            result = _validate(schema, self._answer(rendered.version))
+            result = _validate(schema, self._answer(rendered.version, variables))
             await self.log.record(
                 purpose=purpose,
                 prompt_version=rendered.version,
-                model="fake",
+                model=self.model,
                 workspace_id=workspace_id,
                 entity_id=entity_id,
                 started=started,

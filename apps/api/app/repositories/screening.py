@@ -1,4 +1,4 @@
-"""Résumé screening rows in one workspace (SCREEN-001). The screening job starts from an
+"""Résumé screening rows in one workspace (SCREEN-001, SCREEN-002). The screening job starts from an
 application ID, reads the application with `application_by_id()`, then works through
 `ScreeningRepository` for that application's workspace."""
 
@@ -8,10 +8,18 @@ from datetime import datetime
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Application, Candidate, ResumeText
+from app.models import (
+    AIDecision,
+    Application,
+    Candidate,
+    Pipeline,
+    ResumeAssessment,
+    ResumeText,
+)
 from app.repositories.base import WorkspaceRepository
 
 PENDING = "pending"
+DONE = "done"
 
 
 async def application_by_id(session: AsyncSession, application_id: uuid.UUID) -> Application | None:
@@ -40,6 +48,24 @@ class ScreeningRepository(WorkspaceRepository[ResumeText]):
         )
         return row
 
+    async def assessment_of(self, application_id: uuid.UUID) -> ResumeAssessment | None:
+        row: ResumeAssessment | None = await self.session.scalar(
+            select(ResumeAssessment).where(
+                ResumeAssessment.workspace_id == self.workspace_id,
+                ResumeAssessment.application_id == application_id,
+            )
+        )
+        return row
+
+    async def pipeline(self, pipeline_id: uuid.UUID) -> Pipeline:
+        """The application's pipeline; its setup is locked once it went live."""
+        result = await self.session.scalars(
+            select(Pipeline).where(
+                Pipeline.workspace_id == self.workspace_id, Pipeline.id == pipeline_id
+            )
+        )
+        return result.one()
+
     async def candidate_name(self, candidate_id: uuid.UUID) -> str | None:
         name: str | None = await self.session.scalar(
             select(Candidate.full_name).where(
@@ -66,3 +92,10 @@ class ScreeningRepository(WorkspaceRepository[ResumeText]):
             .returning(Application.id)
         )
         return result.first() is not None
+
+    def add_assessment(self, assessment: ResumeAssessment, decision: AIDecision) -> None:
+        """The assessment and its `ai_decisions` entry, written together (ADR-015)."""
+        for row in (assessment, decision):
+            if row.workspace_id != self.workspace_id:
+                raise ValueError("assessment belongs to another workspace")
+        self.session.add_all([assessment, decision])

@@ -1,6 +1,6 @@
 """SQLAlchemy models. Import every model module here so `Base.metadata` is complete."""
 
-from app.models.ai import AICall
+from app.models.ai import AICall, AIDecision
 from app.models.applications import Application, Candidate
 from app.models.audit import AuditLog
 from app.models.base import Base
@@ -17,10 +17,11 @@ from app.models.identity import (
 )
 from app.models.jobs import ReportJob
 from app.models.pipelines import Pipeline
-from app.models.screening import ResumeText
+from app.models.screening import ResumeAssessment, ResumeText
 
 __all__ = [
     "AICall",
+    "AIDecision",
     "Application",
     "AuditLog",
     "Base",
@@ -35,6 +36,7 @@ __all__ = [
     "Pipeline",
     "Profile",
     "ReportJob",
+    "ResumeAssessment",
     "ResumeText",
     "Workspace",
     "WorkspaceMember",

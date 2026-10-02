@@ -5,7 +5,16 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, Integer, Text, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,3 +44,43 @@ class ResumeText(Base):
     masked: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
     redaction_version: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = created_at_column()
+
+
+class ResumeAssessment(Base):
+    """The résumé fit score, its evidence and the pass/fail decision (SCREEN-002). One row per
+    screened application; the score is computed in code (ADR-013)."""
+
+    __tablename__ = "resume_assessments"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "application_id"],
+            ["applications.workspace_id", "applications.id"],
+            name="resume_assessments_application_fkey",
+            ondelete="CASCADE",
+        ),
+    )
+
+    application_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    score: Mapped[int] = mapped_column(Integer)
+    breakdown: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    must_have_results: Mapped[list[Any]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+    nice_to_have_results: Mapped[list[Any]] = mapped_column(
+        JSONB, server_default=text("'[]'::jsonb")
+    )
+    impact: Mapped[list[Any]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+    claims: Mapped[list[Any]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+    experience_timeline: Mapped[list[Any]] = mapped_column(
+        JSONB, server_default=text("'[]'::jsonb")
+    )
+    career_snapshot: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb")
+    )
+    pass_bar: Mapped[int] = mapped_column(Integer)
+    passed: Mapped[bool] = mapped_column(Boolean)
+    model: Mapped[str] = mapped_column(Text)
+    prompt_version: Mapped[str] = mapped_column(Text)
+    screened_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    duration_ms: Mapped[int] = mapped_column(Integer)

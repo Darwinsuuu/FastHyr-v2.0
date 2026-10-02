@@ -103,7 +103,13 @@ const PDF_MESSAGES: Record<string, MessageKey> = {
   pdf_too_many_pages: "apply.form.errors.pdfTooManyPages",
 };
 
+/** `fetch` rejects with a TypeError when the request never got an answer (offline, DNS, CORS). */
+export function isNetworkError(error: unknown): boolean {
+  return error instanceof TypeError;
+}
+
 export function submitProblem(error: unknown): SubmitProblem {
+  if (isNetworkError(error)) return { field: null, message: "apply.form.errors.network" };
   const code = error instanceof ApiError ? error.code : undefined;
   if (code && code in PDF_MESSAGES) return { field: "resume", message: PDF_MESSAGES[code]! };
   if (code === "upload_missing" || code === "upload_expired") {
@@ -119,6 +125,56 @@ export function submitProblem(error: unknown): SubmitProblem {
     return { field: null, message: "apply.form.errors.signIn" };
   }
   return { field: null, message: "apply.form.errors.failed" };
+}
+
+/**
+ * Checks a chosen résumé before anything is sent (APPLY-004), with the same messages the server's
+ * checks map to. Some phones and Windows set no MIME type for PDFs, so a `.pdf` name with an empty
+ * or generic type passes on to the content check: the file must start with `%PDF-`.
+ */
+export async function checkResume(file: File): Promise<MessageKey | null> {
+  if (file.size === 0) return "apply.form.errors.pdfEmpty";
+  const named = file.name.toLowerCase().endsWith(".pdf");
+  const typed = RESUME_TYPES.includes(file.type);
+  const untyped = file.type === "" || file.type === "application/octet-stream";
+  if (!typed && !(named && untyped)) return "apply.form.errors.pdfNotPdf";
+  if (file.size > RESUME_MAX_BYTES) return "apply.form.errors.pdfTooLarge";
+  try {
+    const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+    if (String.fromCharCode(...head) !== "%PDF-") return "apply.form.errors.pdfNotPdf";
+  } catch {
+    // The browser couldn't read the file (moved or deleted since it was chosen).
+    return "apply.form.errors.pdfUnreadable";
+  }
+  return null;
+}
+
+export type UploadResult = "uploaded" | "too_large" | "failed";
+
+/**
+ * PUTs the résumé to its signed Storage URL. A dropped connection or a server error gets one quiet
+ * retry before the form asks the candidate to send again (APPLY-004).
+ */
+export async function uploadResume(
+  url: string,
+  file: File,
+  send: typeof fetch = fetch,
+): Promise<UploadResult> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await send(url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": "application/pdf" },
+      });
+      if (response.ok) return "uploaded";
+      if (response.status === 413) return "too_large";
+      if (response.status < 500) return "failed";
+    } catch (error) {
+      if (!isNetworkError(error)) throw error;
+    }
+  }
+  return "failed";
 }
 
 /** "Thanks, Paolo." */

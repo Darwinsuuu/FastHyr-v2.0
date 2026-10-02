@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { applySource, parseJobDescription, parseSource, rememberSource } from "@/lib/apply";
+import {
+  appliedStatusText,
+  applySource,
+  parseJobDescription,
+  parseSource,
+  rememberSource,
+} from "@/lib/apply";
 
 class MemoryStorage {
   private items = new Map<string, string>();
@@ -75,5 +81,17 @@ describe("parseJobDescription", () => {
     expect(parseJobDescription("A single short line")).toEqual([
       { kind: "paragraph", text: "A single short line" },
     ]);
+  });
+});
+
+describe("applied status", () => {
+  const values = { company: "Acme Talent", email: "paolo@example.com" };
+
+  it("says where the application is without giving away a decision", () => {
+    expect(appliedStatusText("received", values).title).toBe("Your application is in");
+    expect(appliedStatusText("interview", values).body).toContain("paolo@example.com");
+    const withTeam = appliedStatusText("with_team", values);
+    expect(withTeam.title).toBe("Your application is with Acme Talent");
+    expect(`${withTeam.title} ${withTeam.body}`).not.toMatch(/reject|not moving|didn’t pass/i);
   });
 });

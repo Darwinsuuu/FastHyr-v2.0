@@ -1,11 +1,17 @@
 "use client";
 
-import { ArrowRightIcon, CheckIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  EnvelopeSimpleIcon,
+  UsersThreeIcon,
+  VideoCameraIcon,
+} from "@phosphor-icons/react";
 import { useEffect } from "react";
 
 import { useApplySession } from "@/components/apply/apply-session";
 import { Button } from "@/components/ui/button";
-import { applyDate, rememberSource, type SourceTag } from "@/lib/apply";
+import { applyDate, appliedStatusText, rememberSource, type SourceTag } from "@/lib/apply";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
@@ -85,11 +91,22 @@ export function ApplyHint({ unavailable }: { unavailable: string | null }) {
   return <p className="text-[13px] leading-5 break-words text-ink-muted lg:text-right">{hint}</p>;
 }
 
-/** "Your application is in" at the top of the page once the candidate has applied (FR-APPLY-07:
- * status text only). */
-export function AppliedNotice() {
-  const { appliedAt } = useApplySession();
-  if (!appliedAt) return null;
+const STATUS_ICON = {
+  received: EnvelopeSimpleIcon,
+  interview: VideoCameraIcon,
+  with_team: UsersThreeIcon,
+} as const;
+
+/** "Your application is in" at the top of the page once the candidate has applied, then where it
+ * is in candidate-safe words (FR-APPLY-05, FR-APPLY-07: status text only, never a decision). */
+export function AppliedNotice({ company }: { company: string }) {
+  const { candidate, appliedAt, status } = useApplySession();
+  if (!appliedAt || !candidate) return null;
+  const { title, body } = appliedStatusText(status ?? "received", {
+    company,
+    email: candidate.email,
+  });
+  const StatusIcon = STATUS_ICON[status ?? "received"];
   return (
     <div
       role="status"
@@ -99,11 +116,11 @@ export function AppliedNotice() {
         aria-hidden="true"
         className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-evergreen text-on-evergreen"
       >
-        <EnvelopeSimpleIcon className="size-[18px]" />
+        <StatusIcon className="size-[18px]" />
       </span>
-      <span className="flex flex-col gap-1">
-        <strong className="text-[15px] leading-[21px]">{t("apply.appliedTitle")}</strong>
-        <span className="text-[14px] leading-[22px] text-ink/85">{t("apply.appliedBody")}</span>
+      <span className="flex min-w-0 flex-col gap-1">
+        <strong className="text-[15px] leading-[21px]">{title}</strong>
+        <span className="text-[14px] leading-[22px] break-words text-ink/85">{body}</span>
       </span>
     </div>
   );

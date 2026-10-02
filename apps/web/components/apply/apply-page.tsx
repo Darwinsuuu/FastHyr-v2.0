@@ -20,6 +20,7 @@ import { CompanyMark } from "@/components/apply/company-mark";
 import { TurnMark } from "@/components/brand/turn-mark";
 import {
   applyDate,
+  type MyApplication,
   parseJobDescription,
   type PublicPipeline,
   type SourceTag,
@@ -40,7 +41,7 @@ export function ApplyPage({
   pipeline,
   source,
   candidate,
-  appliedAt,
+  mine,
   notice,
   returning,
 }: {
@@ -48,8 +49,8 @@ export function ApplyPage({
   source: SourceTag;
   /** The signed-in candidate (Google or Microsoft), if any (APPLY-002). */
   candidate: Candidate | null;
-  /** When that candidate applied to this pipeline, if they have (APPLY-003). */
-  appliedAt: string | null;
+  /** That candidate's application to this pipeline, read on the server (APPLY-003/004). */
+  mine: MyApplication | null;
   /** The current apply notice for the form's consent (COMP-002). */
   notice: Notice | null;
   /** Back from the sign-in round trip (APPLY-002). */
@@ -70,7 +71,7 @@ export function ApplyPage({
       pipeline={pipeline}
       source={source}
       initialCandidate={candidate}
-      initialAppliedAt={appliedAt}
+      initialMine={mine}
       notice={notice}
       returning={returning}
     >
@@ -126,7 +127,7 @@ export function ApplyPage({
 
           <div className="page-gutter grid gap-10 pt-10 pb-16 md:pt-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12 lg:pb-[72px]">
             <div className="flex min-w-0 flex-col gap-9">
-              <AppliedNotice />
+              <AppliedNotice company={company.name} />
               <section aria-labelledby="about-role" className="flex flex-col gap-3.5">
                 <h2 id="about-role" className="font-display text-[28px] leading-[34px] font-[560]">
                   {t("apply.aboutRole")}

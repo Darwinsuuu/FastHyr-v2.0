@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -13,7 +14,13 @@ import {
 import { ApplicationDialog } from "@/components/apply/application-dialog";
 import { SentDialog } from "@/components/apply/sent-dialog";
 import { SignInDialog } from "@/components/apply/sign-in-dialog";
-import { type PublicPipeline, type SourceTag, applySource } from "@/lib/apply";
+import {
+  type CandidateStatus,
+  type MyApplication,
+  type PublicPipeline,
+  type SourceTag,
+  applySource,
+} from "@/lib/apply";
 import {
   applyReturnPath,
   type Candidate,
@@ -38,6 +45,8 @@ interface ApplySession {
   candidate: Candidate | null;
   /** When the signed-in candidate applied to this pipeline, or null (APPLY-003). */
   appliedAt: string | null;
+  /** Where that application is, in candidate-safe words (APPLY-004). */
+  status: CandidateStatus | null;
   /** Apply now: the form when signed in, else sign-in that opens the form afterwards. */
   startApply: () => void;
   /** The header's Sign in. */
@@ -61,7 +70,7 @@ export function ApplySessionProvider({
   pipeline,
   source,
   initialCandidate,
-  initialAppliedAt,
+  initialMine,
   notice,
   returning,
   children,
@@ -71,7 +80,7 @@ export function ApplySessionProvider({
   /** From the session claims, read on the server. */
   initialCandidate: Candidate | null;
   /** The candidate's application to this pipeline, read on the server. */
-  initialAppliedAt: string | null;
+  initialMine: MyApplication | null;
   /** The current apply notice for the form's consent (COMP-002). */
   notice: Notice | null;
   /** The round trip's parameters, read on the server (`readReturn()`). */
@@ -79,10 +88,14 @@ export function ApplySessionProvider({
   children: ReactNode;
 }) {
   const [candidate, setCandidate] = useState(initialCandidate);
-  const [appliedAt, setAppliedAt] = useState(initialAppliedAt);
+  const router = useRouter();
+  const [appliedAt, setAppliedAt] = useState(initialMine?.applied_at ?? null);
+  const [status, setStatus] = useState(initialMine?.status ?? null);
+  // A TA member of this workspace signed in with Google or Microsoft: allowed, warned (APPLY-004).
+  const [workspaceMember, setWorkspaceMember] = useState(initialMine?.workspace_member ?? false);
   // Back from Google or Microsoft: open the form, or say why sign-in didn't finish.
   const [modal, setModal] = useState<Modal>(() => {
-    if (returning.openForm && pipeline.availability === "accepting" && !initialAppliedAt) {
+    if (returning.openForm && pipeline.availability === "accepting" && !initialMine?.applied_at) {
       return { kind: "form" };
     }
     if (returning.problem) {
@@ -90,6 +103,17 @@ export function ApplySessionProvider({
     }
     return null;
   });
+
+  // After `router.refresh()` the server has read the application again; take its answer.
+  const [readMine, setReadMine] = useState(initialMine);
+  if (initialMine !== readMine) {
+    setReadMine(initialMine);
+    if (initialMine) {
+      setAppliedAt(initialMine.applied_at ?? null);
+      setStatus(initialMine.status ?? null);
+      setWorkspaceMember(initialMine.workspace_member);
+    }
+  }
 
   // A reload or a shared link shouldn't reopen the form or repeat the error.
   useEffect(() => {
@@ -125,6 +149,8 @@ export function ApplySessionProvider({
     document.cookie = workspaceCookie(null);
     setCandidate(null);
     setAppliedAt(null);
+    setStatus(null);
+    setWorkspaceMember(false);
   }, []);
 
   const signInWith = useCallback(
@@ -148,8 +174,8 @@ export function ApplySessionProvider({
   );
 
   const session = useMemo(
-    () => ({ candidate, appliedAt, startApply, openSignIn, signOut }),
-    [candidate, appliedAt, startApply, openSignIn, signOut],
+    () => ({ candidate, appliedAt, status, startApply, openSignIn, signOut }),
+    [candidate, appliedAt, status, startApply, openSignIn, signOut],
   );
 
   return (
@@ -172,13 +198,19 @@ export function ApplySessionProvider({
           pipeline={pipeline}
           candidate={candidate}
           notice={notice}
+          workspaceMember={workspaceMember}
           source={currentSource}
+          // The role stopped taking applications while the form was open: the page catches up.
+          onNotAccepting={() => router.refresh()}
           onNotYou={async () => {
             await signOut();
             setModal({ kind: "signin", intent: "apply", problem: null });
           }}
           onApplied={(application, fullName) => {
             setAppliedAt(application.applied_at);
+            // Applied before (another tab): the page reads the real status again.
+            if (application.created) setStatus("received");
+            else router.refresh();
             // Applied before (another tab): no "sent", the page shows the application instead.
             setModal(application.created ? { kind: "sent", fullName } : null);
           }}

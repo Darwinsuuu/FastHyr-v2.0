@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon } from "@phosphor-icons/react";
+import { CheckIcon, InfoIcon } from "@phosphor-icons/react";
 import { type FormEvent, useState } from "react";
 
 import { ConsentCheckbox } from "@/components/consent/consent-checkbox";
@@ -11,10 +11,11 @@ import { Field } from "@/components/ui/field";
 import { FileDrop } from "@/components/ui/file-drop";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { api, unwrap } from "@/lib/api/client";
+import { api, ApiError, unwrap } from "@/lib/api/client";
 import { type PublicPipeline, type SourceTag } from "@/lib/apply";
 import {
   type ApplicationForm,
+  checkResume,
   emptyForm,
   type FormErrors,
   formErrors,
@@ -24,6 +25,7 @@ import {
   type SubmittedApplication,
   submitProblem,
   submitRequest,
+  uploadResume,
 } from "@/lib/apply/form";
 import type { Candidate } from "@/lib/apply/session";
 import { t } from "@/lib/i18n";
@@ -42,8 +44,10 @@ export function ApplicationDialog({
   pipeline,
   candidate,
   notice,
+  workspaceMember,
   source,
   onNotYou,
+  onNotAccepting,
   onApplied,
 }: {
   open: boolean;
@@ -52,10 +56,14 @@ export function ApplicationDialog({
   candidate: Candidate;
   /** The current apply notice (COMP-002); null if it couldn't be loaded. */
   notice: Notice | null;
+  /** The account is also a member of this workspace: allowed, with a note (APPLY-004). */
+  workspaceMember: boolean;
   /** The source tag to record (`applySource()`). */
   source: () => SourceTag;
   /** Signs out and asks for the right account. */
   onNotYou: () => void;
+  /** The role stopped taking applications while the form was open (the page refreshes). */
+  onNotAccepting: () => void;
   onApplied: (application: SubmittedApplication, fullName: string) => void;
 }) {
   const [form, setForm] = useState(() => emptyForm(candidate.name, candidate.email));
@@ -64,6 +72,19 @@ export function ApplicationDialog({
   const [problem, setProblem] = useState<SubmitProblem | null>(null);
 
   const errors: FormErrors = tried ? formErrors(form) : {};
+  // Refused because the role stopped taking applications: the refreshed page says how it stands
+  // now, and if it has reopened the candidate can send again.
+  const stillClosed = Boolean(problem?.closed) && pipeline.availability !== "accepting";
+  const problemMessage = (current: SubmitProblem) =>
+    current.closed
+      ? t(
+          pipeline.availability === "closed"
+            ? "apply.form.errors.closed"
+            : pipeline.availability === "accepting"
+              ? "apply.form.errors.reopened"
+              : "apply.form.errors.paused",
+        )
+      : t(current.message);
   const fieldError = (field: keyof FormErrors) => {
     if (problem?.field === field) return t(problem.message);
     const key = errors[field];
@@ -77,14 +98,14 @@ export function ApplicationDialog({
   const footNote = problem
     ? problem.field
       ? t("apply.form.attention")
-      : t(problem.message)
+      : problemMessage(problem)
     : tried && Object.keys(errors).length > 0
       ? t("apply.form.attention")
       : t("apply.form.required");
 
   async function send(event: FormEvent) {
     event.preventDefault();
-    if (sending || !notice) return;
+    if (sending || !notice || stillClosed) return;
     setTried(true);
     setProblem(null);
     if (Object.keys(formErrors(form)).length > 0 || !form.resume) return;
@@ -95,13 +116,15 @@ export function ApplicationDialog({
           params: { path: { pipeline_id: pipeline.id } },
         }),
       );
-      const uploaded = await fetch(target.url, {
-        method: "PUT",
-        body: form.resume,
-        headers: { "Content-Type": "application/pdf" },
-      });
-      if (!uploaded.ok) {
-        setProblem({ field: "resume", message: "apply.form.errors.uploadFailed" });
+      const uploaded = await uploadResume(target.url, form.resume);
+      if (uploaded !== "uploaded") {
+        setProblem({
+          field: "resume",
+          message:
+            uploaded === "too_large"
+              ? "apply.form.errors.pdfTooLarge"
+              : "apply.form.errors.uploadFailed",
+        });
         return;
       }
       const application = unwrap(
@@ -116,7 +139,10 @@ export function ApplicationDialog({
       );
       onApplied(application, form.fullName);
     } catch (failure) {
-      setProblem(submitProblem(failure));
+      const found = submitProblem(failure);
+      setProblem(found);
+      // A 404 means the role was taken down; refreshing would swap the page for "not found".
+      if (found.closed && failure instanceof ApiError && failure.status === 409) onNotAccepting();
     } finally {
       setSending(false);
     }
@@ -145,7 +171,7 @@ export function ApplicationDialog({
           <p
             aria-live="polite"
             className={
-              problem && !problem.field
+              problem && !problem.field && !(problem.closed && !stillClosed)
                 ? "text-[13px] leading-5 font-semibold text-signal-gap"
                 : "text-[13px] leading-5 text-ink-muted"
             }
@@ -161,7 +187,7 @@ export function ApplicationDialog({
               type="submit"
               form={FORM_ID}
               loading={sending}
-              disabled={!notice || problem?.closed}
+              disabled={!notice || stillClosed}
             >
               {t("apply.form.send")}
             </Button>
@@ -188,13 +214,34 @@ export function ApplicationDialog({
           </button>
         </div>
 
+        {workspaceMember && (
+          <div
+            role="note"
+            className="flex gap-3 rounded-md border border-signal-watch/40 bg-marigold/10 px-3.5 py-3"
+          >
+            <InfoIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-signal-watch" />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <strong className="text-[14px] leading-5">
+                {t("apply.form.memberTitle", { company: pipeline.company.name })}
+              </strong>
+              <span className="text-[13px] leading-5 text-ink/85">
+                {t("apply.form.memberBody")}
+              </span>
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-col gap-2">
           <span className="text-[14px] leading-5 font-semibold text-ink">
             {t("apply.form.resume")} <span className="text-signal-gap">*</span>
           </span>
           <FileDrop
-            accept={RESUME_TYPES}
+            accept={[...RESUME_TYPES, ".pdf"]}
             maxSize={RESUME_MAX_BYTES}
+            check={async (file) => {
+              const key = await checkResume(file);
+              return key ? t(key) : null;
+            }}
             file={form.resume}
             onFileChange={(resume) => update({ resume })}
             label={t("apply.form.resumeDrop")}

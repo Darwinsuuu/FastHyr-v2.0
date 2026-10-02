@@ -1135,12 +1135,18 @@ export interface components {
         };
         /**
          * MyApplication
-         * @description The apply page's "Applied on {date}" state (FR-APPLY-07): candidates see only that they
-         *     applied, never a stage, score or flag.
+         * @description The apply page's "Applied on {date}" state (FR-APPLY-05, FR-APPLY-07): when the candidate
+         *     applied and a candidate-safe status, never a stage, score or flag. `workspace_member` is true
+         *     when the signed-in account is also a member of the employer's workspace: they may still
+         *     apply, and the form says their teammates will see it (APPLY-004).
          */
         MyApplication: {
             /** Applied At */
             applied_at: string | null;
+            /** Status */
+            status: ("received" | "interview" | "with_team") | null;
+            /** Workspace Member */
+            workspace_member: boolean;
         };
         /** MyWorkspace */
         MyWorkspace: {

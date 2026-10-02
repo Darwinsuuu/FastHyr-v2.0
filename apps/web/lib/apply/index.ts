@@ -8,6 +8,9 @@ import { t } from "@/lib/i18n";
 
 export type PublicPipeline = components["schemas"]["PublicPipeline"];
 export type Availability = PublicPipeline["availability"];
+/** The signed-in candidate's own application (`my-application`, APPLY-003/004). */
+export type MyApplication = components["schemas"]["MyApplication"];
+export type CandidateStatus = NonNullable<MyApplication["status"]>;
 
 // The page is rendered on the server, which doesn't know the reader's locale; dates follow the
 // design ("Fri, 26 Feb 2027") in the employer's time zone.
@@ -153,4 +156,28 @@ export function unavailableReason(pipeline: PublicPipeline): string | null {
   return availability === "closed"
     ? t("apply.unavailable.closed")
     : t("apply.unavailable.notAccepting");
+}
+
+/** The "Your application is in" notice for where the application is (APPLY-004). */
+export function appliedStatusText(
+  status: CandidateStatus,
+  values: { company: string; email: string },
+): { title: string; body: string } {
+  switch (status) {
+    case "interview":
+      return {
+        title: t("apply.appliedStatus.interviewTitle"),
+        body: t("apply.appliedStatus.interviewBody", values),
+      };
+    case "with_team":
+      return {
+        title: t("apply.appliedStatus.withTeamTitle", values),
+        body: t("apply.appliedStatus.withTeamBody", values),
+      };
+    default:
+      return {
+        title: t("apply.appliedStatus.receivedTitle"),
+        body: t("apply.appliedStatus.receivedBody"),
+      };
+  }
 }

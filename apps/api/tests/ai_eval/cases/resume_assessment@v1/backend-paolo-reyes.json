@@ -1,0 +1,37 @@
+{
+  "resume_case": "backend-paolo-reyes",
+  "pipeline": {
+    "job_title": "Senior Backend Engineer",
+    "job_description": "We run the payments and logistics APIs behind 2,000 merchants. You'll design, build and operate Python and Go services on PostgreSQL and Kubernetes, own reliability for your services, and mentor other engineers.",
+    "must_haves": [
+      "Python or Go in production",
+      "PostgreSQL at scale",
+      "Designing and running backend services",
+      "5+ years of backend experience"
+    ],
+    "nice_to_haves": [
+      "Kafka or event streaming",
+      "Kubernetes",
+      "Mentoring engineers",
+      "Terraform"
+    ],
+    "seniority": "senior",
+    "open_to": [],
+    "pass_bar": 60
+  },
+  "expect": {
+    "score": [
+      70,
+      100
+    ],
+    "passed": [
+      1,
+      1
+    ],
+    "must_haves_met": [
+      4,
+      4
+    ]
+  },
+  "pair": "backend"
+}

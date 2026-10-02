@@ -1,0 +1,37 @@
+{
+  "resume_case": "fresh-graduate-aisha-rahman",
+  "pipeline": {
+    "job_title": "Junior Data Analyst",
+    "job_description": "Help our operations team understand ridership and service data. You'll write SQL, clean data in Python, and build dashboards the team uses every week.",
+    "must_haves": [
+      "SQL",
+      "Python for data cleaning or analysis",
+      "Building dashboards or reports"
+    ],
+    "nice_to_haves": [
+      "Power BI or Tableau",
+      "Statistics",
+      "Public sector or NGO data"
+    ],
+    "seniority": "entry",
+    "open_to": [
+      "fresh_grads"
+    ],
+    "pass_bar": 60
+  },
+  "expect": {
+    "score": [
+      60,
+      100
+    ],
+    "passed": [
+      1,
+      1
+    ],
+    "must_haves_met": [
+      3,
+      3
+    ]
+  },
+  "pair": "fresh-graduate"
+}

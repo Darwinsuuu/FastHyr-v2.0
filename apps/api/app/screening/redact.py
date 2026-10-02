@@ -1,7 +1,8 @@
 """Two-pass résumé redaction (AI_PIPELINE.md §1 step 2, BIAS_FAIRNESS.md, FR-SCREEN-02).
 
 1. Rules (`redact_rules`): contact details, links, labelled personal lines, ages, graduation
-   years, street addresses and the candidate's own name, all found without a model.
+   years, school names in the Education section, street addresses and the candidate's own
+   name, all found without a model.
 2. Model (`redact`): `resume_redaction@v1` reads the rule-redacted text and returns the spans
    rules can't find reliably (other names, gender markers, school names, addresses, photo
    captions); every whole-word occurrence of each span is masked.
@@ -22,7 +23,7 @@ from app.ai.prompts import load_prompt
 from app.ai.schemas.resume_redaction import ResumeRedaction, SpanKind
 
 PROMPT = ("resume_redaction", 1)
-RULES_VERSION = "rules@v1"
+RULES_VERSION = "rules@v2"
 VERSION = f"{RULES_VERSION}+{PROMPT[0]}@v{PROMPT[1]}"
 
 MASKS: dict[str, str] = {
@@ -106,6 +107,22 @@ _EDUCATION_HEADING = re.compile(
     r"(?i)^\W*(?:education(?:al background| and training| & training)?|academic "
     r"(?:background|history|qualifications)|qualifications|schools? attended)\W*$"
 )
+# School names inside an Education section: a run of capitalised words (with lowercase
+# connectors such as "of the" or "de") that includes an institution word. Degree lines such as
+# "Bachelor of Science in Statistics" have none, so they stay as evidence.
+_TITLE_RUN = re.compile(
+    r"\b[A-Z][\w.'&-]*(?:\s+(?:(?:of|the|de|del|la|and|y|ng|sa|for|in)\s+)*[A-Z][\w.'&-]*)*"
+)
+_INSTITUTION = re.compile(
+    r"\b(?:University|College|Institute|Polytechnic|Academy|School|Universidad|Colegio|"
+    r"Ateneo|Conservatory|Seminary)\b"
+)
+# Honorifics and titles before a masked name ("Engr. [NAME]", "Ms [NAME]"): they can reveal
+# gender, and the model masks them inconsistently, so they always go with the name.
+_TITLE_BEFORE_NAME = re.compile(
+    r"\b(?:Engr|Dr|Atty|Arch|Prof|Mr|Mrs|Ms|Miss|Mx|Sir|Madam|Hon|Rev|Fr|Sr|Sis)\.?\s+"
+    r"(?=\[NAME\])"
+)
 # A heading that ends the Education section: a short line naming another section.
 _OTHER_HEADING = re.compile(
     r"(?i)^\W*(?:(?:work |professional |relevant )?experience|employment(?: history)?|"
@@ -150,10 +167,11 @@ def _mask_phones(redaction: Redaction) -> None:
 
 
 def _mask_education_years(redaction: Redaction) -> None:
-    """Every year inside an Education section (graduation years reveal age; G2). Years in the
-    work history stay: they are job evidence."""
+    """Every year and school name inside an Education section (graduation years reveal age,
+    schools reveal background; G2). Years in the work history stay: they are job evidence."""
     lines = redaction.text.split("\n")
     in_education = False
+    schools: set[str] = set()
     for index, line in enumerate(lines):
         if _EDUCATION_HEADING.match(line):
             in_education = True
@@ -164,9 +182,15 @@ def _mask_education_years(redaction: Redaction) -> None:
         if in_education:
             masked, count = _YEAR.subn(MASKS["year"], line)
             if count:
-                lines[index] = masked
                 redaction.masked["year"] += count
+            for run in _TITLE_RUN.findall(masked):
+                if _INSTITUTION.search(run):
+                    schools.add(run)
+            lines[index] = masked
     redaction.text = "\n".join(lines)
+    # Each school found there is masked wherever it appears, longest first.
+    for school in sorted(schools, key=len, reverse=True):
+        redaction.mask("school", re.compile(rf"(?<!\w){re.escape(school)}(?!\w)"))
 
 
 def _mask_name(redaction: Redaction, name: str) -> None:
@@ -217,4 +241,5 @@ async def redact(
         temperature=0,
     )
     apply_spans(redaction, ((span.kind, span.text) for span in answer.spans))
+    redaction.text = _TITLE_BEFORE_NAME.sub("", redaction.text)
     return redaction

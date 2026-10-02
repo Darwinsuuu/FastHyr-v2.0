@@ -1,8 +1,9 @@
 """Résumé screening (AI_PIPELINE.md §1): queued once per submitted application (APPLY-003), and
 again by the requeue_stuck_work sweeper for applications still pending after 10 minutes.
 
-SCREEN-001 extracts and redacts the text (`services/screening.prepare_resume()`); SCREEN-002
-adds the fit score. Until then a redacted application stays `resume_status = pending`.
+Two steps, each done once and skipped on a repeat: extract and redact the text
+(`services/screening.prepare_resume()`, SCREEN-001), then score it and decide pass or fail
+(`assess_resume()`, SCREEN-002). A retry after a model error resumes from the step that failed.
 """
 
 import uuid
@@ -40,8 +41,9 @@ async def screen_resume(run: JobRun, application_id: uuid.UUID) -> bool:
     ai: AIClient = run.ctx["ai"]
     try:
         prepared = await screening.prepare_resume(run.session, storage, ai, application_id)
+        assessed = await screening.assess_resume(run.session, ai, application_id)
     except StorageObjectMissingError as error:
         raise ResumeMissingJobError() from error
     except AIOutputError as error:
         raise AIOutputJobError() from error
-    return prepared is not screening.Prepared.SKIPPED
+    return prepared is not screening.Prepared.SKIPPED or assessed is not screening.Assessed.SKIPPED

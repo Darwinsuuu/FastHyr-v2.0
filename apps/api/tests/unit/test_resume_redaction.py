@@ -21,6 +21,8 @@ CASES = Path(__file__).parent.parent / "ai_eval" / "cases" / "resume_redaction@v
 class StubAI:
     """Answers `resume_redaction` with the spans a correct model finds, recording what it saw."""
 
+    model = "stub"
+
     def __init__(self, spans: list[dict[str, str]]) -> None:
         self.spans = spans
         self.seen: list[str] = []
@@ -143,3 +145,26 @@ def test_model_spans_mask_every_occurrence_longest_first() -> None:
     # Spans that are too short or already masks change nothing.
     apply_spans(redaction, [("name", "A"), ("name", "[SCHOOL]")])
     assert redaction.text == "[SCHOOL] ([SCHOOL])\n[GENDER] led the [SCHOOL] team."
+
+
+def test_school_names_in_education_are_masked_everywhere() -> None:
+    redaction = redact_rules(
+        "Education\nMindanao State University\nBS Statistics\n"
+        "BS Computer Science, University of Santo Tomas\nAteneo de Manila University\n\n"
+        "Experience\nLecturer, Mindanao State University, 2018 - 2020"
+    )
+
+    assert redaction.text == (
+        "Education\n[SCHOOL]\nBS Statistics\nBS Computer Science, [SCHOOL]\n[SCHOOL]\n\n"
+        "Experience\nLecturer, [SCHOOL], 2018 - 2020"
+    )
+    assert redaction.masked["school"] == 4
+
+
+def test_titles_before_a_masked_name_go_with_it() -> None:
+    ai = StubAI([{"kind": "name", "text": "Ramon Cruz"}, {"kind": "name", "text": "Liza Tan"}])
+    text = asyncio.run(
+        redact(ai, "References\nEngr. Ramon Cruz and Dr Liza Tan\nDr. Ruth's lab: 10 papers")
+    ).text
+
+    assert text == "References\n[NAME] and [NAME]\nDr. Ruth's lab: 10 papers"

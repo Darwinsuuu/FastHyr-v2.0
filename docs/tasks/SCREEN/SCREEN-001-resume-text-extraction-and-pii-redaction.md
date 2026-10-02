@@ -4,7 +4,7 @@
 |---|---|
 | Epic | SCREEN — Résumé screening |
 | Milestone | M3 Intake |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-011](../FND/FND-011-storage-service-and-pdf-handling.md), [FND-013](../FND/FND-013-openai-integration-layer.md) |
 | Requirements | FR-SCREEN-01, FR-SCREEN-02 |
@@ -56,3 +56,4 @@ _(Branch name, decisions, deviations, PR links, review files.)_
 - Decisions: the redacted text lives in its own table, `resume_texts`, instead of `resume_assessments.redacted_text` (DATABASE.md left the choice open between a column and a Storage path); SCREEN-002 reads it from there, so the assessment row is only written once it has a score. No unredacted text is stored. Masks are readable labels so later prompts still see the résumé's shape. Until SCREEN-002, a redacted application stays `resume_status = pending` and the sweeper re-queues it every 10 minutes as a cheap no-op.
 - Layout handling was hand-tested on PDFs printed by Chromium from HTML résumés: a two-column résumé with a 30% sidebar (read sidebar then main column; before the fix the sidebar's address line and the main column's dates interleaved) and a one-column résumé with right-aligned dates (rows kept whole). Two bugs found that way and fixed with tests: "(2016 - 2020)" was masked as a phone number, and "barangay health centres" in a job entry was masked as an address.
 - Counterfactual fixtures: `tests/ai_eval/cases/resume_redaction@v1/` (two pairs differing only in name, gender, school, graduation year, birth date, address and contact details). The unit test runs them with the spans a correct model returns and requires identical redacted text per pair; `tests/ai_eval/test_resume_redaction.py` runs them through the real model (`AI_EVAL=1`, needs an OpenAI key; not run in this PR's session, which has none).
+- 2026-10-02: merged via PR #36; marked Done in SCREEN-002's PR.

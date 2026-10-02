@@ -718,6 +718,7 @@
     },
     "applyNow": "Apply now",
     "applyHint": "You’ll sign in with Google or Microsoft first",
+    "applyHintSignedIn": "Only takes a few minutes",
     "unavailable": {
       "opensOn": "You can apply from {date}.",
       "opensLater": "You can apply once applications open.",
@@ -761,9 +762,36 @@
       "logoAlt": "{company} logo"
     },
     "footer": "Applications for {company} are handled by FastHyr.",
-    "soon": {
-      "title": "Applying opens soon",
-      "body": "We’re finishing sign-in for candidates. Come back to this page shortly to apply.",
+    "signIn": {
+      "open": "Sign in",
+      "titleApply": "Sign in to apply",
+      "titleBrowse": "Sign in",
+      "bodyApply": "Sign in with your Google or Microsoft account to apply for {title} at {company}.",
+      "bodyBrowse": "Sign in with your Google or Microsoft account to apply and follow your applications.",
+      "google": "Continue with Google",
+      "microsoft": "Continue with Microsoft",
+      "noPassword": "No password to create. We only use your name and email address from your account, so you can follow your application and come back to your interview.",
+      "noAccount": "No Google or Microsoft account? Contact {company} to apply another way.",
+      "noAccountWebsite": "No Google or Microsoft account? Contact {company} through {website} to apply another way.",
+      "theirWebsite": "their website",
+      "cancelled": "Sign-in was cancelled. Choose Google or Microsoft to try again.",
+      "failed": "We couldn’t sign you in. Try again, or use your other account.",
+      "legal": "By continuing, you agree to the {terms} and {privacy}.",
+      "terms": "Terms",
+      "privacy": "Privacy Policy"
+    },
+    "account": {
+      "menu": "Your account",
+      "menuFor": "Your account, {name}",
+      "signedInWith": "Signed in with {provider}",
+      "signOut": "Sign out"
+    },
+    "form": {
+      "applyingTo": "Applying to {company}",
+      "signedInAs": "Signed in with {provider} · we’ll send updates here",
+      "notYou": "Not you?",
+      "soonTitle": "The application form opens soon",
+      "soonBody": "We’re finishing the last part of applying. Come back to this page shortly to send your application.",
       "close": "Close"
     },
     "notFound": {

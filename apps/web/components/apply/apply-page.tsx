@@ -13,7 +13,10 @@ import {
 import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
-import { ApplyButton } from "@/components/apply/apply-button";
+import { ApplyButton, ApplyHint } from "@/components/apply/apply-button";
+import { ApplySessionProvider } from "@/components/apply/apply-session";
+import { CandidateMenu } from "@/components/apply/candidate-menu";
+import { CompanyMark } from "@/components/apply/company-mark";
 import { TurnMark } from "@/components/brand/turn-mark";
 import {
   applyDate,
@@ -23,6 +26,7 @@ import {
   statusLine,
   unavailableReason,
 } from "@/lib/apply";
+import type { Candidate, ReturnState } from "@/lib/apply/session";
 import { cn } from "@/lib/cn";
 import { type MessageKey, t } from "@/lib/i18n";
 
@@ -31,7 +35,19 @@ import { type MessageKey, t } from "@/lib/i18n";
  * how applying works and the company. Mobile first: one column, then the role facts beside the
  * content from `lg`.
  */
-export function ApplyPage({ pipeline, source }: { pipeline: PublicPipeline; source: SourceTag }) {
+export function ApplyPage({
+  pipeline,
+  source,
+  candidate,
+  returning,
+}: {
+  pipeline: PublicPipeline;
+  source: SourceTag;
+  /** The signed-in candidate (Google or Microsoft), if any (APPLY-002). */
+  candidate: Candidate | null;
+  /** Back from the sign-in round trip (APPLY-002). */
+  returning: ReturnState;
+}) {
   const { company } = pipeline;
   const unavailable = unavailableReason(pipeline);
   const buttonProps = {
@@ -42,83 +58,92 @@ export function ApplyPage({ pipeline, source }: { pipeline: PublicPipeline; sour
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur-sm">
-        <div className="page-gutter flex h-16 items-center justify-between gap-4 md:h-[72px]">
-          <div className="flex min-w-0 items-center gap-3">
-            <CompanyMark company={company} size="sm" />
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-[15px] leading-5 font-bold">{company.name}</span>
-              <span className="text-[12px] leading-4 text-ink-muted">{t("apply.careers")}</span>
-            </span>
-          </div>
-          <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-ink-muted">
-            <TurnMark size={16} />
-            {t("apply.hiringWith")}
-            <strong className="font-display font-semibold text-ink">{t("site.name")}</strong>
-          </span>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        <section className="border-b border-line bg-surface-raised">
-          <div className="page-gutter flex flex-col gap-6 py-8 md:py-12 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
-            <div className="flex min-w-0 flex-col gap-3.5">
-              <p className="flex items-center gap-2 text-[13px] leading-5 text-ink-muted">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "size-2 shrink-0 rounded-pill",
-                    pipeline.availability === "accepting"
-                      ? "bg-evergreen"
-                      : pipeline.availability === "opens_later"
-                        ? "bg-marigold"
-                        : "bg-ink-muted",
-                  )}
-                />
-                {statusLine(pipeline)}
-              </p>
-              <h1 className="type-display-lg break-words lg:type-display-xl">{pipeline.title}</h1>
-              <MetaChips pipeline={pipeline} />
+    <ApplySessionProvider
+      pipeline={pipeline}
+      source={source}
+      initialCandidate={candidate}
+      returning={returning}
+    >
+      <div className="flex min-h-dvh flex-col bg-surface">
+        <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur-sm">
+          <div className="page-gutter flex h-16 items-center justify-between gap-4 md:h-[72px]">
+            <div className="flex min-w-0 items-center gap-3">
+              <CompanyMark company={company} size="sm" />
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-[15px] leading-5 font-bold">{company.name}</span>
+                <span className="text-[12px] leading-4 text-ink-muted">{t("apply.careers")}</span>
+              </span>
             </div>
-            <div className="flex shrink-0 flex-col gap-2.5 lg:items-end">
-              <ApplyButton {...buttonProps} showArrow remember className="w-full sm:w-auto" />
-              <p className="text-[13px] leading-5 text-ink-muted lg:text-right">
-                {unavailable ?? t("apply.applyHint")}
-              </p>
+            <div className="flex shrink-0 items-center gap-4.5">
+              {/* The footer names FastHyr too, so phones keep the header for the account. */}
+              <span className="hidden items-center gap-1.5 text-[12px] text-ink-muted sm:flex">
+                <TurnMark size={16} />
+                {t("apply.hiringWith")}
+                <strong className="font-display font-semibold text-ink">{t("site.name")}</strong>
+              </span>
+              <CandidateMenu />
             </div>
           </div>
-        </section>
+        </header>
 
-        <div className="page-gutter grid gap-10 pt-10 pb-16 md:pt-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12 lg:pb-[72px]">
-          <div className="flex min-w-0 flex-col gap-9">
-            <section aria-labelledby="about-role" className="flex flex-col gap-3.5">
-              <h2 id="about-role" className="font-display text-[28px] leading-[34px] font-[560]">
-                {t("apply.aboutRole")}
-              </h2>
-              <JobDescription text={pipeline.jd_text} />
-            </section>
-            <OpenTo pipeline={pipeline} />
-            <HowItWorks pipeline={pipeline} />
+        <main className="flex-1">
+          <section className="border-b border-line bg-surface-raised">
+            <div className="page-gutter flex flex-col gap-6 py-8 md:py-12 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+              <div className="flex min-w-0 flex-col gap-3.5">
+                <p className="flex items-center gap-2 text-[13px] leading-5 text-ink-muted">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "size-2 shrink-0 rounded-pill",
+                      pipeline.availability === "accepting"
+                        ? "bg-evergreen"
+                        : pipeline.availability === "opens_later"
+                          ? "bg-marigold"
+                          : "bg-ink-muted",
+                    )}
+                  />
+                  {statusLine(pipeline)}
+                </p>
+                <h1 className="type-display-lg break-words lg:type-display-xl">{pipeline.title}</h1>
+                <MetaChips pipeline={pipeline} />
+              </div>
+              <div className="flex shrink-0 flex-col gap-2.5 lg:items-end">
+                <ApplyButton {...buttonProps} showArrow remember className="w-full sm:w-auto" />
+                <ApplyHint unavailable={unavailable} />
+              </div>
+            </div>
+          </section>
+
+          <div className="page-gutter grid gap-10 pt-10 pb-16 md:pt-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12 lg:pb-[72px]">
+            <div className="flex min-w-0 flex-col gap-9">
+              <section aria-labelledby="about-role" className="flex flex-col gap-3.5">
+                <h2 id="about-role" className="font-display text-[28px] leading-[34px] font-[560]">
+                  {t("apply.aboutRole")}
+                </h2>
+                <JobDescription text={pipeline.jd_text} />
+              </section>
+              <OpenTo pipeline={pipeline} />
+              <HowItWorks pipeline={pipeline} />
+            </div>
+
+            <aside className="flex flex-col gap-4.5 lg:sticky lg:top-24">
+              <Card>
+                <h2 className="type-label text-ink-muted">{t("apply.facts.title")}</h2>
+                <Facts pipeline={pipeline} />
+                <ApplyButton {...buttonProps} size="md" className="w-full" />
+              </Card>
+              <CompanyCard company={company} />
+            </aside>
           </div>
+        </main>
 
-          <aside className="flex flex-col gap-4.5 lg:sticky lg:top-24">
-            <Card>
-              <h2 className="type-label text-ink-muted">{t("apply.facts.title")}</h2>
-              <Facts pipeline={pipeline} />
-              <ApplyButton {...buttonProps} size="md" className="w-full" />
-            </Card>
-            <CompanyCard company={company} />
-          </aside>
-        </div>
-      </main>
-
-      <footer className="border-t border-line">
-        <p className="page-gutter py-6 text-[13px] leading-5 text-ink-muted">
-          {t("apply.footer", { company: company.name })}
-        </p>
-      </footer>
-    </div>
+        <footer className="border-t border-line">
+          <p className="page-gutter py-6 text-[13px] leading-5 text-ink-muted">
+            {t("apply.footer", { company: company.name })}
+          </p>
+        </footer>
+      </div>
+    </ApplySessionProvider>
   );
 }
 
@@ -127,32 +152,6 @@ function Card({ children }: { children: ReactNode }) {
     <div className="flex flex-col gap-4 rounded-[20px] border border-line bg-surface-raised p-5 md:p-6">
       {children}
     </div>
-  );
-}
-
-function CompanyMark({ company, size }: { company: PublicPipeline["company"]; size: "sm" | "lg" }) {
-  const box =
-    size === "sm" ? "size-9 rounded-[10px] text-[18px]" : "size-12 rounded-md text-[22px]";
-  if (company.logo_url) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- the API's long-lived branding image
-      <img
-        src={company.logo_url}
-        alt={t("apply.company.logoAlt", { company: company.name })}
-        className={cn(box, "shrink-0 border border-line bg-surface-raised object-contain")}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        box,
-        "flex shrink-0 items-center justify-center bg-evergreen font-display font-semibold text-on-evergreen",
-      )}
-    >
-      {company.name.trim().charAt(0).toUpperCase()}
-    </span>
   );
 }
 

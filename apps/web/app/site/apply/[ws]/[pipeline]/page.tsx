@@ -5,8 +5,10 @@ import { cache } from "react";
 
 import { ApplyPage } from "@/components/apply/apply-page";
 import { parseSource, type PublicPipeline } from "@/lib/apply";
+import { type CandidateClaims, candidateFromClaims, readReturn } from "@/lib/apply/session";
 import { env } from "@/lib/env";
 import { t } from "@/lib/i18n";
+import { supabaseServer } from "@/lib/supabase/server";
 
 interface Params {
   params: Promise<{ ws: string; pipeline: string }>;
@@ -44,6 +46,22 @@ export default async function Apply({
 }: Params & { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { ws, pipeline } = await params;
   const data = await loadPipeline(ws, pipeline);
-  const source = parseSource((await searchParams).source);
-  return <ApplyPage pipeline={data} source={source} />;
+  const query = await searchParams;
+  const source = parseSource(query.source);
+  // Candidates sign in with Google or Microsoft on this page (APPLY-002); the session is optional.
+  const { data: session } = await (await supabaseServer()).auth.getClaims();
+  const candidate = candidateFromClaims(session?.claims as CandidateClaims | undefined);
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    const first = Array.isArray(value) ? value[0] : value;
+    if (first !== undefined) search.set(key, first);
+  }
+  return (
+    <ApplyPage
+      pipeline={data}
+      source={source}
+      candidate={candidate}
+      returning={readReturn(search, candidate !== null)}
+    />
+  );
 }

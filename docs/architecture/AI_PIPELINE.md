@@ -38,10 +38,11 @@ All AI runs on OpenAI (ADR-007) through `apps/api/app/ai/`. This document define
 6. Write `resume_assessments`, `ai_decisions` and `resume_status = done` in one transaction (each step of the job runs once, so a retry resumes where it stopped), then continue per WORKFLOW.md: SCREEN-003 invites or moves the application to `resume_not_match`; until then a screened application stays `processing_resume`. `AI_FAKE=1` answers from a builder in `app/ai/fakes.py` that mirrors the pipeline's criteria.
 
 ## 2. Interview plan (`plan_interview`)
-Inputs: JD, redacted résumé assessment (quotes, claims to verify), skills to probe, seniority, tone, company "about". Output schema `InterviewPlan`:
-- 4–7 `topics` in order (warm-up first, candidate's questions last), each with `goal`, `skills[]`, 1–3 `seeds` (`question`, `resume_quote` for the "From your résumé" line).
-- Every skill to probe appears in at least one topic.
-- `claims_to_verify[]` from the résumé.
+Queued by `screen_resume` when the screen passes (INTV-001). Inputs: JD, redacted résumé, the screen's claims, skills to probe, seniority (one level lower with "Ready for a step up"), tone, format, the interview length (30 minutes, ADR-012), the "Also open to" rules (interview versions: never ask about gaps, location or degrees when those rules apply), company "about". Prompt `interview_plan@v1`, output schema `InterviewPlan`:
+- 4–7 `topics` in order, each with a `kind` (`warm_up` first, `candidate_questions` last, `skills` between), `title`, `goal`, `skills[]`, 1–3 `seeds` (`question`, `resume_quote` for the "From your résumé" line, or "").
+- Every skill to probe appears in at least one `skills` topic.
+- `claims_to_verify[]` from the résumé (claim, verbatim quote, skill).
+The model names each topic's skills by their number in the prompt's list, so a reworded skill can't miss; code stores the names. A quote not found word for word in the redacted résumé (the screening quote check) or holding a mask is dropped: the seed keeps its question, the claim is removed. A skill to probe the model left out is added by code: to the skills topic whose text shares the most words with it, else as a plain topic before the candidate's questions while there are fewer than 7, else to the last skills topic. Code then checks (`app/interview/plan.py`): order and counts, every skill covered, and no personal detail: no mask such as `[NAME]` or `[SCHOOL]` anywhere, and none of the candidate's name parts (3+ letters, whole word, case-sensitive). A plan that fails is asked for once more; if the job still fails, the plain skills plan (warm-up, one topic per skill, up to 5, then grouped, the candidate's questions; no quotes, no claims) is stored with `source = fallback`, so a candidate who passed is never held up by the model.
 No fixed question count is imposed on the live interviewer; seeds are starting points.
 
 ## 3. Live interviewer (Realtime session instructions)

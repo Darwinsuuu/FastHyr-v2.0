@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from app.ai import fakes
 from app.ai.client import AIOutputError
 from app.ai.prompts import Prompt
+from app.ai.schemas.interview_plan import PlanAnswer
 from app.ai.schemas.resume_assessment import ResumeAssessment
 from app.integrations.storage import SupabaseStorage
 from app.jobs.queue import JobQueue, job_key
@@ -57,13 +58,18 @@ SPANS = [{"kind": "school", "text": "University of the Philippines Diliman"}]
 
 
 class ScreeningAI(StubAI):
-    """Answers redaction with `spans` and the assessment with `change(answer)` applied to the
-    fake answer for the prompt (every must-have met, quoting the résumé)."""
+    """Answers redaction with `spans`, the assessment with `change(answer)` applied to the fake
+    answer for the prompt (every must-have met, quoting the résumé), and the interview plan
+    (INTV-001) with `plan_change(answer)` applied to its fake answer."""
 
-    def __init__(self, spans: list[dict[str, str]], change: Any = None) -> None:
+    def __init__(
+        self, spans: list[dict[str, str]], change: Any = None, plan_change: Any = None
+    ) -> None:
         super().__init__(spans)
         self.change = change
+        self.plan_change = plan_change
         self.assessed: list[dict[str, str]] = []
+        self.planned: list[dict[str, str]] = []
 
     async def structured[T: BaseModel](
         self,
@@ -76,6 +82,12 @@ class ScreeningAI(StubAI):
         entity_id: uuid.UUID | None = None,
         temperature: float | None = None,
     ) -> T:
+        if schema is PlanAnswer:
+            self.planned.append(variables)
+            plan = fakes.interview_plan(variables)
+            if self.plan_change:
+                self.plan_change(plan)
+            return schema.model_validate(plan)
         if schema is not ResumeAssessment:
             return await super().structured(
                 purpose=purpose, prompt=prompt, variables=variables, schema=schema

@@ -4,6 +4,7 @@ again by the requeue_stuck_work sweeper for applications still pending after 10 
 Two steps, each done once and skipped on a repeat: extract and redact the text
 (`services/screening.prepare_resume()`, SCREEN-001), then score it and decide pass or fail
 (`assess_resume()`, SCREEN-002). A retry after a model error resumes from the step that failed.
+A passed screen queues `plan_interview` (INTV-001).
 """
 
 import uuid
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.client import AIClient, AIOutputError
 from app.integrations.storage import Storage, StorageObjectMissingError
 from app.jobs.framework import JobRun, PermanentJobError, RetryPolicy, job
+from app.jobs.interviews import PLAN_JOB
 from app.services import screening
 
 SCREEN_JOB = "screen_resume"
@@ -46,4 +48,7 @@ async def screen_resume(run: JobRun, application_id: uuid.UUID) -> bool:
         raise ResumeMissingJobError() from error
     except AIOutputError as error:
         raise AIOutputJobError() from error
+    if assessed is screening.Assessed.PASSED:
+        # The interview plan comes next (INTV-001); the invitation follows it (SCREEN-003).
+        await run.queue.enqueue(PLAN_JOB, application_id, key=application_id)
     return prepared is not screening.Prepared.SKIPPED or assessed is not screening.Assessed.SKIPPED

@@ -117,6 +117,12 @@ _INSTITUTION = re.compile(
     r"\b(?:University|College|Institute|Polytechnic|Academy|School|Universidad|Colegio|"
     r"Ateneo|Conservatory|Seminary)\b"
 )
+# Honorifics and titles before a masked name ("Engr. [NAME]", "Ms [NAME]"): they can reveal
+# gender, and the model masks them inconsistently, so they always go with the name.
+_TITLE_BEFORE_NAME = re.compile(
+    r"\b(?:Engr|Dr|Atty|Arch|Prof|Mr|Mrs|Ms|Miss|Mx|Sir|Madam|Hon|Rev|Fr|Sr|Sis)\.?\s+"
+    r"(?=\[NAME\])"
+)
 # A heading that ends the Education section: a short line naming another section.
 _OTHER_HEADING = re.compile(
     r"(?i)^\W*(?:(?:work |professional |relevant )?experience|employment(?: history)?|"
@@ -235,4 +241,5 @@ async def redact(
         temperature=0,
     )
     apply_spans(redaction, ((span.kind, span.text) for span in answer.spans))
+    redaction.text = _TITLE_BEFORE_NAME.sub("", redaction.text)
     return redaction

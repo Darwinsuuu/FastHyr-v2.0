@@ -242,10 +242,11 @@ def test_quotes_must_be_verbatim_but_tolerate_typography() -> None:
     assert assess.quoted("Senior Backend Engineer, PayLane, 2022 \u2013 present", RESUME)
     assert not assess.quoted("Built gRPC services in Rust", RESUME)
     assert not assess.quoted("", RESUME)
-    # Across a line break and a bullet, or shortened with "...": the same words in order.
+    # Joined passages, split at line breaks or "...": every piece must be in the résumé.
     assert assess.quoted("Kafka. Education", RESUME)
     assert assess.quoted("Sharded, multi-region PostgreSQL ... 4M transactions", RESUME)
-    assert not assess.quoted("4M transactions ... Sharded", RESUME)
+    assert assess.quoted("BS Computer Science, [YEAR]\nEvent-driven order processing", RESUME)
+    assert not assess.quoted("Built gRPC services in Go\nTen years of Rust", RESUME)
     # Whole words only.
     assert not assess.quoted("Go", "Worked at Google")
 

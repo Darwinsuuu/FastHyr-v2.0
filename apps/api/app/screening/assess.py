@@ -132,7 +132,8 @@ def variables(criteria: Criteria, resume_text: str) -> dict[str, str]:
 # --- Checking the answer ---------------------------------------------------------------------
 
 _NOT_WORD = re.compile(r"[^\w]+")
-_ELLIPSIS = re.compile(r"\.\.\.+|\u2026")
+# A quote may join several passages: split on "..." and on line breaks.
+_PIECES = re.compile(r"\.\.\.+|\u2026|\n")
 
 
 def _normal(text: str) -> str:
@@ -142,19 +143,13 @@ def _normal(text: str) -> str:
 
 
 def quoted(quote: str, resume_text: str) -> bool:
-    """True when `quote` appears in the résumé as whole words in order, ignoring case,
-    punctuation and line breaks. A quote the model shortened with "..." passes when every part
-    appears, in order."""
+    """True when every piece of `quote` appears in the résumé as whole words, ignoring case and
+    punctuation. Pieces are split at "..." and line breaks, since the model often joins
+    evidence from several lines or sections (for example a degree and a skills list)."""
     haystack = f" {_normal(resume_text)} "
-    parts = [_normal(part) for part in _ELLIPSIS.split(quote)]
-    parts = [part for part in parts if part]
-    position = 0
-    for part in parts:
-        found = haystack.find(f" {part} ", position)
-        if found < 0:
-            return False
-        position = found + len(part)
-    return bool(parts)
+    pieces = [_normal(piece) for piece in _PIECES.split(quote)]
+    pieces = [piece for piece in pieces if piece]
+    return bool(pieces) and all(f" {piece} " in haystack for piece in pieces)
 
 
 def _aligned[T: (MustHaveResult, NiceToHaveResult)](

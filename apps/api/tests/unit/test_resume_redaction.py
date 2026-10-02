@@ -159,3 +159,12 @@ def test_school_names_in_education_are_masked_everywhere() -> None:
         "Experience\nLecturer, [SCHOOL], 2018 - 2020"
     )
     assert redaction.masked["school"] == 4
+
+
+def test_titles_before_a_masked_name_go_with_it() -> None:
+    ai = StubAI([{"kind": "name", "text": "Ramon Cruz"}, {"kind": "name", "text": "Liza Tan"}])
+    text = asyncio.run(
+        redact(ai, "References\nEngr. Ramon Cruz and Dr Liza Tan\nDr. Ruth's lab: 10 papers")
+    ).text
+
+    assert text == "References\n[NAME] and [NAME]\nDr. Ruth's lab: 10 papers"

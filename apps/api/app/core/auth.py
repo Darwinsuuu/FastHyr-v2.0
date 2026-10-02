@@ -24,6 +24,9 @@ class CurrentUser:
     user_id: uuid.UUID
     email: str | None
     email_verified: bool
+    # Every sign-in method the account has used (Supabase `app_metadata`): "email", "google",
+    # "azure". Candidate routes need Google or Microsoft (ADR-014).
+    providers: frozenset[str] = frozenset()
 
 
 class SigningKeySource(Protocol):
@@ -63,11 +66,14 @@ class TokenVerifier:
             raise UnauthenticatedError() from error
 
         metadata = claims.get("user_metadata") or {}
+        app_metadata = claims.get("app_metadata") or {}
         email = claims.get("email") or None
+        providers = [app_metadata.get("provider"), *(app_metadata.get("providers") or [])]
         return CurrentUser(
             user_id=user_id,
             email=email,
             email_verified=bool(metadata.get("email_verified", False)),
+            providers=frozenset(p for p in providers if isinstance(p, str)),
         )
 
 

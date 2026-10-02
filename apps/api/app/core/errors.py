@@ -70,6 +70,14 @@ class EmailNotVerifiedError(AppError):
     title = "Verify your email first"
 
 
+class CandidateSignInRequiredError(AppError):
+    """Candidate routes need a Google or Microsoft sign-in (ADR-014)."""
+
+    status = 403
+    code = "candidate_sign_in_required"
+    title = "Sign in with Google or Microsoft to apply"
+
+
 class NotFoundError(AppError):
     """Also used for resources outside the caller's workspace or scope, so they stay invisible."""
 

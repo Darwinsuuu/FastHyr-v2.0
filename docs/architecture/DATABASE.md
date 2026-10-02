@@ -59,7 +59,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Scoring and Schedule columns once `locked_at` is set (`department_id` may still become null, for department deletion), and any slug change after publish. Checks: enums and ranges, weights total 100 when set, `published_at`/`slug` set exactly when past draft.
 
 ### Candidates and applications
-**candidates** — `id`, `workspace_id`, `auth_user_id`, `email`, `full_name`, `phone_country_code`, `phone`, `city`, `profile_url`, `first_applied_at`, `last_activity_at`, `deleted_at`. Unique `(workspace_id, auth_user_id)`.
+**candidates** — `id`, `workspace_id`, `auth_user_id`, `email`, `full_name`, `phone_country_code`, `phone`, `city`, `profile_url`, `first_applied_at`, `last_activity_at`, `deleted_at`. Unique `(workspace_id, auth_user_id)`. Created on the first application to the workspace (APPLY-003); later applications keep the details sent last. `auth_user_id` has no FK, so deleting a sign-in account never touches the employer's records.
 
 **applications**
 | Column | Notes |
@@ -67,7 +67,7 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 | `id`, `workspace_id`, `pipeline_id`, `candidate_id` | unique `(pipeline_id, candidate_id)` |
 | `source` (`linkedin|jobstreet|indeed|kalibrr|glassdoor|facebook|careers|other|direct`) | from `?source=` |
 | `resume_path`, `resume_filename`, `resume_pages`, `resume_bytes` | |
-| `consent_version`, `consent_at`, `consent_ip_hash` | FR-COMP-01 |
+| `consent_version`, `consent_at`, `consent_ip_hash` | FR-COMP-01; the notice id (`apply@v1`); the IP only as an HMAC-SHA256 keyed from the service key (`services/applications.consent_ip_hash()`) |
 | `stage` (WORKFLOW.md §3), `stage_changed_at` | |
 | `resume_status` (`pending|done|unreadable|error`) | |
 | `fit` (`strong|good|null`), `overall_score` (denormalised for lists) | |
@@ -112,7 +112,7 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 
 **credit_batches** — `id`, `workspace_id`, `kind` (`trial|plan|extra`), `amount`, `remaining`, `added_at`, `expires_at`, `stripe_invoice_id`, `note`. Check `remaining between 0 and amount`; at most one `trial` batch per workspace (partial unique index).
 
-**credit_ledger** (append-only) — `id`, `workspace_id`, `kind` (`grant_trial|grant_plan|purchase|consume|reserve|release|top_up|expire|adjust`), `amount` (signed, balance change; 0 for reserve moves), `reserve_change` (signed), `pipeline_id`, `application_id`, `batch_id`, `balance_after` (unexpired balance after the change), `actor_id` (no FK), `created_at`. Composite FKs to `pipelines` and `credit_batches`; `application_id` gets its FK in APPLY-003. The ledger's `amount` always sums to the batches' `remaining`.
+**credit_ledger** (append-only) — `id`, `workspace_id`, `kind` (`grant_trial|grant_plan|purchase|consume|reserve|release|top_up|expire|adjust`), `amount` (signed, balance change; 0 for reserve moves), `reserve_change` (signed), `pipeline_id`, `application_id`, `batch_id`, `balance_after` (unexpired balance after the change), `actor_id` (no FK), `created_at`. Composite FKs to `pipelines` and `credit_batches`, and to `applications` (APPLY-003), which is `deferrable initially deferred`: a submission uses the credit first (locking the workspace and pipeline rows) and inserts the application later in the same transaction. The ledger's `amount` always sums to the batches' `remaining`.
 
 **stripe_invoices** (cache) — `id` (Stripe ID), `workspace_id`, `number`, `kind` (`plan|credits`), `description`, `amount_cents`, `currency`, `status` (`paid|open|failed|void`), `hosted_url`, `pdf_url`, `created_at`.
 

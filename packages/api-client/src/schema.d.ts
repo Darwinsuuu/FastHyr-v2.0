@@ -529,6 +529,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/candidate/pipelines/{pipeline_id}/resume-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Resume Upload
+         * @description A signed upload URL for the résumé PDF, while the pipeline takes applications
+         *     (`409 pipeline_not_accepting` otherwise).
+         */
+        post: operations["create_resume_upload_v1_candidate_pipelines__pipeline_id__resume_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidate/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Application
+         * @description Applies with the uploaded résumé and uses 1 credit (FR-APPLY-04). Idempotent: applying
+         *     again to the same pipeline returns the first application with `200` and uses nothing.
+         */
+        post: operations["submit_application_v1_candidate_applications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidate/pipelines/{pipeline_id}/my-application": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get My Application
+         * @description Whether the signed-in candidate has applied, and when ("Applied on {date}").
+         */
+        get: operations["get_my_application_v1_candidate_pipelines__pipeline_id__my_application_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -1071,6 +1133,15 @@ export interface components {
             /** Members */
             members: components["schemas"]["Member"][];
         };
+        /**
+         * MyApplication
+         * @description The apply page's "Applied on {date}" state (FR-APPLY-07): candidates see only that they
+         *     applied, never a stage, score or flag.
+         */
+        MyApplication: {
+            /** Applied At */
+            applied_at: string | null;
+        };
         /** MyWorkspace */
         MyWorkspace: {
             /**
@@ -1397,10 +1468,88 @@ export interface components {
             confirm: "I understand";
         };
         /**
+         * ResumeUpload
+         * @description PUT the PDF to `url` (or `uploadToSignedUrl(path, token, file)` in supabase-js) within
+         *     10 minutes, then send `upload_id` with the application.
+         */
+        ResumeUpload: {
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+            /** Url */
+            url: string;
+            /** Path */
+            path: string;
+            /** Token */
+            token: string;
+            /**
+             * Max Bytes
+             * @description Largest file the API accepts
+             */
+            max_bytes: number;
+        };
+        /**
          * Role
          * @enum {string}
          */
         Role: "admin" | "recruiter" | "hiring_manager";
+        /**
+         * SubmitApplicationRequest
+         * @description The application form (FR-APPLY-03). The email is the signed-in account's, never sent.
+         */
+        SubmitApplicationRequest: {
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+            /** Resume Filename */
+            resume_filename: string;
+            /** Full Name */
+            full_name: string;
+            /** Phone Country Code */
+            phone_country_code: string;
+            /** Phone */
+            phone: string;
+            /** City */
+            city?: string | null;
+            /** Profile Url */
+            profile_url?: string | null;
+            /** Consent Notice Id */
+            consent_notice_id: string;
+            /**
+             * Source
+             * @default direct
+             * @enum {string}
+             */
+            source: "linkedin" | "jobstreet" | "indeed" | "kalibrr" | "glassdoor" | "facebook" | "careers" | "other" | "direct";
+        };
+        /**
+         * SubmittedApplication
+         * @description `created` is false when the candidate had already applied: nothing changed and no credit
+         *     was used (FR-APPLY-05).
+         */
+        SubmittedApplication: {
+            /**
+             * Application Id
+             * Format: uuid
+             */
+            application_id: string;
+            /**
+             * Applied At
+             * Format: date-time
+             */
+            applied_at: string;
+            /** Created */
+            created: boolean;
+        };
         /**
          * TopUpRequest
          * @description Top-up amounts the pipeline menus offer (FR-BILL-04).
@@ -3493,6 +3642,203 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Notice"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    create_resume_upload_v1_candidate_pipelines__pipeline_id__resume_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeUpload"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    submit_application_v1_candidate_applications_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description Already applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmittedApplication"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmittedApplication"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_my_application_v1_candidate_pipelines__pipeline_id__my_application_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyApplication"];
                 };
             };
             /** @description Unauthorized */

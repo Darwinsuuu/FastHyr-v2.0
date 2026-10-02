@@ -36,6 +36,8 @@ class RequestContext:
 @dataclass(frozen=True)
 class CandidateContext:
     user_id: uuid.UUID
+    # From the Google or Microsoft account; where updates about the application go.
+    email: str
 
 
 @dataclass(frozen=True)

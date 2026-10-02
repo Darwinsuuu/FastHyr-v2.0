@@ -26,9 +26,11 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 | `GET /invites/{code}` | join page preview by code or link token (AUTH-004). Verified email only. `{state, workspace_id, workspace_name, invited_by_name, role, departments, masked_email}`; `state` is `ready` (details filled in), `already_member` (`workspace_id` only), `wrong_email` (`masked_email` only, e.g. `d•••@acme.com`), `expired` or `invalid` (nothing else). Unknown is `404 invite_not_found` |
 
 ## Candidate (signed-in candidate)
-| `POST /candidate/pipelines/{pipeline_id}/resume-upload` | signed upload URL |
-| `POST /candidate/applications` ⚷ | submit application (uses 1 credit) |
-| `GET /candidate/pipelines/{pipeline_id}/my-application` | "Applied on…" state |
+Candidate routes accept only a Google or Microsoft session (ADR-014); any other session is `403 candidate_sign_in_required`. Pipelines are named by ID; drafts, cancelled and unknown ones are `404`.
+
+| `POST /candidate/pipelines/{pipeline_id}/resume-upload` | signed upload URL for the résumé PDF (`{upload_id, url, path, token, max_bytes}`), only while the pipeline is live (`409 pipeline_not_accepting`) (APPLY-003) |
+| `POST /candidate/applications` ⚷ | submit application (APPLY-003): `{pipeline_id, upload_id, resume_filename, full_name, phone_country_code, phone, city?, profile_url?, consent_notice_id, source}`; the email is the account's. Checks the résumé (`pdf_*`, `upload_missing`, `upload_expired`) before any credit moves, then uses 1 credit, records the candidate, the application (`processing_resume`), the consent version and time, and queues screening. `201 {application_id, applied_at, created: true}`. Idempotent by candidate and pipeline: applying again returns the first application with `200` and `created: false` and uses nothing (FR-APPLY-05), so no idempotency key is stored. A pipeline that stopped accepting (or lost its last credit to someone else) is `409 pipeline_not_accepting` with no credit used |
+| `GET /candidate/pipelines/{pipeline_id}/my-application` | "Applied on…" state: `{applied_at}` (null when not applied). Never a stage, score or flag (FR-APPLY-07) |
 | `GET /candidate/interviews/{token}` | link state (valid / expired / completed / wrong account / resumable) + interview intro |
 | `POST /candidate/interviews/{token}/consent` | record consent (and biometric consent) |
 | `POST /candidate/interviews/{token}/session` | start/resume attempt → Realtime client secret, time left, chunk upload URLs |

@@ -719,6 +719,10 @@
     "applyNow": "Apply now",
     "applyHint": "You’ll sign in with Google or Microsoft first",
     "applyHintSignedIn": "Only takes a few minutes",
+    "appliedOn": "Applied on {date}",
+    "appliedHint": "We’ll email {email} with next steps.",
+    "appliedTitle": "Your application is in",
+    "appliedBody": "We’re reviewing your résumé against this role now. If it’s a match, you’ll get an email with a link to your AI interview. You can take it whenever suits you before the link expires.",
     "unavailable": {
       "opensOn": "You can apply from {date}.",
       "opensLater": "You can apply once applications open.",
@@ -790,13 +794,53 @@
       "applyingTo": "Applying to {company}",
       "signedInAs": "Signed in with {provider} · we’ll send updates here",
       "notYou": "Not you?",
-      "soonTitle": "The application form opens soon",
-      "soonBody": "We’re finishing the last part of applying. Come back to this page shortly to send your application.",
-      "close": "Close"
+      "resume": "Résumé",
+      "resumeDrop": "Click to upload or drag and drop",
+      "resumeHint": "PDF only, up to 10 MB",
+      "fullName": "Full name",
+      "email": "Email address",
+      "verifiedBy": "Verified by {provider}",
+      "phone": "Contact number",
+      "city": "Current city",
+      "cityPlaceholder": "e.g. Quezon City",
+      "profileUrl": "LinkedIn or portfolio",
+      "optional": "(optional)",
+      "required": "Fields marked * are required.",
+      "attention": "A few things still need your attention.",
+      "send": "Send application",
+      "errors": {
+        "resume": "Add your résumé as a PDF to continue.",
+        "fullName": "Enter your full name.",
+        "phone": "Enter a contact number we can reach you on.",
+        "profileUrl": "Enter a link that starts with https://",
+        "consent": "Please agree before sending your application.",
+        "pdfNotPdf": "This file isn’t a PDF. Save your résumé as a PDF and try again.",
+        "pdfTooLarge": "This file is larger than 10 MB. Choose a smaller PDF.",
+        "pdfMalformed": "We couldn’t open this PDF. Save it again as a PDF and try again.",
+        "pdfEncrypted": "This PDF is password protected. Save a copy without a password and try again.",
+        "pdfTooManyPages": "This PDF has more than 20 pages. Choose a shorter résumé.",
+        "uploadFailed": "Your résumé didn’t upload. Check your connection and send again.",
+        "uploadAgain": "Your résumé upload timed out. Send again to upload it once more.",
+        "notAccepting": "This role stopped taking applications. Nothing was sent.",
+        "noticeChanged": "The consent text has changed. Reload the page to read the new version, then send again.",
+        "signIn": "Your sign-in has ended. Sign in again with Google or Microsoft, then send again.",
+        "failed": "We couldn’t send your application. Try again in a moment.",
+        "noticeMissing": "We couldn’t load the consent text. Reload the page to try again."
+      }
     },
     "notFound": {
       "title": "We couldn’t find this role",
       "body": "The link may be mistyped, or the employer may have taken this role down. Check the link in the job post, or look for the role on the employer’s careers page."
+    },
+    "sent": {
+      "title": "Application sent",
+      "body": "Thanks, {name}. Your application for {title} is with {company}.",
+      "bodyNoName": "Thanks. Your application for {title} is with {company}.",
+      "nextTitle": "What happens next",
+      "step1": "We check your résumé against what this role needs.",
+      "step2": "If it’s a match, we email your AI interview link to {email}.",
+      "step3": "Take the interview whenever suits you. The {company} team reviews it and gets back to you.",
+      "done": "Done"
     }
   },
   "consent": {

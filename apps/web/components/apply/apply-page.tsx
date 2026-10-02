@@ -13,7 +13,7 @@ import {
 import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
-import { ApplyButton, ApplyHint } from "@/components/apply/apply-button";
+import { AppliedNotice, ApplyButton, ApplyHint } from "@/components/apply/apply-button";
 import { ApplySessionProvider } from "@/components/apply/apply-session";
 import { CandidateMenu } from "@/components/apply/candidate-menu";
 import { CompanyMark } from "@/components/apply/company-mark";
@@ -29,6 +29,7 @@ import {
 import type { Candidate, ReturnState } from "@/lib/apply/session";
 import { cn } from "@/lib/cn";
 import { type MessageKey, t } from "@/lib/i18n";
+import type { Notice } from "@/lib/notices";
 
 /**
  * The public apply page (frame Apply, FR-APPLY-01): the employer's brand, the role and its status,
@@ -39,12 +40,18 @@ export function ApplyPage({
   pipeline,
   source,
   candidate,
+  appliedAt,
+  notice,
   returning,
 }: {
   pipeline: PublicPipeline;
   source: SourceTag;
   /** The signed-in candidate (Google or Microsoft), if any (APPLY-002). */
   candidate: Candidate | null;
+  /** When that candidate applied to this pipeline, if they have (APPLY-003). */
+  appliedAt: string | null;
+  /** The current apply notice for the form's consent (COMP-002). */
+  notice: Notice | null;
   /** Back from the sign-in round trip (APPLY-002). */
   returning: ReturnState;
 }) {
@@ -54,6 +61,7 @@ export function ApplyPage({
     workspaceSlug: pipeline.workspace_slug,
     pipelineSlug: pipeline.slug,
     source,
+    timeZone: pipeline.timezone,
     unavailable,
   };
 
@@ -62,6 +70,8 @@ export function ApplyPage({
       pipeline={pipeline}
       source={source}
       initialCandidate={candidate}
+      initialAppliedAt={appliedAt}
+      notice={notice}
       returning={returning}
     >
       <div className="flex min-h-dvh flex-col bg-surface">
@@ -116,6 +126,7 @@ export function ApplyPage({
 
           <div className="page-gutter grid gap-10 pt-10 pb-16 md:pt-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12 lg:pb-[72px]">
             <div className="flex min-w-0 flex-col gap-9">
+              <AppliedNotice />
               <section aria-labelledby="about-role" className="flex flex-col gap-3.5">
                 <h2 id="about-role" className="font-display text-[28px] leading-[34px] font-[560]">
                   {t("apply.aboutRole")}

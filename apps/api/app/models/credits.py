@@ -63,6 +63,15 @@ class CreditLedgerEntry(Base):
             ["credit_batches.workspace_id", "credit_batches.id"],
             name="credit_ledger_batch_fkey",
         ),
+        # Checked at commit: a submission uses the credit before inserting the application.
+        ForeignKeyConstraint(
+            ["workspace_id", "application_id"],
+            ["applications.workspace_id", "applications.id"],
+            name="credit_ledger_application_fkey",
+            deferrable=True,
+            initially="DEFERRED",
+            use_alter=True,
+        ),
         Index("credit_ledger_workspace_id_created_at_idx", "workspace_id", "created_at"),
         Index("credit_ledger_pipeline_id_idx", "pipeline_id"),
     )

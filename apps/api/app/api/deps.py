@@ -18,6 +18,7 @@ from app.core.config import Settings
 from app.core.context import CandidateContext, RequestContext, Role
 from app.core.db import get_session
 from app.core.errors import (
+    CandidateSignInRequiredError,
     EmailNotVerifiedError,
     ForbiddenError,
     NotAMemberError,
@@ -112,10 +113,20 @@ async def get_request_context(
     return context
 
 
+# ADR-014: candidates sign in with Google or Microsoft only.
+CANDIDATE_PROVIDERS = frozenset({"google", "azure"})
+
+
 async def get_candidate_context(user: CurrentUserDep) -> CandidateContext:
-    return CandidateContext(user_id=user.user_id)
+    """A signed-in candidate on `/candidate/*`. Only a Google or Microsoft account with an email
+    counts; anything else (a TA's email + password session) is 403 `candidate_sign_in_required`.
+    Being a candidate grants no TA access, and TA membership changes nothing here."""
+    if not (user.providers & CANDIDATE_PROVIDERS) or not user.email:
+        raise CandidateSignInRequiredError()
+    return CandidateContext(user_id=user.user_id, email=user.email)
 
 
+CandidateContextDep = Annotated[CandidateContext, Depends(get_candidate_context)]
 RequestContextDep = Annotated[RequestContext, Depends(get_request_context)]
 
 

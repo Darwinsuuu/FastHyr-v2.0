@@ -8,6 +8,7 @@ import { parseSource, type PublicPipeline } from "@/lib/apply";
 import { type CandidateClaims, candidateFromClaims, readReturn } from "@/lib/apply/session";
 import { env } from "@/lib/env";
 import { t } from "@/lib/i18n";
+import { loadNotices, type Notice } from "@/lib/notices";
 import { supabaseServer } from "@/lib/supabase/server";
 
 interface Params {
@@ -32,6 +33,35 @@ const loadPipeline = cache(async (ws: string, slug: string): Promise<PublicPipel
   }
 });
 
+/** The apply consent the form shows. The page still works without it; the form says so. */
+async function loadApplyNotice(): Promise<Notice | null> {
+  try {
+    return (await loadNotices()).apply;
+  } catch {
+    return null;
+  }
+}
+
+/** When the signed-in candidate applied to this pipeline (APPLY-003), or null. */
+async function loadAppliedAt(pipelineId: string, accessToken: string): Promise<string | null> {
+  const candidateApi = createApiClient({
+    baseUrl: env.apiUrl,
+    getAccessToken: async () => accessToken,
+  });
+  try {
+    const mine = unwrap(
+      await candidateApi.GET("/v1/candidate/pipelines/{pipeline_id}/my-application", {
+        params: { path: { pipeline_id: pipelineId } },
+        cache: "no-store",
+      }),
+    );
+    return mine.applied_at ?? null;
+  } catch {
+    // The form's submit answers "already applied" too, so the page can carry on without it.
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { ws, pipeline } = await params;
   const data = await loadPipeline(ws, pipeline);
@@ -49,8 +79,17 @@ export default async function Apply({
   const query = await searchParams;
   const source = parseSource(query.source);
   // Candidates sign in with Google or Microsoft on this page (APPLY-002); the session is optional.
-  const { data: session } = await (await supabaseServer()).auth.getClaims();
+  const supabase = await supabaseServer();
+  const { data: session } = await supabase.auth.getClaims();
   const candidate = candidateFromClaims(session?.claims as CandidateClaims | undefined);
+  // The API checks the token itself; here it only answers "has this candidate applied?".
+  const accessToken = candidate
+    ? (await supabase.auth.getSession()).data.session?.access_token
+    : undefined;
+  const [notice, appliedAt] = await Promise.all([
+    loadApplyNotice(),
+    accessToken ? loadAppliedAt(data.id, accessToken) : Promise.resolve(null),
+  ]);
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     const first = Array.isArray(value) ? value[0] : value;
@@ -61,6 +100,8 @@ export default async function Apply({
       pipeline={data}
       source={source}
       candidate={candidate}
+      appliedAt={appliedAt}
+      notice={notice}
       returning={readReturn(search, candidate !== null)}
     />
   );

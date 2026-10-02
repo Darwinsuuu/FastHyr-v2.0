@@ -21,6 +21,7 @@ from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.reports import sample_report_job
+from app.jobs.screening import screen_resume
 from app.jobs.system import (
     expire_credit_batches,
     expire_invites,
@@ -36,7 +37,11 @@ def register(function: WorkerFunction) -> Function:
     return func(function, name=function.__qualname__, max_tries=retry_policy_of(function).max_tries)
 
 
-FUNCTIONS: list[Function] = [register(sample_report_job), register(send_email)]
+FUNCTIONS: list[Function] = [
+    register(sample_report_job),
+    register(send_email),
+    register(screen_resume),
+]
 
 CRON_JOBS: list[CronJob] = [
     # Hourly crons run at different minutes so they don't all start at once.

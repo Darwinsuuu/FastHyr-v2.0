@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { ApplicationDialog } from "@/components/apply/application-dialog";
+import { SentDialog } from "@/components/apply/sent-dialog";
 import { SignInDialog } from "@/components/apply/sign-in-dialog";
 import { type PublicPipeline, type SourceTag, applySource } from "@/lib/apply";
 import {
@@ -23,14 +24,20 @@ import {
 } from "@/lib/apply/session";
 import { type OAuthProvider, OAUTH_SCOPES } from "@/lib/auth/flow";
 import { env } from "@/lib/env";
+import type { Notice } from "@/lib/notices";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { workspaceCookie } from "@/lib/workspace";
 
 type Modal =
-  { kind: "signin"; intent: SignInIntent; problem: SignInProblem | null } | { kind: "form" } | null;
+  | { kind: "signin"; intent: SignInIntent; problem: SignInProblem | null }
+  | { kind: "form" }
+  | { kind: "sent"; fullName: string }
+  | null;
 
 interface ApplySession {
   candidate: Candidate | null;
+  /** When the signed-in candidate applied to this pipeline, or null (APPLY-003). */
+  appliedAt: string | null;
   /** Apply now: the form when signed in, else sign-in that opens the form afterwards. */
   startApply: () => void;
   /** The header's Sign in. */
@@ -54,6 +61,8 @@ export function ApplySessionProvider({
   pipeline,
   source,
   initialCandidate,
+  initialAppliedAt,
+  notice,
   returning,
   children,
 }: {
@@ -61,14 +70,21 @@ export function ApplySessionProvider({
   source: SourceTag;
   /** From the session claims, read on the server. */
   initialCandidate: Candidate | null;
+  /** The candidate's application to this pipeline, read on the server. */
+  initialAppliedAt: string | null;
+  /** The current apply notice for the form's consent (COMP-002). */
+  notice: Notice | null;
   /** The round trip's parameters, read on the server (`readReturn()`). */
   returning: ReturnState;
   children: ReactNode;
 }) {
   const [candidate, setCandidate] = useState(initialCandidate);
+  const [appliedAt, setAppliedAt] = useState(initialAppliedAt);
   // Back from Google or Microsoft: open the form, or say why sign-in didn't finish.
   const [modal, setModal] = useState<Modal>(() => {
-    if (returning.openForm && pipeline.availability === "accepting") return { kind: "form" };
+    if (returning.openForm && pipeline.availability === "accepting" && !initialAppliedAt) {
+      return { kind: "form" };
+    }
     if (returning.problem) {
       return { kind: "signin", intent: returning.intent, problem: returning.problem };
     }
@@ -90,6 +106,15 @@ export function ApplySessionProvider({
     setModal(candidate ? { kind: "form" } : { kind: "signin", intent: "apply", problem: null });
   }, [candidate]);
 
+  // The tag to record: the one in the link, else the one kept for this pipeline.
+  const currentSource = useCallback(
+    () =>
+      source !== "direct"
+        ? source
+        : applySource(window.sessionStorage, pipeline.workspace_slug, pipeline.slug),
+    [source, pipeline.workspace_slug, pipeline.slug],
+  );
+
   const openSignIn = useCallback(() => {
     setModal({ kind: "signin", intent: "browse", problem: null });
   }, []);
@@ -99,15 +124,13 @@ export function ApplySessionProvider({
     await supabaseBrowser().auth.signOut({ scope: "local" });
     document.cookie = workspaceCookie(null);
     setCandidate(null);
+    setAppliedAt(null);
   }, []);
 
   const signInWith = useCallback(
     async (provider: OAuthProvider, intent: SignInIntent): Promise<boolean> => {
       // The stored tag wins: the address bar may have lost it on an earlier round trip.
-      const tag =
-        source !== "direct"
-          ? source
-          : applySource(window.sessionStorage, pipeline.workspace_slug, pipeline.slug);
+      const tag = currentSource();
       const callback = new URL("/auth/callback", env.siteUrl);
       callback.searchParams.set(
         "next",
@@ -121,12 +144,12 @@ export function ApplySessionProvider({
       // On success the browser is already leaving for the provider.
       return !error;
     },
-    [pipeline.workspace_slug, pipeline.slug, source],
+    [pipeline.workspace_slug, pipeline.slug, currentSource],
   );
 
   const session = useMemo(
-    () => ({ candidate, startApply, openSignIn, signOut }),
-    [candidate, startApply, openSignIn, signOut],
+    () => ({ candidate, appliedAt, startApply, openSignIn, signOut }),
+    [candidate, appliedAt, startApply, openSignIn, signOut],
   );
 
   return (
@@ -140,16 +163,34 @@ export function ApplySessionProvider({
         problem={modal?.kind === "signin" ? modal.problem : null}
         onSignIn={signInWith}
       />
-      {candidate && (
+      {candidate && !appliedAt && (
         <ApplicationDialog
+          // A different account starts a fresh form.
+          key={candidate.id}
           open={modal?.kind === "form"}
           onOpenChange={(open) => !open && setModal(null)}
           pipeline={pipeline}
           candidate={candidate}
+          notice={notice}
+          source={currentSource}
           onNotYou={async () => {
             await signOut();
             setModal({ kind: "signin", intent: "apply", problem: null });
           }}
+          onApplied={(application, fullName) => {
+            setAppliedAt(application.applied_at);
+            // Applied before (another tab): no "sent", the page shows the application instead.
+            setModal(application.created ? { kind: "sent", fullName } : null);
+          }}
+        />
+      )}
+      {candidate && (
+        <SentDialog
+          open={modal?.kind === "sent"}
+          onOpenChange={(open) => !open && setModal(null)}
+          pipeline={pipeline}
+          fullName={modal?.kind === "sent" ? modal.fullName : ""}
+          email={candidate.email}
         />
       )}
     </ApplySessionContext.Provider>

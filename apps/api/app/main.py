@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.api.routers import (
+    candidate,
     company_profile,
     credits,
     departments,
@@ -98,6 +99,7 @@ def create_app(
     v1.include_router(pipelines.router)
     v1.include_router(public_pipelines.router)
     v1.include_router(public_notices.router)
+    v1.include_router(candidate.router)
     v1.include_router(credits.router)
     v1.include_router(members.router)
     v1.include_router(invites.router)

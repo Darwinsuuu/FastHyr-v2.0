@@ -17,6 +17,9 @@ export interface FileDropProps {
   /** Line under the prompt, e.g. "PDF, up to 10 MB". */
   hint: string;
   label?: string;
+  /** A problem found elsewhere, e.g. "Add your résumé as a PDF to continue." or the server's
+   * check of the file. Shown like the type and size errors. */
+  error?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -36,13 +39,24 @@ export function FileDrop({
   onFileChange,
   hint,
   label = t("ui.dropFile"),
+  error: outsideError,
   disabled,
   className,
 }: FileDropProps) {
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [checkError, setError] = useState<string | null>(null);
+  const error = checkError ?? outsideError ?? null;
+  const errorLine = error && (
+    <p
+      id={`${id}-error`}
+      role="alert"
+      className="mt-1.5 text-[13px] leading-[18px] font-semibold text-signal-gap"
+    >
+      {error}
+    </p>
+  );
 
   function take(candidate: File | undefined) {
     if (!candidate) return;
@@ -59,26 +73,29 @@ export function FileDrop({
 
   if (file) {
     return (
-      <div
-        className={cn(
-          "flex items-center gap-3 rounded-md border border-line bg-surface-raised p-3",
-          className,
-        )}
-      >
-        <FileTextIcon aria-hidden="true" className="size-6 shrink-0 text-evergreen" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-ink">{file.name}</p>
-          <p className="text-[13px] text-ink-muted">{formatBytes(file.size)}</p>
-        </div>
-        <button
-          type="button"
-          disabled={disabled}
-          aria-label={t("ui.remove", { label: file.name })}
-          onClick={() => onFileChange(null)}
-          className="flex size-11 items-center justify-center rounded-[10px] text-ink-muted hover:bg-surface-sunk hover:text-ink"
+      <div className={className}>
+        <div
+          className={cn(
+            "flex items-center gap-3 rounded-md border border-line bg-surface-raised p-3",
+            error && "border-signal-gap",
+          )}
         >
-          <XIcon aria-hidden="true" className="size-5" />
-        </button>
+          <FileTextIcon aria-hidden="true" className="size-6 shrink-0 text-evergreen" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold text-ink">{file.name}</p>
+            <p className="text-[13px] text-ink-muted">{formatBytes(file.size)}</p>
+          </div>
+          <button
+            type="button"
+            disabled={disabled}
+            aria-label={t("ui.remove", { label: file.name })}
+            onClick={() => onFileChange(null)}
+            className="flex size-11 items-center justify-center rounded-[10px] text-ink-muted hover:bg-surface-sunk hover:text-ink"
+          >
+            <XIcon aria-hidden="true" className="size-5" />
+          </button>
+        </div>
+        {errorLine}
       </div>
     );
   }
@@ -118,15 +135,7 @@ export function FileDrop({
           }}
         />
       </label>
-      {error && (
-        <p
-          id={`${id}-error`}
-          role="alert"
-          className="mt-1.5 text-[13px] leading-[18px] font-semibold text-signal-gap"
-        >
-          {error}
-        </p>
-      )}
+      {errorLine}
     </div>
   );
 }

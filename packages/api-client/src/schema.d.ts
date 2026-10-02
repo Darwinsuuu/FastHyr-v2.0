@@ -386,6 +386,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/credits/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Credit Summary
+         * @description Balance, reserved and free credits, e.g. for the wizard's reserve check (PIPE-003).
+         */
+        get: operations["credit_summary_v1_credits_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/members": {
         parameters: {
             query?: never;
@@ -579,6 +599,19 @@ export interface components {
         CreateWorkspaceRequest: {
             /** Name */
             name: string;
+        };
+        /**
+         * CreditSummary
+         * @description `balance` = credits not yet used or expired; `reserved` = held by pipelines' reserves;
+         *     `free` = what a new reserve or top-up can still take.
+         */
+        CreditSummary: {
+            /** Balance */
+            balance: number;
+            /** Reserved */
+            reserved: number;
+            /** Free */
+            free: number;
         };
         /** Department */
         Department: {
@@ -2636,6 +2669,68 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    credit_summary_v1_credits_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreditSummary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

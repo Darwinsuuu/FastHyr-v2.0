@@ -32,7 +32,7 @@ TA users copy a tagged apply link for each job board with the right posting hint
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- PIPE-003 built the tiles: `ShareTiles` in `apps/web/components/pipelines/share-tiles.tsx` (8 sources, copied state, each board's hint) and `applyLink()` in `lib/pipelines/wizard.ts`. Wrap it in the share modal rather than building a second set.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

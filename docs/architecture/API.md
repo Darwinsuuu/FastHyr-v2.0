@@ -83,6 +83,7 @@ Headers: `Authorization: Bearer <supabase access token>` (except public), `X-Wor
 | `GET /billing/invoices?page=` · `GET /billing/invoices/{id}` | invoices |
 | `PUT /billing/details` | billing details |
 | `GET /billing/usage` · `GET /billing/ledger?page=` | Credit usage page (Admin, Recruiter read) |
+| `GET /credits/summary` | Admin, Recruiter: `{balance, reserved, free}`, where `free` is what a new reserve or top-up can take (the wizard's reserve check, PIPE-003) |
 
 ### Jobs
 | `POST /reports` `{kind, params}` · `GET /jobs/{id}` · `DELETE /jobs/{id}` · `GET /jobs/{id}/download-url` | PDF generation with progress |

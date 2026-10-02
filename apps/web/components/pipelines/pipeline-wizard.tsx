@@ -3,12 +3,18 @@
 import { ArrowLeftIcon, ArrowRightIcon, CaretLeftIcon } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { WizardDone } from "@/components/pipelines/wizard-done";
 import { InterviewStep } from "@/components/pipelines/wizard-interview-step";
+import { ReviewStep } from "@/components/pipelines/wizard-review-step";
 import { RoleStep } from "@/components/pipelines/wizard-role-step";
+import { ScheduleStep } from "@/components/pipelines/wizard-schedule-step";
+import { ScoringStep } from "@/components/pipelines/wizard-scoring-step";
 import { Button } from "@/components/ui/button";
+import { TypeToConfirmDialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stepper } from "@/components/ui/stepper";
@@ -16,10 +22,11 @@ import { useToast } from "@/components/ui/toast";
 import { ApiError, api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
 import { cn } from "@/lib/cn";
+import { formatDayLong } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import {
-  BUILT_STEPS,
   blockedHint,
+  CONFIRM_PHRASE,
   type DepartmentOption,
   defaultDepartment,
   departmentOptions,
@@ -27,9 +34,13 @@ import {
   formFromPipeline,
   isEditable,
   type Pipeline,
+  publishBlock,
+  publishErrorKey,
   saveErrorKey,
   setupFromForm,
   STEPS,
+  type StepId,
+  startOfDay,
   type WizardForm,
 } from "@/lib/pipelines/wizard";
 
@@ -37,8 +48,9 @@ const PIPELINES_PATH = "/pipelines";
 const SAVED_NOTE_MS = 3000;
 
 /**
- * The New pipeline wizard (PIPE-002). Without `pipelineId` it starts a new pipeline; the first
- * save creates the draft and moves the URL to its edit page. With one it loads that draft.
+ * The New pipeline wizard (PIPE-002, PIPE-003). Without `pipelineId` it starts a new pipeline;
+ * the first save creates the draft and moves the URL to its edit page. With one it loads that
+ * draft, or a scheduled pipeline whose setup can change until it opens.
  */
 export function PipelineWizardPage({ pipelineId }: { pipelineId?: string }) {
   const { workspace } = useShell();
@@ -59,6 +71,11 @@ export function PipelineWizardPage({ pipelineId }: { pipelineId?: string }) {
     // The wizard owns the form once it opens; don't refetch underneath it.
     staleTime: Infinity,
   });
+  // For the reserve check; a failure only skips the check here (publishing still checks).
+  const credits = useQuery({
+    queryKey: keys.creditSummary(workspace.id),
+    queryFn: async () => unwrap(await api.GET("/v1/credits/summary")),
+  });
 
   if (departments.isError || pipeline.isError) {
     const notFound = pipeline.error instanceof ApiError && pipeline.error.status === 404;
@@ -71,7 +88,9 @@ export function PipelineWizardPage({ pipelineId }: { pipelineId?: string }) {
       </Centered>
     );
   }
-  if (!departments.data || (pipelineId && !pipeline.data)) return <WizardSkeleton />;
+  if (!departments.data || (pipelineId && !pipeline.data) || credits.isPending) {
+    return <WizardSkeleton />;
+  }
   if (pipeline.data && !isEditable(pipeline.data)) return <Locked />;
 
   const options = departmentOptions(
@@ -85,6 +104,7 @@ export function PipelineWizardPage({ pipelineId }: { pipelineId?: string }) {
       departments={options}
       isAdmin={isAdmin}
       initialDepartment={defaultDepartment(options, isAdmin)}
+      freeCredits={credits.data?.free ?? null}
     />
   );
 }
@@ -94,23 +114,32 @@ function PipelineWizard({
   departments,
   isAdmin,
   initialDepartment,
+  freeCredits,
 }: {
   initial: Pipeline | null;
   departments: DepartmentOption[];
   isAdmin: boolean;
   initialDepartment: string | null;
+  freeCredits: number | null;
 }) {
   const { workspace } = useShell();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const toast = useToast();
   const [form, setForm] = useState<WizardForm>(() =>
-    initial ? formFromPipeline(initial) : emptyForm(initialDepartment),
+    initial ? formFromPipeline(initial) : emptyForm(initialDepartment, freeCredits),
   );
+  // Editing a scheduled pipeline: no publish, its open mode and reserve stay as they are.
+  const scheduled =
+    initial?.status === "scheduled" ? { reserved: initial.credits_reserved } : undefined;
+  const bodyOptions = { scheduled: Boolean(scheduled) };
   const [pipelineId, setPipelineId] = useState(initial?.id ?? null);
   // The body last saved, so unchanged steps don't save again.
   const [savedBody, setSavedBody] = useState(() =>
-    initial ? JSON.stringify(setupFromForm(formFromPipeline(initial))) : null,
+    initial ? JSON.stringify(setupFromForm(formFromPipeline(initial), bodyOptions)) : null,
   );
+  const [confirming, setConfirming] = useState(false);
+  const [published, setPublished] = useState<Pipeline | null>(null);
   const [step, setStep] = useState(0);
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -122,12 +151,16 @@ function PipelineWizard({
 
   const update = (changes: Partial<WizardForm>) =>
     setForm((current) => ({ ...current, ...changes }));
-  const blocked = blockedHint(form, step);
+  const stepId = STEPS[step] ?? "role";
+  const isReview = stepId === "review";
+  const blocked = isReview ? publishBlock(form, freeCredits, bodyOptions) : blockedHint(form, step);
   const isNew = !initial || initial.status === "draft";
+  const later = form.open_mode === "scheduled";
+  const opensLabel = later && form.opens_on ? formatDayLong(startOfDay(form.opens_on)) : "";
 
   /** Saves the draft if anything changed. Returns false when the save failed. */
   async function save(): Promise<boolean> {
-    const body = setupFromForm(form);
+    const body = setupFromForm(form, bodyOptions);
     const serialized = JSON.stringify(body);
     if (pipelineId && serialized === savedBody) return true;
     setSaving(true);
@@ -167,24 +200,91 @@ function PipelineWizard({
     window.scrollTo({ top: 0 });
   }
 
-  function onContinue() {
+  async function onContinue() {
     if (blocked) {
       setTried(true);
       return;
     }
-    void goTo(step + 1);
+    if (!isReview) {
+      void goTo(step + 1);
+      return;
+    }
+    if (saving || !(await save())) return;
+    if (scheduled) {
+      toast({
+        title: t("pipelines.wizard.publish.changesSaved", {
+          title: form.title.trim(),
+          date: opensLabel,
+        }),
+      });
+      router.push(PIPELINES_PATH);
+      return;
+    }
+    setConfirming(true);
   }
 
+  /** Publishes the saved draft. Throwing keeps the confirm dialog open. */
+  async function publish() {
+    if (!pipelineId) return;
+    try {
+      const result = unwrap(
+        await api.POST("/v1/pipelines/{pipeline_id}/publish", {
+          params: { path: { pipeline_id: pipelineId } },
+          body: { confirm: CONFIRM_PHRASE },
+        }),
+      );
+      queryClient.setQueryData(keys.pipeline(workspace.id, result.id), result);
+      void queryClient.invalidateQueries({ queryKey: keys.creditSummary(workspace.id) });
+      setPublished(result);
+      window.scrollTo({ top: 0 });
+    } catch (error) {
+      toast({ title: t(publishErrorKey(error)), tone: "error" });
+      throw error;
+    }
+  }
+
+  function editStep(target: StepId) {
+    void goTo(STEPS.indexOf(target));
+  }
+
+  function createAnother() {
+    // Start over on a blank form; the first save creates the next draft.
+    setForm(emptyForm(initialDepartment, freeCredits));
+    setPipelineId(null);
+    setSavedBody(null);
+    setPublished(null);
+    setStep(0);
+    setTried(false);
+    window.history.replaceState(null, "", `${PIPELINES_PATH}/new`);
+  }
+
+  if (published) {
+    return (
+      <WizardDone
+        pipeline={published}
+        workspaceSlug={workspace.slug}
+        pipelinesPath={PIPELINES_PATH}
+        onCreateAnother={createAnother}
+      />
+    );
+  }
   if (locked) return <Locked />;
 
-  const stepId = STEPS[step] ?? "role";
-  const built = step < BUILT_STEPS;
   const nextId = STEPS[step + 1];
   const hint = blocked
     ? t(blocked)
     : nextId
       ? t("pipelines.wizard.next", { step: t(`pipelines.wizard.steps.${nextId}.label`) })
-      : null;
+      : later
+        ? t("pipelines.wizard.publish.hintLater", { date: opensLabel })
+        : t("pipelines.wizard.publish.hintNow");
+  const primaryLabel = !isReview
+    ? t("pipelines.wizard.continue")
+    : scheduled
+      ? t("pipelines.wizard.publish.saveChanges")
+      : later
+        ? t("pipelines.wizard.publish.schedule")
+        : t("pipelines.wizard.publish.publish");
 
   return (
     <div className="flex min-h-[calc(100dvh-56px)] flex-col md:min-h-[calc(100dvh-64px)] lg:min-h-dvh">
@@ -203,10 +303,14 @@ function PipelineWizard({
         </div>
         <div className="flex items-center gap-2">
           <span role="status" className="mr-auto text-[13px] text-ink-muted sm:mr-1">
-            {saving ? t("pipelines.wizard.saving") : savedNote ? t("pipelines.wizard.saved") : ""}
+            {saving
+              ? t("pipelines.wizard.saving")
+              : savedNote
+                ? t(scheduled ? "pipelines.wizard.savedScheduled" : "pipelines.wizard.saved")
+                : ""}
           </span>
           <Button variant="secondary" size="sm" disabled={saving} onClick={() => void save()}>
-            {t("pipelines.wizard.saveDraft")}
+            {t(scheduled ? "pipelines.wizard.saveScheduled" : "pipelines.wizard.saveDraft")}
           </Button>
           <Link
             href={PIPELINES_PATH}
@@ -256,11 +360,23 @@ function PipelineWizard({
               />
             )}
             {stepId === "interview" && <InterviewStep form={form} update={update} tried={tried} />}
-            {!built && (
-              <EmptyState
-                title={t("pipelines.wizard.comingTitle")}
-                description={t("pipelines.wizard.comingBody")}
-                action={<BackToPipelines />}
+            {stepId === "scoring" && <ScoringStep form={form} update={update} tried={tried} />}
+            {stepId === "schedule" && (
+              <ScheduleStep
+                form={form}
+                update={update}
+                tried={tried}
+                freeCredits={freeCredits}
+                scheduled={scheduled}
+              />
+            )}
+            {stepId === "review" && (
+              <ReviewStep
+                form={form}
+                departments={departments}
+                freeCredits={freeCredits}
+                scheduled={scheduled}
+                onEdit={editStep}
               />
             )}
           </div>
@@ -279,7 +395,7 @@ function PipelineWizard({
                 blocked && tried ? "text-signal-gap" : "text-ink-muted",
               )}
             >
-              {built ? hint : null}
+              {hint}
             </p>
           )}
           <div className="flex items-center justify-between gap-3 sm:contents">
@@ -292,20 +408,40 @@ function PipelineWizard({
             >
               {t("pipelines.wizard.previous")}
             </Button>
-            {built && (
-              <Button
-                aria-describedby={hint ? "wizard-next-hint" : undefined}
-                loading={saving}
-                onClick={onContinue}
-                className="sm:order-3"
-              >
-                {t("pipelines.wizard.continue")}
-                <ArrowRightIcon aria-hidden="true" className="size-4" />
-              </Button>
-            )}
+            <Button
+              aria-describedby={hint ? "wizard-next-hint" : undefined}
+              loading={saving}
+              side={isReview && !scheduled ? "candidate" : "ta"}
+              onClick={() => void onContinue()}
+              className="sm:order-3"
+            >
+              {primaryLabel}
+              {!isReview && <ArrowRightIcon aria-hidden="true" className="size-4" />}
+            </Button>
           </div>
         </div>
       </footer>
+
+      <TypeToConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        phrase={CONFIRM_PHRASE}
+        title={
+          later
+            ? t("pipelines.wizard.publish.dialogLaterTitle")
+            : t("pipelines.wizard.publish.dialogNowTitle")
+        }
+        description={
+          later
+            ? t("pipelines.wizard.publish.dialogLaterBody", { date: opensLabel })
+            : t("pipelines.wizard.publish.dialogNowBody")
+        }
+        confirmLabel={primaryLabel}
+        cancelLabel={t("pipelines.wizard.publish.goBack")}
+        destructive={false}
+        side="candidate"
+        onConfirm={publish}
+      />
     </div>
   );
 }

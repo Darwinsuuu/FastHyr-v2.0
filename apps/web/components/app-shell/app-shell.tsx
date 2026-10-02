@@ -142,6 +142,7 @@ export function AppShell({
       name: row.name,
       role: row.role,
       memberCount: row.member_count,
+      slug: row.slug,
     }));
     const workspace = rows.find((row) => row.id === workspaceId);
     if (!workspace) return null;

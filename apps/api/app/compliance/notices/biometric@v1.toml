@@ -1,0 +1,14 @@
+# Biometric consent: the second checkbox on the device check, shown for video interviews with
+# integrity checks (S-01, ADR-016, PRIVACY.md §3). Released texts are never edited. To change it,
+# copy this file to biometric@v2.toml, edit the copy, then run
+# `python -m app.compliance.notices lock` (COMP-002).
+
+statement = "I agree that FastHyr may compare my face across this session to confirm it’s the same person. Face data isn’t stored after the check."
+
+details = [
+  "During the interview, FastHyr compares your face at a few moments to confirm the same person takes the whole interview.",
+  "The comparison happens during the session. Face data is deleted straight after; only the result is kept.",
+  "The result is never used to score you, and it never rejects anyone on its own. A person on the {company} team reviews it.",
+]
+
+links = ["ai_in_hiring", "privacy"]

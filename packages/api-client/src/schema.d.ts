@@ -469,6 +469,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/public/notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Current Notices
+         * @description The current version of every notice.
+         */
+        get: operations["get_current_notices_v1_public_notices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/notices/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Current Notice
+         * @description The current version of one notice.
+         */
+        get: operations["get_current_notice_v1_public_notices__kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/notices/{kind}/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notice Version
+         * @description One released version, current or not. Unknown is 404.
+         */
+        get: operations["get_notice_version_v1_public_notices__kind___version__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -756,6 +816,15 @@ export interface components {
             /** Free */
             free: number;
         };
+        /**
+         * CurrentNotices
+         * @description The current version of every notice.
+         */
+        CurrentNotices: {
+            apply: components["schemas"]["Notice"];
+            interview: components["schemas"]["Notice"];
+            biometric: components["schemas"]["Notice"];
+        };
         /** Department */
         Department: {
             /**
@@ -1018,6 +1087,34 @@ export interface components {
             is_owner: boolean;
             /** Member Count */
             member_count: number;
+        };
+        /**
+         * Notice
+         * @description A versioned candidate notice (FR-COMP-01). The page fills `{company}` and each `choices`
+         *     key (e.g. `{interview}` with `choices.interview[pipeline.interview_format]`).
+         */
+        Notice: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "apply" | "interview" | "biometric";
+            /** Version */
+            version: number;
+            /** Statement */
+            statement: string;
+            /** Details */
+            details: string[];
+            /** Links */
+            links: ("privacy" | "ai_in_hiring" | "terms")[];
+            /** Choices */
+            choices: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
         };
         /** Pipeline */
         Pipeline: {
@@ -3211,6 +3308,191 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicPipeline"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_current_notices_v1_public_notices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentNotices"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_current_notice_v1_public_notices__kind__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "apply" | "interview" | "biometric";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notice"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_notice_version_v1_public_notices__kind___version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "apply" | "interview" | "biometric";
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notice"];
                 };
             };
             /** @description Unauthorized */

@@ -1,0 +1,2 @@
+# Released candidate notices are hashed byte for byte (COMP-002): never convert their line endings.
+apps/api/app/compliance/notices/* -text

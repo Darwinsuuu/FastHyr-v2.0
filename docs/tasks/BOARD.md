@@ -73,7 +73,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
 | [APPLY-001](APPLY/APPLY-001-public-apply-page.md) | Public apply page | M | PIPE-001, WS-001, FND-012 | Done | |
-| [APPLY-002](APPLY/APPLY-002-candidate-sign-in-on-the-apply-page.md) | Candidate sign-in on the apply page | S | APPLY-001, AUTH-001 | In review | |
+| [APPLY-002](APPLY/APPLY-002-candidate-sign-in-on-the-apply-page.md) | Candidate sign-in on the apply page | S | APPLY-001, AUTH-001 | Done | |
 | [APPLY-003](APPLY/APPLY-003-application-submission-and-credit-use.md) | Application submission and credit use | L | APPLY-002, FND-011, BILL-002, COMP-002 | Backlog | |
 | [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | Backlog | |
 | [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Ready | |
@@ -83,7 +83,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Ready | |
 | [MSG-002](MSG/MSG-002-email-templates-list-and-editor.md) | Email templates list and editor | M | MSG-001, DASH-001 | Backlog | |
 | [MSG-003](MSG/MSG-003-email-scheduling-and-sending-engine.md) | Email scheduling and sending engine | M | MSG-001, FND-008 | Backlog | |
-| [COMP-002](COMP/COMP-002-notices-and-consent-versioning.md) | Notices and consent versioning | S | FND-004 | Ready | |
+| [COMP-002](COMP/COMP-002-notices-and-consent-versioning.md) | Notices and consent versioning | S | FND-004 | In review | |
 
 ## M4 AI interview
 

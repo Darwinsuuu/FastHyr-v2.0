@@ -81,7 +81,7 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 **interview_plans** — `application_id` PK, `workspace_id`, `topics jsonb` (ordered: title, goal, seeds[{question, resume_quote}], skills), `claims_to_verify jsonb`, `instructions_version`, `model`, `prompt_version`, `created_at`.
 
 ### Interviews
-**interviews** — `id`, `workspace_id`, `application_id`, `token_hash` (link token), `format`, `status` (`not_started|in_progress|abandoned|completed|expired`), `drop_reason` (`link_expired|left_unfinished|technical_issue|null`), `invited_at`, `expires_at`, `reminder_sent_at`, `started_at`, `completed_at`, `talk_seconds`, `consent_version`, `consent_at`, `biometric_consent bool`, `recording_path` (final), `recording_status` (`none|uploading|finalizing|ready|failed`), `duration_seconds`, `feedback_rating` (1–5), `feedback_comment`, `superseded_by` (re-invite).
+**interviews** — `id`, `workspace_id`, `application_id`, `token_hash` (link token), `format`, `status` (`not_started|in_progress|abandoned|completed|expired`), `drop_reason` (`link_expired|left_unfinished|technical_issue|null`), `invited_at`, `expires_at`, `reminder_sent_at`, `started_at`, `completed_at`, `talk_seconds`, `consent_version`, `consent_at`, `biometric_consent_version` (null = not given; the biometric notice id, COMP-002), `recording_path` (final), `recording_status` (`none|uploading|finalizing|ready|failed`), `duration_seconds`, `feedback_rating` (1–5), `feedback_comment`, `superseded_by` (re-invite).
 
 **interview_attempts** — `id`, `workspace_id`, `interview_id`, `realtime_session_id`, `started_at`, `ended_at`, `end_reason` (`candidate_ended|wrap_up|time_cap|disconnect|error`), `talk_seconds`.
 

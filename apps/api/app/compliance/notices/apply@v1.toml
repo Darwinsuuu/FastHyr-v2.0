@@ -1,0 +1,19 @@
+# Apply consent: the checkbox on the application form (frame Apply, PRIVACY.md §3).
+# Released texts are never edited. To change it, copy this file to apply@v2.toml, edit the copy,
+# then run `python -m app.compliance.notices lock` (COMP-002).
+
+statement = "I agree that {company} can review my application with FastHyr. If my résumé is a match, I’ll be invited to {interview} that’s recorded and shared with the {company} hiring team."
+
+details = [
+  "{company} uses FastHyr to review applications. AI checks your résumé only against what this role needs.",
+  "Your name, photo, address, age, gender, school and graduation year are never used to assess you.",
+  "If your résumé is a match, we email you a link to {interview}. It’s recorded, and the recording, transcript and assessment are shared only with the {company} hiring team.",
+  "A person on the {company} team makes every hiring decision.",
+  "If AI decides your résumé isn’t a match, you can ask for a person to review it. You can also ask {company} for an accommodation, or ask for your data to be deleted.",
+]
+
+links = ["privacy", "ai_in_hiring"]
+
+[choices.interview]
+video_voice = "an AI interview by video and voice"
+voice_only = "an AI interview by voice"

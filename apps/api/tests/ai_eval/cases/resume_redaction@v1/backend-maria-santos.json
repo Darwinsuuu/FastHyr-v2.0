@@ -1,0 +1,36 @@
+{
+  "pair": "backend",
+  "variables": {
+    "resume_text": "MARIA SANTOS\nSenior Backend Engineer\nmaria.santos@example.com | +63 918 765 4321 | linkedin.com/in/mariasantos\nAddress: 88 Ayala Avenue, Makati City\n\nSummary\nBackend engineer with nine years building payment and logistics APIs. She enjoys turning slow, fragile services into fast, well-tested ones.\n\nWork experience\nSenior Backend Engineer, Lakbay Logistics, Manila\nMarch 2019 - present\n- Led the move of the order service from a monolith to Python services on Kubernetes, cutting p95 latency from 900 ms to 180 ms.\n- Designed the PostgreSQL partitioning scheme for 1.2 billion shipment events.\n- Mentored four engineers; ran the on-call rotation.\n\nBackend Engineer, PayLink Philippines, Taguig\nJune 2015 - February 2019\n- Built the card tokenisation API in Go handling 3,000 requests per second.\n- Introduced contract tests that cut production incidents by 40%.\n\nEducation\nAteneo de Manila University\nBachelor of Science in Computer Science, 2003\n\nSkills\nPython, Go, PostgreSQL, Redis, Kafka, Kubernetes, AWS, system design\n\nReferences\nAvailable on request from Engr. Liza Tan.",
+    "full_name": "Maria Santos"
+  },
+  "must_remove": [
+    "Maria Santos",
+    "maria.santos@example.com",
+    "+63 918 765 4321",
+    "mariasantos",
+    "88 Ayala Avenue, Makati City",
+    "Ateneo de Manila University",
+    "Computer Science, 2003",
+    "Liza Tan"
+  ],
+  "must_keep": [
+    "Python",
+    "PostgreSQL",
+    "March 2019 - present"
+  ],
+  "fake_spans": [
+    {
+      "kind": "name",
+      "text": "Liza Tan"
+    },
+    {
+      "kind": "gender",
+      "text": "She"
+    },
+    {
+      "kind": "school",
+      "text": "Ateneo de Manila University"
+    }
+  ]
+}

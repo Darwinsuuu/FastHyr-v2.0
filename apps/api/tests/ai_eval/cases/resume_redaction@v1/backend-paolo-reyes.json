@@ -1,0 +1,36 @@
+{
+  "pair": "backend",
+  "variables": {
+    "resume_text": "PAOLO REYES\nSenior Backend Engineer\npaolo.reyes@example.com | +63 917 123 4567 | linkedin.com/in/paoloreyes\nAddress: 12 Mabini Street, Quezon City\n\nSummary\nBackend engineer with nine years building payment and logistics APIs. He enjoys turning slow, fragile services into fast, well-tested ones.\n\nWork experience\nSenior Backend Engineer, Lakbay Logistics, Manila\nMarch 2019 - present\n- Led the move of the order service from a monolith to Python services on Kubernetes, cutting p95 latency from 900 ms to 180 ms.\n- Designed the PostgreSQL partitioning scheme for 1.2 billion shipment events.\n- Mentored four engineers; ran the on-call rotation.\n\nBackend Engineer, PayLink Philippines, Taguig\nJune 2015 - February 2019\n- Built the card tokenisation API in Go handling 3,000 requests per second.\n- Introduced contract tests that cut production incidents by 40%.\n\nEducation\nUniversity of the Philippines Diliman\nBachelor of Science in Computer Science, 2014\n\nSkills\nPython, Go, PostgreSQL, Redis, Kafka, Kubernetes, AWS, system design\n\nReferences\nAvailable on request from Engr. Ramon Cruz.",
+    "full_name": "Paolo Reyes"
+  },
+  "must_remove": [
+    "Paolo Reyes",
+    "paolo.reyes@example.com",
+    "+63 917 123 4567",
+    "paoloreyes",
+    "12 Mabini Street, Quezon City",
+    "University of the Philippines Diliman",
+    "Computer Science, 2014",
+    "Ramon Cruz"
+  ],
+  "must_keep": [
+    "Python",
+    "PostgreSQL",
+    "March 2019 - present"
+  ],
+  "fake_spans": [
+    {
+      "kind": "name",
+      "text": "Ramon Cruz"
+    },
+    {
+      "kind": "gender",
+      "text": "He"
+    },
+    {
+      "kind": "school",
+      "text": "University of the Philippines Diliman"
+    }
+  ]
+}

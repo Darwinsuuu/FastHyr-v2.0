@@ -17,6 +17,7 @@ from app.models.identity import (
 )
 from app.models.jobs import ReportJob
 from app.models.pipelines import Pipeline
+from app.models.screening import ResumeText
 
 __all__ = [
     "AICall",
@@ -34,6 +35,7 @@ __all__ = [
     "Pipeline",
     "Profile",
     "ReportJob",
+    "ResumeText",
     "Workspace",
     "WorkspaceMember",
 ]

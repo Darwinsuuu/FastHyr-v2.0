@@ -88,3 +88,26 @@ def hostile_pdf() -> bytes:
     )
     pdf.Root.AcroForm = Dictionary(Fields=Array(), XFA=pdf.make_stream(b"<xdp/>"))
     return _save(pdf)
+
+
+def _escape(text: str) -> bytes:
+    return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)").encode("latin-1")
+
+
+def text_pdf(*pages: list[tuple[float, float, str]]) -> bytes:
+    """A PDF with text placed at (x, y) points from the top-left of a US Letter page, one list of
+    placements per page, so tests can lay out single-column, two-column or table-like résumés."""
+    pdf = pikepdf.new()
+    for placements in pages:
+        stream = b"".join(
+            b"BT /F1 10 Tf %.1f %.1f Td (%s) Tj ET\n" % (x, 792 - y, _escape(text))
+            for x, y, text in placements
+        )
+        page = pdf.add_blank_page(page_size=(612, 792))
+        page.obj["/Contents"] = pdf.make_stream(stream)
+        page.obj["/Resources"] = Dictionary(
+            Font=Dictionary(
+                F1=Dictionary(Type=Name.Font, Subtype=Name.Type1, BaseFont=Name.Helvetica)
+            )
+        )
+    return _save(pdf)

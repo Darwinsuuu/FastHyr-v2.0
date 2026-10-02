@@ -1,0 +1,27 @@
+{
+  "pair": "fresh-graduate",
+  "variables": {
+    "resume_text": "Aisha Rahman\nJunior Data Analyst\nEmail: aisha.rahman@example.com\nMobile: 0918 555 0202\nDate of birth: 2 November 1994\nGender: Female\nCivil status: Single\nNationality: Filipino\n\nObjective\nRecent graduate looking for a junior data analyst role where I can use SQL and Python to help a team make better decisions.\n\nEducation\nMindanao State University\nBS Statistics, Class of 2016\nThesis: Forecasting rice prices with ARIMA models\n\nProjects\n- Built a dashboard in Power BI tracking jeepney ridership for a city transport study.\n- Cleaned and analysed 200,000 survey rows in Python (pandas) for a public health NGO.\n\nExperience\nData Intern, Kalinga Health Foundation\nJune 2023 - August 2023\n- Automated a weekly Excel report with Python, saving the team six hours a week.\n\nSkills\nSQL, Python, pandas, Power BI, Excel, statistics",
+    "full_name": "Aisha Rahman"
+  },
+  "must_remove": [
+    "Aisha Rahman",
+    "aisha.rahman@example.com",
+    "0918 555 0202",
+    "2 November 1994",
+    "Female",
+    "Mindanao State University",
+    "Class of 2016"
+  ],
+  "must_keep": [
+    "Python",
+    "pandas",
+    "June 2023 - August 2023"
+  ],
+  "fake_spans": [
+    {
+      "kind": "school",
+      "text": "Mindanao State University"
+    }
+  ]
+}

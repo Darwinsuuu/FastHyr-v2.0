@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M2 Pipelines |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [FND-003](../FND/FND-003-core-schema-identity-workspaces-members-department.md), [FND-008](../FND/FND-008-background-worker-and-job-framework.md), [BILL-002](../BILL/BILL-002-credit-ledger-service.md) |
 | Requirements | FR-PIPE-07, FR-PIPE-15 |

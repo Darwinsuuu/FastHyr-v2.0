@@ -83,10 +83,16 @@ def test_admin_lists_departments_with_counts(tenancy: Tenancy) -> None:
 
 def test_other_roles_see_names_only_and_cannot_write(tenancy: Tenancy) -> None:
     department_id = tenancy.workspace("a").department_id
+    create(tenancy, "Sales")
+    # Admins work in every department; the others only in their own (PIPE-002's picker).
+    assert [d["assigned"] for d in listing(tenancy)["departments"]] == [True, True]
     for role in (Role.RECRUITER, Role.HIRING_MANAGER):
         body = listing(tenancy, role)
         assert body["no_department"] is None
-        assert [(d["name"], d["stats"]) for d in body["departments"]] == [("Engineering", None)]
+        assert [(d["name"], d["assigned"], d["stats"]) for d in body["departments"]] == [
+            ("Engineering", True, None),
+            ("Sales", False, None),
+        ]
 
         client = tenancy.client("a", role)
         for response in (

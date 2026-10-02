@@ -23,6 +23,7 @@ const LIST: DepartmentList = {
       name: "Engineering",
       description: "Platform and QA",
       created_at: "2026-09-29T00:00:00Z",
+      assigned: true,
       stats: stats(4, 0, 2, 3),
     },
     {
@@ -30,6 +31,7 @@ const LIST: DepartmentList = {
       name: "Operations",
       description: null,
       created_at: "2026-09-29T00:00:00Z",
+      assigned: true,
       stats: stats(0, 0, 0, 1),
     },
   ],

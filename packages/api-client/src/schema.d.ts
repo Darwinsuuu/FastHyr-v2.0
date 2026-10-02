@@ -596,6 +596,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Assigned */
+            assigned: boolean;
             stats?: components["schemas"]["DepartmentStats"] | null;
         };
         /**

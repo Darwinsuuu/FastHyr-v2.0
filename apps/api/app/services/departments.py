@@ -49,7 +49,9 @@ async def list_departments(session: AsyncSession, ctx: RequestContext) -> Depart
     repo = DepartmentRepository(session, ctx.workspace_id)
     rows = await repo.list_all()
     if can(ctx, Action.MANAGE_WORKSPACE) is None:
-        return DepartmentList(departments=[_department(row) for row in rows])
+        return DepartmentList(
+            departments=[_department(row, assigned=row.id in ctx.department_ids) for row in rows]
+        )
 
     counts: dict[uuid.UUID | None, PipelineCounts] = defaultdict(PipelineCounts)
     for department_id, status, count in await repo.pipeline_status_counts():
@@ -148,12 +150,15 @@ async def _check_name(
         raise DepartmentNameTakenError()
 
 
-def _department(row: DepartmentRow, stats: DepartmentStats | None = None) -> Department:
+def _department(
+    row: DepartmentRow, stats: DepartmentStats | None = None, *, assigned: bool = True
+) -> Department:
     return Department(
         id=row.id,
         name=row.name,
         description=row.description,
         created_at=row.created_at,
+        assigned=assigned,
         stats=stats,
     )
 

@@ -21,8 +21,17 @@ export interface StepperProps {
   orientation?: "vertical" | "horizontal";
   /** Names the list for screen readers, e.g. "New pipeline steps". */
   label: string;
+  /** Vertical only: where the full stepper replaces the compact header. The wizard uses `xl`, where the app sidebar leaves room for it. */
+  expandAt?: "md" | "lg" | "xl";
   className?: string;
 }
+
+// Static class names so Tailwind sees them: [compact header, full stepper].
+const EXPAND: Record<"md" | "lg" | "xl", [string, string]> = {
+  md: ["md:hidden", "hidden md:flex"],
+  lg: ["lg:hidden", "hidden lg:flex"],
+  xl: ["xl:hidden", "hidden xl:flex"],
+};
 
 type State = "done" | "current" | "upcoming";
 
@@ -68,8 +77,10 @@ export function Stepper({
   onStepClick,
   orientation = "vertical",
   label,
+  expandAt = "md",
   className,
 }: StepperProps) {
+  const [compactClass, fullClass] = EXPAND[expandAt];
   if (orientation === "horizontal") {
     return (
       <div className={className}>
@@ -130,8 +141,8 @@ export function Stepper({
 
   return (
     <div className={className}>
-      <CompactStepper steps={steps} current={current} className="md:hidden" />
-      <ol aria-label={label} className="hidden flex-col gap-1 md:flex">
+      <CompactStepper steps={steps} current={current} className={compactClass} />
+      <ol aria-label={label} className={cn("flex-col gap-1", fullClass)}>
         {steps.map((step, index) => {
           const state = stateOf(index, current);
           const clickable = Boolean(onStepClick) && state === "done";

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M2 Pipelines |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md), [DASH-001](../DASH/DASH-001-app-shell.md) |
 | Requirements | FR-PIPE-08 |

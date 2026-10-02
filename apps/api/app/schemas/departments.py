@@ -57,6 +57,9 @@ class Department(BaseModel):
     name: str
     description: str | None
     created_at: datetime
+    # Whether the caller works in this department: true for every department for Admins, and for
+    # a Recruiter or Hiring manager's own departments. Pipelines can only be filed under these.
+    assigned: bool
     # Only for Admins (the Departments page); other roles get names for pickers and filters.
     stats: DepartmentStats | None = None
 

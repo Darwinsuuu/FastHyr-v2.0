@@ -141,6 +141,50 @@ PIPELINE_OWNERS = {
 CLOSED_ON_SCHEDULE = {"QA Automation Engineer", "Office Administrator"}
 
 
+# A full job description in the shape TA teams paste (headings and bullet lists), so the apply
+# page (APPLY-001) has something realistic to show. Other pipelines get a one-line sample.
+FULL_JDS = {
+    "Senior Backend Engineer": "\n".join(
+        (
+            (
+                "You'll join the platform team at Acme Talent, the group that builds and runs the"
+                " services and databases behind our core product."
+            ),
+            "",
+            (
+                "This is a senior role with real ownership. You'll take problems from a rough "
+                "idea to a running service, make the technical calls along the way, and help the "
+                "people around you do their best work."
+            ),
+            "",
+            "What you'll do",
+            (
+                "- Design, build and run backend services in Go that other teams depend on every "
+                "day."
+            ),
+            "- Keep our PostgreSQL databases fast and reliable as data and traffic grow.",
+            (
+                "- Own services in production: monitoring, incident response and clear, blameless"
+                " reviews."
+            ),
+            "- Review code, pair with teammates and help newer engineers grow.",
+            "",
+            "What you'll bring",
+            "- Several years building and running backend systems in production.",
+            "- Strong experience with Go or Java, and willingness to work mainly in Go.",
+            "- Hands-on experience with PostgreSQL or another relational database at scale.",
+            "- Clear written and spoken communication in English.",
+            "",
+            "What we offer",
+            "- Competitive pay, reviewed every year.",
+            "- HMO coverage for you, with the option to add dependents.",
+            "- A yearly learning budget for courses, books and conferences.",
+            "- Sample job description for local development.",
+        )
+    ),
+}
+
+
 def pipeline_setup(sample: SamplePipeline, index: int, now: datetime) -> dict[str, object]:
     """A complete, plausible setup for a sample pipeline, with dates that fit its status."""
     setup: dict[str, object] = {
@@ -148,10 +192,11 @@ def pipeline_setup(sample: SamplePipeline, index: int, now: datetime) -> dict[st
         "employment_type": "full_time",
         "work_setup": ("hybrid", "remote", "on_site")[index % 3],
         "location": "Makati City, Metro Manila",
-        "jd_text": (
+        "jd_text": FULL_JDS.get(
+            sample.title,
             f"Acme Talent is hiring a {sample.title} to join a growing team. You'll own your work "
             "end to end, collaborate across teams and help shape how we build. Sample job "
-            "description for local development."
+            "description for local development.",
         ),
         "must_haves": ["2+ years in a similar role", "Clear written English", "Team player"],
         "nice_to_haves": ["Startup experience"],

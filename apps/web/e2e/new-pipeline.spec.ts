@@ -184,6 +184,22 @@ test("a pipeline is published with its weights adding up to 100 and a reserve wi
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied).toMatch(/\/apply\/[a-z0-9-]+\/support-team-lead\?source=linkedin$/);
 
+  // The copied link opens the public apply page (APPLY-001) without the hidden criteria.
+  const applyPage = await context.newPage();
+  await applyPage.goto(copied);
+  await expect(
+    applyPage.getByRole("heading", { level: 1, name: "Support Team Lead" }),
+  ).toBeVisible();
+  await expect(applyPage.getByText(/^Accepting applications · closes /)).toBeVisible();
+  await expect(applyPage.getByText("Lead our support team across chat and email.")).toBeVisible();
+  await expect(applyPage.getByText("Zendesk")).toHaveCount(0);
+  await expect(applyPage.getByText("De-escalation")).toHaveCount(0);
+  await expect(applyPage.getByRole("button", { name: "Apply now" }).first()).toBeEnabled();
+  await expect
+    .poll(() => applyPage.evaluate(() => Object.values({ ...sessionStorage })))
+    .toContain("linkedin");
+  await applyPage.close();
+
   // The live pipeline's setup is locked.
   const pipelineId = page.url().match(/pipelines\/([0-9a-f-]{36})/)?.[1];
   await page.goto(new URL(`/pipelines/${pipelineId}/edit`, page.url()).toString());

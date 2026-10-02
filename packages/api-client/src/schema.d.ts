@@ -449,6 +449,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/public/pipelines/{workspace_slug}/{pipeline_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Public Pipeline
+         * @description Apply page data: candidate-safe pipeline fields, availability and the company profile.
+         */
+        get: operations["get_public_pipeline_v1_public_pipelines__workspace_slug___pipeline_slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -1204,6 +1224,69 @@ export interface components {
             errors?: {
                 [key: string]: unknown;
             }[] | null;
+        };
+        /** PublicCompany */
+        PublicCompany: {
+            /** Name */
+            name: string;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Website */
+            website: string | null;
+            /** Industry */
+            industry: ("technology" | "finance" | "healthcare" | "bpo" | "retail" | "manufacturing" | "government" | "other") | null;
+            /** Company Size */
+            company_size: ("1-50" | "51-200" | "201-1000" | "1001-5000" | "5000+") | null;
+            /** Hq Country */
+            hq_country: string | null;
+            /** About */
+            about: string | null;
+            /** Careers Url */
+            careers_url: string | null;
+        };
+        /**
+         * PublicPipeline
+         * @description The apply page (FR-APPLY-01): candidate-safe fields only. Must-haves, nice-to-haves,
+         *     skills to probe and the rubric are never part of it.
+         */
+        PublicPipeline: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Workspace Slug */
+            workspace_slug: string;
+            /** Slug */
+            slug: string;
+            /**
+             * Availability
+             * @enum {string}
+             */
+            availability: "accepting" | "opens_later" | "not_accepting" | "closed";
+            /** Title */
+            title: string;
+            /** Department */
+            department: string | null;
+            /** Employment Type */
+            employment_type: ("full_time" | "part_time" | "contract" | "internship") | null;
+            /** Work Setup */
+            work_setup: ("on_site" | "hybrid" | "remote") | null;
+            /** Location */
+            location: string | null;
+            /** Jd Text */
+            jd_text: string;
+            /** Open To */
+            open_to: ("fresh_grads" | "career_changers" | "returners" | "no_degree" | "step_up" | "relocating")[];
+            /** Interview Format */
+            interview_format: ("video_voice" | "voice_only") | null;
+            /** Opens At */
+            opens_at: string | null;
+            /** Closes At */
+            closes_at: string | null;
+            /** Timezone */
+            timezone: string;
+            company: components["schemas"]["PublicCompany"];
         };
         /**
          * PublishRequest
@@ -3089,6 +3172,69 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_public_pipeline_v1_public_pipelines__workspace_slug___pipeline_slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_slug: string;
+                pipeline_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicPipeline"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

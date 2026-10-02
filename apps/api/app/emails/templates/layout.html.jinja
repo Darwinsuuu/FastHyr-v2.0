@@ -18,6 +18,8 @@
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 {%- if banner_url %}
 <tr><td style="padding:0 0 20px;"><img src="{{ banner_url }}" alt="{{ company or 'FastHyr' }}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;"></td></tr>
+{%- elif logo_url %}
+<tr><td style="padding:0 4px 20px;"><img src="{{ logo_url }}" alt="{{ company or 'FastHyr' }}" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:12px;"></td></tr>
 {%- else %}
 <tr><td style="padding:0 4px 20px;font-family:Georgia,serif;font-size:22px;font-weight:600;color:#1F4D43;">{{ company or "FastHyr" }}</td></tr>
 {%- endif %}

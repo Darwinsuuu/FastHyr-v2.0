@@ -36,6 +36,15 @@ class Button:
 
 
 @dataclass(frozen=True)
+class Branding:
+    """A company's email header: banner, else logo, else name (WS-001)."""
+
+    company_name: str
+    logo_url: str | None = None
+    banner_url: str | None = None
+
+
+@dataclass(frozen=True)
 class RenderedEmail:
     subject: str
     html: str
@@ -74,13 +83,15 @@ def render(
     site_url: str,
     company: str | None = None,
     banner_url: str | None = None,
+    logo_url: str | None = None,
     heading: str | None = None,
     preheader: str | None = None,
     button: Button | None = None,
     after_html: str | None = None,
 ) -> RenderedEmail:
     """Fills parameters, sanitises `body_html` and puts it in the layout. `company` makes it a
-    company email ("Sent by {company} via FastHyr"); without it the email is from FastHyr.
+    company email ("Sent by {company} via FastHyr"); without it the email is from FastHyr. The
+    header shows `banner_url`, else `logo_url`, else the company name.
     `after_html` is trusted markup from code (never user input), shown after the button."""
     values = parameters or {}
     subject_text = fill_parameters(subject, values, escape=False)
@@ -94,6 +105,7 @@ def render(
         after_html=Markup(after_html) if after_html else None,
         company=company,
         banner_url=banner_url,
+        logo_url=logo_url,
         site_url=site_url.rstrip("/"),
     )
     text_parts = [heading or "", html_to_text(body)]

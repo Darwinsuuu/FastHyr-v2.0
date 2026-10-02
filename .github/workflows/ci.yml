@@ -129,6 +129,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       # The fixed publishable key of every local Supabase install (`make db-status`).
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+      # The API signs Storage URLs (company logo, WS-001) with local Supabase's fixed secret key.
+      SUPABASE_SERVICE_ROLE_KEY: sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz
     services:
       # The job queue: the worker sends emails (invites) to Mailpit, which the journeys read.
       redis:

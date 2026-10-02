@@ -4,7 +4,7 @@ returns the rendered email; `services/emails.py` queues it."""
 from datetime import datetime
 from html import escape
 
-from app.emails.render import Button, RenderedEmail, render
+from app.emails.render import Branding, Button, RenderedEmail, render
 
 FROM_FASTHYR = "FastHyr"
 
@@ -46,15 +46,18 @@ def member_invite(
     )
 
 
-def test_email(*, site_url: str, workspace_name: str) -> RenderedEmail:
-    """A check that email reaches the sender's inbox, sent to their own address."""
+def test_email(*, site_url: str, branding: Branding) -> RenderedEmail:
+    """A check that email reaches the sender's inbox, sent to their own address. It carries the
+    company's branding, as candidate emails will."""
     return render(
         subject="FastHyr test email",
         heading="Your email works",
         body_html=(
             "<p>This is a test email from FastHyr. If you can read it, emails from "
-            f"{escape(workspace_name)} are reaching your inbox.</p>"
+            f"{escape(branding.company_name)} are reaching your inbox.</p>"
         ),
         site_url=site_url,
-        company=workspace_name,
+        company=branding.company_name,
+        banner_url=branding.banner_url,
+        logo_url=branding.logo_url,
     )

@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://127.0.0.1:6379"
     # Links in emails (FND-010) point at the site host.
     site_url: str = "http://fasthyr.localhost:3000"
+    # This API's public URL, for links that must reach it from outside: the company logo and
+    # banner in emails (WS-001).
+    api_url: str = "http://localhost:8000"
     # Email (FND-010, ADR-008). `auto` sends through Resend when RESEND_API_KEY is set, else to
     # local Mailpit over SMTP when APP_ENV is local, else only logs the message ID.
     email_backend: Literal["auto", "resend", "smtp", "log"] = "auto"

@@ -374,6 +374,127 @@
     },
     "builtInShort": "Built in"
   },
+  "companyProfile": {
+    "eyebrow": "Workspace admin",
+    "title": "Company profile",
+    "intro": "Tell candidates who you are. This information appears on your apply pages, the interview welcome screen and the emails candidates receive.",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "saved": "Company profile saved",
+    "unsaved": "You have unsaved changes",
+    "loadFailed": "We couldn't load the company profile. Refresh the page to try again.",
+    "brand": {
+      "title": "Brand",
+      "description": "Shown on apply pages, the interview welcome screen and every email you send."
+    },
+    "logo": {
+      "label": "Company logo",
+      "description": "Appears on your apply pages, invitations and emails.",
+      "hint": "SVG or PNG · square · at least 256 × 256 px · up to 2 MB",
+      "alt": "Your company logo",
+      "choose": "Upload a logo",
+      "replace": "Replace logo",
+      "remove": "Remove logo",
+      "willRemove": "The logo will be removed when you save.",
+      "undo": "Keep logo"
+    },
+    "banner": {
+      "label": "Email banner",
+      "description": "Shown at the top of every email candidates receive from you.",
+      "hint": "PNG or JPG · 1200 × 400 px recommended · up to 2 MB",
+      "alt": "Your email banner",
+      "choose": "Upload a banner",
+      "replace": "Replace banner",
+      "remove": "Remove banner",
+      "fallback": "No banner? Emails will show your logo instead.",
+      "willRemove": "The banner will be removed when you save.",
+      "undo": "Keep banner"
+    },
+    "upload": {
+      "click": "Click to upload",
+      "drag": "or drag and drop",
+      "dropped": "New, not saved yet",
+      "discard": "Don't use this file"
+    },
+    "name": {
+      "label": "Company name",
+      "description": "The name candidates will recognise, usually your trading name.",
+      "placeholder": "e.g. Acme Corporation"
+    },
+    "website": {
+      "label": "Website",
+      "description": "Linked from your apply pages so candidates can learn more.",
+      "placeholder": "yourcompany.com"
+    },
+    "details": {
+      "title": "Company details",
+      "description": "Helps FastHyr tailor interview questions to your industry and schedule follow-ups in the right time zone."
+    },
+    "industry": {
+      "label": "Industry",
+      "placeholder": "Select an industry",
+      "options": {
+        "technology": "Technology",
+        "finance": "Finance & banking",
+        "healthcare": "Healthcare",
+        "bpo": "BPO & shared services",
+        "retail": "Retail & e-commerce",
+        "manufacturing": "Manufacturing",
+        "government": "Government",
+        "other": "Other"
+      }
+    },
+    "size": {
+      "label": "Company size",
+      "placeholder": "Select a range",
+      "options": {
+        "1-50": "1–50",
+        "51-200": "51–200",
+        "201-1000": "201–1,000",
+        "1001-5000": "1,001–5,000",
+        "5000+": "5,000+"
+      }
+    },
+    "country": {
+      "label": "Headquarters country",
+      "placeholder": "Select a country"
+    },
+    "timezone": {
+      "label": "Time zone",
+      "placeholder": "Select a time zone",
+      "hint": "Emails that wait business days count them in this time zone."
+    },
+    "candidates": {
+      "title": "For candidates",
+      "description": "What job seekers see before they apply, and in the emails that follow."
+    },
+    "about": {
+      "label": "About your company",
+      "placeholder": "What does your company do, and what's it like to work there? Keep it warm and short. Candidates read this before they apply.",
+      "hint": "Plain language works best. Avoid jargon and internal acronyms.",
+      "count": "{count} / {max}"
+    },
+    "careers": {
+      "label": "Careers page",
+      "placeholder": "https://yourcompany.com/careers",
+      "hint": "Linked from rejection and advancement emails so candidates can explore other roles."
+    },
+    "errors": {
+      "nameRequired": "Enter your company name.",
+      "website": "Enter a web address like yourcompany.com.",
+      "logoType": "Choose an SVG or PNG file.",
+      "bannerType": "Choose a PNG or JPG file.",
+      "imageTooLarge": "This image is larger than 2 MB. Choose a smaller file.",
+      "imageTooBig": "This image is more than 4096 pixels wide or tall. Choose a smaller image.",
+      "imageInvalid": "We couldn't read this image. Choose another file.",
+      "svgUnreadable": "We couldn't read this SVG. Try a PNG instead.",
+      "logoNotSquare": "The logo must be square, the same width and height.",
+      "logoTooSmall": "The logo must be at least 256 × 256 pixels.",
+      "uploadAgain": "The image didn't finish uploading. Choose it again, then save.",
+      "saveFailed": "We couldn't save the company profile. Try again.",
+      "fix": "Fix the highlighted fields to save."
+    }
+  },
   "members": {
     "eyebrow": "Workspace admin",
     "title": "Manage members",

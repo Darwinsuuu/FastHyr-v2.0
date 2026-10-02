@@ -9,7 +9,7 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import CompanyProfile, EmailMessage
+from app.models import EmailMessage
 
 SCHEDULED, SENDING, SENT, FAILED = "scheduled", "sending", "sent", "failed"
 DELIVERED, BOUNCED, COMPLAINED = "delivered", "bounced", "complained"
@@ -84,13 +84,3 @@ async def scheduled_before(session: AsyncSession, before: datetime) -> list[uuid
         .limit(500)
     )
     return list(rows)
-
-
-async def company_name(session: AsyncSession, workspace_id: uuid.UUID) -> str:
-    """The sender name of a workspace's emails ("{Company} via FastHyr")."""
-    name: str = (
-        await session.execute(
-            select(CompanyProfile.company_name).where(CompanyProfile.workspace_id == workspace_id)
-        )
-    ).scalar_one()
-    return name

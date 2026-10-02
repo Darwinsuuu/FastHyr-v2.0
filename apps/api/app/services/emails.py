@@ -31,6 +31,7 @@ from app.repositories.emails import (
     SENT,
 )
 from app.repositories.users import UserRepository
+from app.services import company_profile
 
 SEND_JOB = "send_email"
 
@@ -145,14 +146,14 @@ async def send_test_email(
     profile = await UserRepository(session, ctx.user_id).get_profile()
     if profile is None or not profile.email:
         raise LookupError("signed-in user has no profile email")
-    company = await email_repo.company_name(session, ctx.workspace_id)
+    brand = await company_profile.branding(session, ctx.workspace_id, api_url=settings.api_url)
     message = queue_email(
         session,
         workspace_id=ctx.workspace_id,
         template_key="test",
         to_email=profile.email,
-        from_name=via_fasthyr(company),
-        email=system.test_email(site_url=settings.site_url, workspace_name=company),
+        from_name=via_fasthyr(brand.company_name),
+        email=system.test_email(site_url=settings.site_url, branding=brand),
     )
     await session.commit()
     await enqueue(queue, message)

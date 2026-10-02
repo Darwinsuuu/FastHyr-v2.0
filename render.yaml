@@ -45,6 +45,8 @@ services:
         value: https://dev.fasthyr.com,https://app.dev.fasthyr.com
       - key: SITE_URL
         value: https://dev.fasthyr.com
+      - key: API_URL
+        value: https://api.dev.fasthyr.com
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
@@ -87,6 +89,8 @@ services:
         value: development
       - key: SITE_URL
         value: https://dev.fasthyr.com
+      - key: API_URL
+        value: https://api.dev.fasthyr.com
       # Shared with the API: entered once on the API service.
       - key: SUPABASE_URL
         fromService: { type: web, name: fasthyr-api-dev, envVarKey: SUPABASE_URL }
@@ -141,6 +145,8 @@ services:
         value: https://qa.fasthyr.com,https://app.qa.fasthyr.com
       - key: SITE_URL
         value: https://qa.fasthyr.com
+      - key: API_URL
+        value: https://api.qa.fasthyr.com
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
@@ -183,6 +189,8 @@ services:
         value: qa
       - key: SITE_URL
         value: https://qa.fasthyr.com
+      - key: API_URL
+        value: https://api.qa.fasthyr.com
       - key: SUPABASE_URL
         fromService: { type: web, name: fasthyr-api-qa, envVarKey: SUPABASE_URL }
       - key: SUPABASE_SERVICE_ROLE_KEY

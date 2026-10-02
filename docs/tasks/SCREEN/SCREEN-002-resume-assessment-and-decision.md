@@ -30,7 +30,7 @@ Each résumé gets an explainable fit score against the pipeline's criteria and 
 
 ## Acceptance criteria
 - [x] Pass rule = score ≥ bar and all must-haves met
-- [x] Counterfactual pairs within ±3 points (same prompt by construction, unit-tested; the real-model run `tests/ai_eval/test_resume_assessment.py` needs an OpenAI key and was not run in this session)
+- [x] Counterfactual pairs within ±3 points (same prompt by construction, unit-tested, and the real-model golden set passed with gpt-4.1-mini on 2026-10-02)
 - [ ] p95 < 5 min on the QA environment (QA isn't deployed yet; every screen logs its time from applying, and `resume_assessments.duration_ms` keeps it)
 - [x] Built mobile first and checked at 360, 768, 1024 and 1440 px: no screen in this task (the Résumé tab is ASMT-005)
 - [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
@@ -61,3 +61,4 @@ _(Branch name, decisions, deviations, PR links, review files.)_
 - Hand-tested on local Supabase with the real worker and `AI_FAKE=1`: a submitted PDF was redacted, assessed (89, pass: 3 of 3 must-haves, no nice-to-haves so their weight was redistributed), logged to `ai_decisions` with numbers only, and `ai_calls` recorded both prompts. The real-model golden set wasn't run (no OpenAI key in this session); run it with `AI_EVAL=1` before relying on scores in development.
 - 2026-10-02: Darwin ran the golden set with gpt-4.1-mini. Two findings, both fixed: (1) the model left school names in the fresh-graduate pair's Education section, so redaction rules are now `rules@v2` and mask school names found there (a run of capitalised words with an institution word such as University, College or Institute) everywhere in the text; (2) the quote check rejected two nice-to-have quotes, so it now compares words in order with case, punctuation and line breaks ignored, and accepts a quote shortened with "..." when every part is found in order. The eval now prints any quotes it couldn't find.
 - 2026-10-02 (second golden-set run): the model joins evidence from several sections into one quote ("BS Statistics … \nSkills\n… statistics"), so a quote is now split at line breaks and "..." and every piece must be in the résumé; and it masked "Engr." with the referee's name in one résumé of a pair but not the other, so titles directly before `[NAME]` (Engr., Dr., Mr., Ms. …) are now always removed.
+- 2026-10-02 (third run): Darwin ran `tests/ai_eval` with gpt-4.1-mini: redaction and assessment golden sets both pass (4 passed).

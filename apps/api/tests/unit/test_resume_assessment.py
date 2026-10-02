@@ -242,6 +242,12 @@ def test_quotes_must_be_verbatim_but_tolerate_typography() -> None:
     assert assess.quoted("Senior Backend Engineer, PayLane, 2022 \u2013 present", RESUME)
     assert not assess.quoted("Built gRPC services in Rust", RESUME)
     assert not assess.quoted("", RESUME)
+    # Across a line break and a bullet, or shortened with "...": the same words in order.
+    assert assess.quoted("Kafka. Education", RESUME)
+    assert assess.quoted("Sharded, multi-region PostgreSQL ... 4M transactions", RESUME)
+    assert not assess.quoted("4M transactions ... Sharded", RESUME)
+    # Whole words only.
+    assert not assess.quoted("Go", "Worked at Google")
 
 
 def test_an_answer_missing_criteria_or_quotes_is_unusable() -> None:

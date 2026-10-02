@@ -14,7 +14,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.ai.client import OpenAIClient
+from pydantic import BaseModel
+
+from app.ai.client import AIOutputError, OpenAIClient
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.screening import assess
@@ -23,6 +25,27 @@ from tests.ai_eval.harness import CASES_DIR, PARITY_LIMIT, parity_gap, require_a
 
 CASES = CASES_DIR / assess.PROMPT_VERSION
 RESUMES = CASES_DIR / "resume_redaction@v1"
+
+
+class Recording:
+    """Passes calls to the real client and keeps the last assessment answer, so a rejected
+    answer can be shown (the cases are synthetic résumés, so printing quotes is fine)."""
+
+    def __init__(self, client: OpenAIClient) -> None:
+        self.client = client
+        self.model = client.model
+        self.last: Any = None
+
+    async def structured[T: BaseModel](self, **kwargs: Any) -> T:
+        answer: T = await self.client.structured(**kwargs)
+        self.last = answer
+        return answer
+
+
+def unverified(answer: Any, resume_text: str) -> list[str]:
+    rows = [(m.criterion, m.evidence_quote) for m in answer.must_haves if m.met]
+    rows += [(n.criterion, n.evidence_quote) for n in answer.nice_to_haves if n.found]
+    return [f"{c}: {q!r}" for c, q in rows if not assess.quoted(q, resume_text)]
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -34,15 +57,19 @@ async def screen_all(cases: list[tuple[str, dict[str, Any]]]) -> dict[str, dict[
     settings = get_settings()
     engine = create_engine(settings)
     try:
-        client = OpenAIClient(settings, create_sessionmaker(engine))
-        results = {}
+        client = Recording(OpenAIClient(settings, create_sessionmaker(engine)))
+        results: dict[str, dict[str, float]] = {}
         for name, case in cases:
             resume = load(RESUMES / f"{case['resume_case']}.json")["variables"]
             redacted = await redact(
                 client, resume["resume_text"], known_names=[resume["full_name"]]
             )
             criteria = assess.Criteria(**case["pipeline"])
-            answer = await assess.assess(client, criteria, redacted.text)
+            try:
+                answer = await assess.assess(client, criteria, redacted.text)
+            except AIOutputError as error:
+                bad = unverified(client.last, redacted.text) if client.last else []
+                raise AssertionError(f"{name}: answer unusable; quotes not found: {bad}") from error
             decision = assess.score(answer, criteria)
             results[name] = {
                 "score": decision.score,

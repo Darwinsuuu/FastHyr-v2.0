@@ -157,7 +157,7 @@ def test_a_readable_resume_is_stored_redacted(
     for evidence in ("March 2019 - present", "PostgreSQL partitioning", "Kubernetes"):
         assert evidence in text, evidence
     assert "Paolo" not in ai.seen[0]
-    assert row["redaction_version"] == "rules@v1+resume_redaction@v1"
+    assert row["redaction_version"] == "rules@v2+resume_redaction@v1"
     assert json.loads(row["masked"])["school"] == 1
     assert row["pages"] == 1
     # The assessment read the same redacted text and nothing else about the person.

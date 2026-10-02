@@ -131,22 +131,30 @@ def variables(criteria: Criteria, resume_text: str) -> dict[str, str]:
 
 # --- Checking the answer ---------------------------------------------------------------------
 
-_DASHES = re.compile("[\u2010-\u2015\u2212]")
-_QUOTES = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
-_EDGES = " \t\n\"'.,;:\u2026"
+_NOT_WORD = re.compile(r"[^\w]+")
+_ELLIPSIS = re.compile(r"\.\.\.+|\u2026")
 
 
 def _normal(text: str) -> str:
-    text = unicodedata.normalize("NFKC", text).translate(_QUOTES)
-    text = _DASHES.sub("-", text)
-    return " ".join(text.split()).casefold()
+    """Words only: case, spacing, punctuation, bullets, quote and dash styles are ignored."""
+    words = _NOT_WORD.sub(" ", unicodedata.normalize("NFKC", text).casefold())
+    return " ".join(words.split())
 
 
 def quoted(quote: str, resume_text: str) -> bool:
-    """True when `quote` appears in the résumé, ignoring case, spacing, curly quotes and dash
-    styles, and punctuation at its ends."""
-    needle = _normal(quote).strip(_EDGES)
-    return bool(needle) and needle in _normal(resume_text)
+    """True when `quote` appears in the résumé as whole words in order, ignoring case,
+    punctuation and line breaks. A quote the model shortened with "..." passes when every part
+    appears, in order."""
+    haystack = f" {_normal(resume_text)} "
+    parts = [_normal(part) for part in _ELLIPSIS.split(quote)]
+    parts = [part for part in parts if part]
+    position = 0
+    for part in parts:
+        found = haystack.find(f" {part} ", position)
+        if found < 0:
+            return False
+        position = found + len(part)
+    return bool(parts)
 
 
 def _aligned[T: (MustHaveResult, NiceToHaveResult)](

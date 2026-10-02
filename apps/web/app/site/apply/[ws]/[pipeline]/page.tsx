@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { ApplyPage } from "@/components/apply/apply-page";
-import { parseSource, type PublicPipeline } from "@/lib/apply";
+import { type MyApplication, parseSource, type PublicPipeline } from "@/lib/apply";
 import { type CandidateClaims, candidateFromClaims, readReturn } from "@/lib/apply/session";
 import { env } from "@/lib/env";
 import { t } from "@/lib/i18n";
@@ -42,20 +42,19 @@ async function loadApplyNotice(): Promise<Notice | null> {
   }
 }
 
-/** When the signed-in candidate applied to this pipeline (APPLY-003), or null. */
-async function loadAppliedAt(pipelineId: string, accessToken: string): Promise<string | null> {
+/** The signed-in candidate's application to this pipeline (APPLY-003/004), or null. */
+async function loadMine(pipelineId: string, accessToken: string): Promise<MyApplication | null> {
   const candidateApi = createApiClient({
     baseUrl: env.apiUrl,
     getAccessToken: async () => accessToken,
   });
   try {
-    const mine = unwrap(
+    return unwrap(
       await candidateApi.GET("/v1/candidate/pipelines/{pipeline_id}/my-application", {
         params: { path: { pipeline_id: pipelineId } },
         cache: "no-store",
       }),
     );
-    return mine.applied_at ?? null;
   } catch {
     // The form's submit answers "already applied" too, so the page can carry on without it.
     return null;
@@ -86,9 +85,9 @@ export default async function Apply({
   const accessToken = candidate
     ? (await supabase.auth.getSession()).data.session?.access_token
     : undefined;
-  const [notice, appliedAt] = await Promise.all([
+  const [notice, mine] = await Promise.all([
     loadApplyNotice(),
-    accessToken ? loadAppliedAt(data.id, accessToken) : Promise.resolve(null),
+    accessToken ? loadMine(data.id, accessToken) : Promise.resolve(null),
   ]);
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
@@ -100,7 +99,7 @@ export default async function Apply({
       pipeline={data}
       source={source}
       candidate={candidate}
-      appliedAt={appliedAt}
+      mine={mine}
       notice={notice}
       returning={readReturn(search, candidate !== null)}
     />

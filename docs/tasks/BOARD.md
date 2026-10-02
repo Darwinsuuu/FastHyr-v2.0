@@ -74,8 +74,8 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 |---|---|---|---|---|---|
 | [APPLY-001](APPLY/APPLY-001-public-apply-page.md) | Public apply page | M | PIPE-001, WS-001, FND-012 | Done | |
 | [APPLY-002](APPLY/APPLY-002-candidate-sign-in-on-the-apply-page.md) | Candidate sign-in on the apply page | S | APPLY-001, AUTH-001 | Done | |
-| [APPLY-003](APPLY/APPLY-003-application-submission-and-credit-use.md) | Application submission and credit use | L | APPLY-002, FND-011, BILL-002, COMP-002 | In review | |
-| [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | Backlog | |
+| [APPLY-003](APPLY/APPLY-003-application-submission-and-credit-use.md) | Application submission and credit use | L | APPLY-002, FND-011, BILL-002, COMP-002 | Done | |
+| [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | In review | |
 | [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Ready | |
 | [SCREEN-002](SCREEN/SCREEN-002-resume-assessment-and-decision.md) | Résumé assessment and decision | L | SCREEN-001, PIPE-001 | Backlog | |
 | [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Backlog | |

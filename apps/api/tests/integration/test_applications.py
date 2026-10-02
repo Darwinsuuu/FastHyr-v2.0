@@ -20,7 +20,7 @@ from app.jobs.queue import JobQueue
 from app.main import create_app
 from app.schemas.applications import SubmitApplicationRequest
 from app.services import applications, consents, credits
-from tests.integration.test_pipelines import db_run, grant, ok, pipeline_in, sql
+from tests.integration.test_pipelines import admin, db_run, grant, ok, pipeline_in, sql
 from tests.pdf_fixtures import plain_pdf
 from tests.tenancy.harness import Tenancy, _auth_admin_headers
 
@@ -179,7 +179,11 @@ def test_applying_uses_one_credit_linked_to_the_application(
     pipeline = pipeline_in(tenancy, "live")
     candidate = candidates[0]
     url = f"/v1/candidate/pipelines/{pipeline['id']}/my-application"
-    assert ok(tenancy.anonymous().get(url, headers=candidate.headers)) == {"applied_at": None}
+    assert ok(tenancy.anonymous().get(url, headers=candidate.headers)) == {
+        "applied_at": None,
+        "status": None,
+        "workspace_member": False,
+    }
 
     body = ok(apply(tenancy, candidate, pipeline["id"]), 201)
     assert body["created"] is True
@@ -348,3 +352,86 @@ def test_candidate_routes_need_a_google_or_microsoft_session(
         .status_code
         == 401
     )
+
+
+@pytest.mark.parametrize("action", ["pause", "close"])
+def test_a_pipeline_that_stops_after_the_upload_uses_no_credit(
+    tenancy: Tenancy, candidates: list[CandidateUser], storage: SupabaseStorage, action: str
+) -> None:
+    """APPLY-004: the page loaded and the résumé uploaded while the pipeline was live, then the
+    TA team paused or closed it before the candidate pressed Send."""
+    grant(tenancy)
+    pipeline = pipeline_in(tenancy, "live")
+    upload_id = upload(tenancy, candidates[0], pipeline["id"], plain_pdf())
+    ok(admin(tenancy).post(f"/v1/pipelines/{pipeline['id']}/{action}"))
+
+    response = tenancy.anonymous().post(
+        "/v1/candidate/applications",
+        json=form(pipeline["id"], upload_id),
+        headers=candidates[0].headers,
+    )
+    assert response.status_code == 409
+    assert response.json()["code"] == "pipeline_not_accepting"
+    pipeline_id = uuid.UUID(pipeline["id"])
+    consumed = sql(
+        tenancy,
+        "select count(*) from credit_ledger where pipeline_id = $1 and kind = 'consume'",
+        pipeline_id,
+    )
+    assert consumed[0]["count"] == 0
+    rows = sql(tenancy, "select count(*) from applications where pipeline_id = $1", pipeline_id)
+    assert rows[0]["count"] == 0
+    workspace_id = tenancy.workspace("a").id
+    assert asyncio.run(storage.list(Bucket.RESUMES, str(workspace_id))) == []
+
+
+def test_my_application_shows_status_words_never_the_stage(
+    tenancy: Tenancy, candidates: list[CandidateUser]
+) -> None:
+    grant(tenancy)
+    pipeline = pipeline_in(tenancy, "live")
+    candidate = candidates[0]
+    url = f"/v1/candidate/pipelines/{pipeline['id']}/my-application"
+    application_id = uuid.UUID(ok(apply(tenancy, candidate, pipeline["id"]), 201)["application_id"])
+
+    seen = {}
+    for stage in ("processing_resume", "invited", "resume_not_match", "rejected", "advanced"):
+        sql(tenancy, "update applications set stage = $1 where id = $2", stage, application_id)
+        seen[stage] = ok(tenancy.anonymous().get(url, headers=candidate.headers))["status"]
+    assert seen == {
+        "processing_resume": "received",
+        "invited": "interview",
+        # Decisions reach candidates by email, some days later; the page never gets ahead.
+        "resume_not_match": "with_team",
+        "rejected": "with_team",
+        "advanced": "with_team",
+    }
+
+
+def test_a_workspace_member_can_apply_and_is_told_so(
+    tenancy: Tenancy, candidates: list[CandidateUser]
+) -> None:
+    """A TA member signed in with Google may apply to their own workspace's pipeline; the form
+    warns them (APPLY-004). Another workspace's membership doesn't count."""
+    grant(tenancy)
+    pipeline = pipeline_in(tenancy, "live")
+    member, outsider = candidates[0], candidates[1]
+    membership = uuid.uuid4()
+    sql(
+        tenancy,
+        "insert into workspace_members (id, workspace_id, user_id, role) values ($1, $2, $3, $4)",
+        membership,
+        tenancy.workspace("a").id,
+        member.user_id,
+        "recruiter",
+    )
+    try:
+        url = f"/v1/candidate/pipelines/{pipeline['id']}/my-application"
+        mine = ok(tenancy.anonymous().get(url, headers=member.headers))
+        assert mine == {"applied_at": None, "status": None, "workspace_member": True}
+        assert not ok(tenancy.anonymous().get(url, headers=outsider.headers))["workspace_member"]
+
+        ok(apply(tenancy, member, pipeline["id"]), 201)
+        assert ok(tenancy.anonymous().get(url, headers=member.headers))["status"] == "received"
+    finally:
+        sql(tenancy, "delete from workspace_members where id = $1", membership)

@@ -81,8 +81,18 @@ class SubmittedApplication(BaseModel):
     created: bool
 
 
+# What the apply page tells a candidate about their application (FR-APPLY-07): a few words for
+# where it is, never the stage, a score or a decision. `with_team` covers every stage after the
+# interview and the "not moving forward" ones too, so the page never gets ahead of the emails.
+CandidateStatus = Literal["received", "interview", "with_team"]
+
+
 class MyApplication(BaseModel):
-    """The apply page's "Applied on {date}" state (FR-APPLY-07): candidates see only that they
-    applied, never a stage, score or flag."""
+    """The apply page's "Applied on {date}" state (FR-APPLY-05, FR-APPLY-07): when the candidate
+    applied and a candidate-safe status, never a stage, score or flag. `workspace_member` is true
+    when the signed-in account is also a member of the employer's workspace: they may still
+    apply, and the form says their teammates will see it (APPLY-004)."""
 
     applied_at: datetime | None
+    status: CandidateStatus | None
+    workspace_member: bool

@@ -20,6 +20,9 @@ export interface FileDropProps {
   /** A problem found elsewhere, e.g. "Add your résumé as a PDF to continue." or the server's
    * check of the file. Shown like the type and size errors. */
   error?: string;
+  /** Replaces the type and size check, e.g. to read the file's first bytes. Returns the message
+   * for a file that doesn't fit, or null. */
+  check?: (file: File) => string | null | Promise<string | null>;
   disabled?: boolean;
   className?: string;
 }
@@ -40,6 +43,7 @@ export function FileDrop({
   hint,
   label = t("ui.dropFile"),
   error: outsideError,
+  check = (candidate) => checkFile(candidate, accept, maxSize),
   disabled,
   className,
 }: FileDropProps) {
@@ -58,9 +62,9 @@ export function FileDrop({
     </p>
   );
 
-  function take(candidate: File | undefined) {
+  async function take(candidate: File | undefined) {
     if (!candidate) return;
-    const problem = checkFile(candidate, accept, maxSize);
+    const problem = await check(candidate);
     setError(problem);
     if (!problem) onFileChange(candidate);
   }
@@ -68,7 +72,7 @@ export function FileDrop({
   function onDrop(event: DragEvent) {
     event.preventDefault();
     setDragging(false);
-    if (!disabled) take(event.dataTransfer.files[0]);
+    if (!disabled) void take(event.dataTransfer.files[0]);
   }
 
   if (file) {
@@ -130,7 +134,7 @@ export function FileDrop({
           aria-describedby={error ? `${id}-error` : undefined}
           className="sr-only"
           onChange={(event) => {
-            take(event.target.files?.[0]);
+            void take(event.target.files?.[0]);
             event.target.value = "";
           }}
         />

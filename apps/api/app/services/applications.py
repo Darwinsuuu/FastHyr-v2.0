@@ -29,7 +29,9 @@ from app.repositories.applications import (
     CandidatePipeline,
     candidate_pipeline,
 )
+from app.repositories.users import UserRepository
 from app.schemas.applications import (
+    CandidateStatus,
     MyApplication,
     ResumeUpload,
     SubmitApplicationRequest,
@@ -172,6 +174,19 @@ def _submitted(application: Application, *, created: bool) -> SubmittedApplicati
     )
 
 
+# Stages before the interview is done; everything else is with the hiring team (WORKFLOW.md §3).
+_STATUS_BY_STAGE: dict[str, CandidateStatus] = {
+    "processing_resume": "received",
+    "invited": "interview",
+    "interview_in_progress": "interview",
+}
+
+
+def candidate_status(stage: str) -> CandidateStatus:
+    """The few words a candidate sees for a stage (FR-APPLY-07)."""
+    return _STATUS_BY_STAGE.get(stage, "with_team")
+
+
 async def my_application(
     session: AsyncSession, ctx: CandidateContext, pipeline_id: uuid.UUID
 ) -> MyApplication:
@@ -179,4 +194,10 @@ async def my_application(
     existing = await ApplicationRepository(session, pipeline.workspace_id).find_for_candidate(
         pipeline.id, ctx.user_id
     )
-    return MyApplication(applied_at=existing.applied_at if existing else None)
+    # Only the caller's own membership is read, as for any signed-in user (MULTI_TENANCY.md §2).
+    member = await UserRepository(session, ctx.user_id).get_active_membership(pipeline.workspace_id)
+    return MyApplication(
+        applied_at=existing.applied_at if existing else None,
+        status=candidate_status(existing.stage) if existing else None,
+        workspace_member=member is not None,
+    )

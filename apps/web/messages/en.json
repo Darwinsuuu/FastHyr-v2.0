@@ -721,8 +721,14 @@
     "applyHintSignedIn": "Only takes a few minutes",
     "appliedOn": "Applied on {date}",
     "appliedHint": "We’ll email {email} with next steps.",
-    "appliedTitle": "Your application is in",
-    "appliedBody": "We’re reviewing your résumé against this role now. If it’s a match, you’ll get an email with a link to your AI interview. You can take it whenever suits you before the link expires.",
+    "appliedStatus": {
+      "receivedTitle": "Your application is in",
+      "receivedBody": "We’re reviewing your résumé against this role now. If it’s a match, you’ll get an email with a link to your AI interview. You can take it whenever suits you before the link expires.",
+      "interviewTitle": "Your AI interview is ready",
+      "interviewBody": "Your résumé is a match. We emailed your interview link to {email}. Take it whenever suits you before the link expires.",
+      "withTeamTitle": "Your application is with {company}",
+      "withTeamBody": "The {company} team is looking at your application. Any update about it comes by email to {email}."
+    },
     "unavailable": {
       "opensOn": "You can apply from {date}.",
       "opensLater": "You can apply once applications open.",
@@ -794,6 +800,8 @@
       "applyingTo": "Applying to {company}",
       "signedInAs": "Signed in with {provider} · we’ll send updates here",
       "notYou": "Not you?",
+      "memberTitle": "You’re part of the {company} hiring team",
+      "memberBody": "You can still apply. Your application is reviewed like any other, and your teammates will see it.",
       "resume": "Résumé",
       "resumeDrop": "Click to upload or drag and drop",
       "resumeHint": "PDF only, up to 10 MB",
@@ -825,7 +833,13 @@
         "noticeChanged": "The consent text has changed. Reload the page to read the new version, then send again.",
         "signIn": "Your sign-in has ended. Sign in again with Google or Microsoft, then send again.",
         "failed": "We couldn’t send your application. Try again in a moment.",
-        "noticeMissing": "We couldn’t load the consent text. Reload the page to try again."
+        "noticeMissing": "We couldn’t load the consent text. Reload the page to try again.",
+        "pdfEmpty": "This file is empty. Choose your résumé again.",
+        "pdfUnreadable": "We couldn’t read this file. Choose your résumé again.",
+        "network": "We couldn’t reach FastHyr. Check your connection, then send again. Your details are still here.",
+        "closed": "Applications for this role closed before yours was sent. Nothing was sent.",
+        "paused": "This role stopped taking applications before yours was sent. Nothing was sent, and your details are still here if it reopens.",
+        "reopened": "This role is taking applications again. Send your application when you’re ready."
       }
     },
     "notFound": {

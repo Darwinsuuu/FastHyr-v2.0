@@ -17,7 +17,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from app.ai.client import AIOutputError, OpenAIClient
-from app.ai.schemas.interview_plan import InterviewPlan
+from app.ai.schemas.interview_plan import PlanAnswer
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.interview import plan as planning
@@ -81,12 +81,10 @@ async def plan_all(cases: list[tuple[str, dict[str, Any]]]) -> dict[str, dict[st
             try:
                 plan = await planning.generate(client, context, candidate_name=resume["full_name"])
             except AIOutputError as error:
-                last = client.last
-                issues = (
-                    planning.problems(last, context, resume["full_name"])
-                    if isinstance(last, InterviewPlan)
-                    else []
-                )
+                issues: list[str] = []
+                if isinstance(client.last, PlanAnswer):
+                    stored, issues = planning.resolve(client.last, context)
+                    issues += planning.problems(stored, context, resume["full_name"])
                 raise AssertionError(f"{name}: plan unusable: {issues}") from error
             results[name] = {
                 "topics": len(plan.topics),

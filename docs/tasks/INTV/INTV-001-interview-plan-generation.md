@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M3 Intake |
-| Status | In review |
+| Status | Done |
 | Size | M |
 | Depends on | [SCREEN-002](../SCREEN/SCREEN-002-resume-assessment-and-decision.md) |
 | Requirements | FR-INTV-01 |
@@ -47,7 +47,7 @@ _(Filled in by the implementer before coding; approved by the product owner.)_
 
 1. **Table** (migration `20261003120000_interview_plans.sql`): `interview_plans` as in DATABASE.md plus `source` (`ai` | `fallback`); `instructions_version` stays empty until INTV-004 uses the plan. Deleted with its application; RLS on with no policies.
 2. **Prompt** `interview_plan@v1` with schema `InterviewPlan`: topics with a `kind` (`warm_up`, `skills`, `candidate_questions`), title, goal, skills copied from the skills to probe, 1–3 seeds (question, verbatim résumé quote or ""), and claims to verify. Inputs: job title, expected seniority (one level lower with "Ready for a step up"), JD, company "about", skills to probe, must-haves, the screen's claims, tone, format, 30 minutes, interview versions of the "Also open to" rules, and the redacted résumé from `resume_texts`.
-3. **Checks** (`app/interview/plan.py`): 4–7 topics, warm-up first and only first, candidate questions last and only last, 1–3 seeds each, every skill to probe in a `skills` topic (case and punctuation ignored), every quote found in the redacted résumé (the screening quote check), no mask (`[NAME]`, `[SCHOOL]`…) and no part of the candidate's name (3+ letters, whole word, case-sensitive) in any text. A plan that fails is asked for once more, then `AIOutputError`.
+3. **Checks** (`app/interview/plan.py`): the model gives each topic's skills as numbers from the prompt's list and code stores the names; a quote not found in the redacted résumé (the screening quote check) or holding a mask is dropped (the seed keeps its question, the claim goes). Then: 4–7 topics, warm-up first and only first, candidate questions last and only last, 1–3 seeds each, every skill to probe in a `skills` topic, no mask (`[NAME]`, `[SCHOOL]`…) and no part of the candidate's name (3+ letters, whole word, case-sensitive) in any text. A plan that fails is asked for once more, then `AIOutputError`.
 4. **Fallback:** when the job's last try fails (bad answers or the model unavailable), the failure hook stores a plain plan from the skills to probe (warm-up, one topic per skill up to 5 then grouped, the candidate's questions; no quotes, no claims), so the invitation never waits on the model.
 5. **Job:** `plan_interview(application_id)` (3 tries), queued by `screen_resume` after a pass, keyed by application; skips a plan that exists or an application past `invited`. `requeue_stuck_work` re-queues passed applications with no plan 10 minutes after the screen. The stage doesn't move: SCREEN-003 invites after the plan exists.
 6. **Fake model:** `AI_FAKE=1` builds a plan from the skills to probe quoting the résumé (`app/ai/fakes.py`).
@@ -58,3 +58,4 @@ _(Branch name, decisions, deviations, PR links, review files.)_
 - 2026-10-02: branch `feature/interview-plan-r3k8v2` from `develop`. Plan auto-approved (owner's standing rule). Also marks SCREEN-002 Done on the board; no other task became Ready (SCREEN-003 still waits on MSG-003).
 - Decisions (defaults picked, open to change): a plain skills plan is stored when the model fails, so no passed candidate is held up (marked `source = fallback`); topics carry a `kind` so code can check the order; résumé quotes may not contain a mask, since the candidate sees them; the plan is built from the redacted text, so a candidate with no readable résumé still gets a plan without quotes.
 - Hand-tested on local Supabase with the real worker: a passed screen queued `plan_interview`, which stored a 5-topic plan covering the 3 skills to probe with quotes from the redacted résumé; a plan holding `[SCHOOL]` was asked for again and then replaced by the fallback; `AI_FAKE=1` builds a passing plan. The real-model golden set wasn't run (no OpenAI key in this session).
+- 2026-10-02: Darwin ran the real-model golden set with gpt-4.1-mini: the fresh-graduate plan failed twice, rewording a skill to probe ("Data cleaning in Python") and quoting text the résumé didn't contain. Skills now come back as numbers from the prompt's list, quotes that aren't in the résumé are dropped instead of failing the plan, and the prompt asks for the résumé's own spelling and not to quote the Objective line. Darwin asked to mark INTV-001 Done on the board in this PR so it ships with the next deployment.

@@ -1,11 +1,13 @@
 """Interview plan generation (AI_PIPELINE.md §2, FR-INTV-01).
 
 1. `generate()` asks `interview_plan@v1` for a plan built from the job, the pipeline's interview
-   settings, the redacted résumé and the claims the résumé screening flagged. The answer must
-   pass `problems()`: 4-7 topics, warm-up first and the candidate's questions last, 1-3 seeds
-   per topic, every skill to probe covered, résumé quotes copied word for word, and no personal
-   detail (no mask such as [NAME], and not the candidate's name). An answer that fails is asked
-   for once more, then fails like any invalid answer (`AIOutputError`).
+   settings, the redacted résumé and the claims the résumé screening flagged. `resolve()` turns
+   the answer's skill numbers into names and drops any résumé quote it can't find word for word
+   (or that holds a mask): a seed keeps its question without the quote, a claim is dropped. The
+   plan must then pass `problems()`: 4-7 topics, warm-up first and the candidate's questions
+   last, 1-3 seeds per topic, every skill to probe covered, and no personal detail (no mask
+   such as [NAME], and not the candidate's name). A plan that fails is asked for once more, then
+   fails like any invalid answer (`AIOutputError`).
 2. `fallback()` builds a plain plan in code from the skills to probe, used when the model can't
    give a usable plan, so a candidate who passed screening is never held up by it.
 
@@ -21,7 +23,7 @@ from typing import Any
 
 from app.ai.client import AIClient, AIOutputError
 from app.ai.prompts import load_prompt
-from app.ai.schemas.interview_plan import InterviewPlan
+from app.ai.schemas.interview_plan import InterviewPlan, PlanAnswer
 from app.screening.assess import SENIORITY_LABELS, STEP_DOWN, quoted
 from app.screening.redact import MASKS
 
@@ -180,6 +182,47 @@ def _covered(skill: str, plan: InterviewPlan) -> bool:
     )
 
 
+def _usable_quote(quote: str, resume_text: str) -> bool:
+    return bool(quote) and not _MASK.search(quote) and quoted(quote, resume_text)
+
+
+def resolve(answer: PlanAnswer, context: Context) -> tuple[InterviewPlan, list[str]]:
+    """The stored form of the model's answer: skill numbers become the skills' names, and quotes
+    the résumé doesn't contain are dropped (an unquoted question is still a good question; an
+    invented quote must never be shown). Returns the plan and its problems: skill numbers outside
+    the list. Labels only."""
+    skills = context.skills()
+    found: list[str] = []
+    dropped = 0
+    topics = []
+    for index, topic in enumerate(answer.topics, 1):
+        names = []
+        for number in topic.skills:
+            if 1 <= number <= len(skills):
+                if skills[number - 1] not in names:
+                    names.append(skills[number - 1])
+            else:
+                found.append(f"topic_{index}_skill_number")
+        seeds = []
+        for seed in topic.seeds:
+            keep = _usable_quote(seed.resume_quote, context.resume_text)
+            dropped += bool(seed.resume_quote) and not keep
+            seeds.append(
+                {"question": seed.question, "resume_quote": seed.resume_quote if keep else ""}
+            )
+        topics.append({**topic.model_dump(), "skills": names, "seeds": seeds})
+    claims = [
+        claim.model_dump()
+        for claim in answer.claims_to_verify
+        if _usable_quote(claim.resume_quote, context.resume_text)
+    ]
+    dropped += len(answer.claims_to_verify) - len(claims)
+    if dropped:
+        logger.info("interview plan: %d résumé quotes not found and dropped", dropped)
+    plan = InterviewPlan.model_validate({"topics": topics, "claims_to_verify": claims})
+    return plan, found
+
+
 def problems(plan: InterviewPlan, context: Context, candidate_name: str | None) -> list[str]:
     """What makes a plan unusable. Labels only, never plan or résumé text, so they can be
     logged."""
@@ -219,15 +262,16 @@ async def generate(
 ) -> InterviewPlan:
     prompt = load_prompt(*PROMPT)
     for attempt in range(1, ANSWER_TRIES + 1):
-        plan = await ai.structured(
+        answer = await ai.structured(
             purpose="interview_plan",
             prompt=prompt,
             variables=variables(context),
-            schema=InterviewPlan,
+            schema=PlanAnswer,
             workspace_id=workspace_id,
             entity_id=entity_id,
         )
-        issues = problems(plan, context, candidate_name)
+        plan, issues = resolve(answer, context)
+        issues += problems(plan, context, candidate_name)
         if not issues:
             return plan
         logger.warning("interview plan unusable on try %d: %s", attempt, ", ".join(issues))

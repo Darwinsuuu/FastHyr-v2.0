@@ -1,8 +1,9 @@
 """INTV-001 (FR-INTV-01, G2, G3): a plan is used only when it has 4-7 topics with the warm-up
-first and the candidate's questions last, 1-3 seeds per topic, every skill to probe covered,
-résumé quotes copied from the redacted résumé, and no personal detail; otherwise it is asked for
-once more and then fails. The fallback plan covers every skill and holds nothing about the
-candidate, and the pipeline's settings shape the prompt."""
+first and the candidate's questions last, 1-3 seeds per topic, every skill to probe covered (by
+number, so a reworded skill can't miss), and no personal detail; otherwise it is asked for once
+more and then fails. Résumé quotes the résumé doesn't contain are dropped, never shown. The
+fallback plan covers every skill and holds nothing about the candidate, and the pipeline's
+settings shape the prompt."""
 
 import asyncio
 import uuid
@@ -14,7 +15,7 @@ from pydantic import BaseModel
 from app.ai import fakes
 from app.ai.client import AIOutputError
 from app.ai.prompts import Prompt, load_prompt
-from app.ai.schemas.interview_plan import InterviewPlan
+from app.ai.schemas.interview_plan import InterviewPlan, PlanAnswer
 from app.interview import plan as planning
 from app.interview.plan import Context
 
@@ -52,8 +53,13 @@ def answer(**changes: Any) -> dict[str, Any]:
     return plan
 
 
+def resolved(plan: dict[str, Any], **changes: Any) -> tuple[InterviewPlan, list[str]]:
+    return planning.resolve(PlanAnswer.model_validate(plan), context(**changes))
+
+
 def problems(plan: dict[str, Any], name: str | None = NAME, **changes: Any) -> list[str]:
-    return planning.problems(InterviewPlan.model_validate(plan), context(**changes), name)
+    stored, found = resolved(plan, **changes)
+    return found + planning.problems(stored, context(**changes), name)
 
 
 def test_the_fake_plan_passes_every_check() -> None:
@@ -86,29 +92,43 @@ def test_order_and_counts_are_checked() -> None:
 
 def test_every_skill_to_probe_must_be_covered() -> None:
     topics = answer()["topics"]
-    dropped = [topic for topic in topics if topic["skills"] != ["PostgreSQL"]]
-    dropped.insert(2, {**topics[1], "skills": ["API design"]})
+    dropped = [topic for topic in topics if topic["skills"] != [2]]
+    dropped.insert(2, {**topics[1], "skills": [1]})
     assert problems(answer(topics=dropped)) == ["skill_2_not_covered"]
-    # Matched ignoring case and punctuation, but only in skills topics.
-    renamed = [*topics[:2], {**topics[2], "skills": ["postgresql"]}, *topics[3:]]
-    assert problems(answer(topics=renamed)) == []
-    in_warm_up = [{**topics[0], "skills": ["PostgreSQL"]}, topics[1], *topics[3:]]
+    # Skills come back by number and are stored by name; one topic may cover several.
+    merged = [topics[0], {**topics[1], "skills": [1, 2, 2]}, *topics[3:]]
+    stored, found = resolved(answer(topics=merged))
+    assert (stored.topics[1].skills, found) == (["API design", "PostgreSQL"], [])
+    # Only skills topics count, and a number outside the list is a problem.
+    in_warm_up = [{**topics[0], "skills": [2]}, topics[1], *topics[3:]]
     assert problems(answer(topics=in_warm_up)) == ["skill_2_not_covered"]
+    wrong = [*topics[:2], {**topics[2], "skills": [2, 9]}, *topics[3:]]
+    assert problems(answer(topics=wrong)) == ["topic_3_skill_number"]
 
 
-def test_resume_quotes_must_come_from_the_resume() -> None:
+def test_quotes_the_resume_does_not_contain_are_dropped() -> None:
     topics = answer()["topics"]
     seed = {"question": "How did you shard it?", "resume_quote": "Sharded, multi-region PostgreSQL"}
-    good = [*topics[:2], {**topics[2], "seeds": [seed]}, *topics[3:]]
-    assert problems(answer(topics=good)) == []
+    invented = {"question": "How did you lead them?", "resume_quote": "Led a team of 40 engineers"}
+    masked = {
+        "question": "What did you learn there?",
+        "resume_quote": "BS Computer Science, [YEAR]",
+    }
+    mixed = [*topics[:2], {**topics[2], "seeds": [seed, invented, masked]}, *topics[3:]]
+    stored, found = resolved(answer(topics=mixed))
+    assert found == []
+    assert [s.resume_quote for s in stored.topics[2].seeds] == [seed["resume_quote"], "", ""]
+    assert [s.question for s in stored.topics[2].seeds][1] == invented["question"]
+    assert problems(answer(topics=mixed)) == []
 
-    invented = {**seed, "resume_quote": "Led a team of 40 engineers"}
-    bad = [*topics[:2], {**topics[2], "seeds": [invented]}, *topics[3:]]
-    assert problems(answer(topics=bad)) == ["topic_3_seed_1_quote"]
-
-    claim = {"claim": "Led 40 engineers", "resume_quote": "Led a team of 40", "skill": "API design"}
-    assert problems(answer(claims_to_verify=[claim])) == ["claim_1_quote"]
-    assert problems(answer(claims_to_verify=[{**claim, "resume_quote": ""}])) == ["claim_1_quote"]
+    good = {
+        "claim": "Big tables",
+        "resume_quote": "handling 4M transactions",
+        "skill": "PostgreSQL",
+    }
+    bad = {"claim": "Led 40 engineers", "resume_quote": "Led a team of 40", "skill": "API design"}
+    stored, _ = resolved(answer(claims_to_verify=[bad, good, {**good, "resume_quote": ""}]))
+    assert [claim.claim for claim in stored.claims_to_verify] == ["Big tables"]
 
 
 @pytest.mark.parametrize(
@@ -125,13 +145,6 @@ def test_no_personal_detail_reaches_the_plan(question: str) -> None:
     seed = {"question": question, "resume_quote": ""}
     leaked = [*topics[:2], {**topics[2], "seeds": [seed]}, *topics[3:]]
     assert problems(answer(topics=leaked)) == ["personal_detail"]
-
-
-def test_a_quote_holding_a_mask_is_a_personal_detail() -> None:
-    topics = answer()["topics"]
-    seed = {"question": "Tell me about your studies.", "resume_quote": "[SCHOOL]"}
-    leaked = [*topics[:2], {**topics[2], "seeds": [seed]}, *topics[3:]]
-    assert "personal_detail" in problems(answer(topics=leaked))
 
 
 def test_short_name_parts_and_other_words_are_not_flagged() -> None:
@@ -167,7 +180,7 @@ def test_settings_shape_the_prompt() -> None:
 
 def test_fallback_covers_every_skill_with_nothing_about_the_candidate() -> None:
     plan = planning.fallback(context())
-    assert problems(plan.model_dump()) == []
+    assert planning.problems(plan, context(), NAME) == []
     assert all(seed.resume_quote == "" for topic in plan.topics for seed in topic.seeds)
     assert plan.claims_to_verify == []
 
@@ -175,7 +188,7 @@ def test_fallback_covers_every_skill_with_nothing_about_the_candidate() -> None:
     grouped = planning.fallback(context(skills_to_probe=many))
     assert len(grouped.topics) == 7
     assert sorted(skill for topic in grouped.topics for skill in topic.skills) == sorted(many)
-    assert problems(grouped.model_dump(), skills_to_probe=many) == []
+    assert planning.problems(grouped, context(skills_to_probe=many), NAME) == []
 
 
 class StubAI:

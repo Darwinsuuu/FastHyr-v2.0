@@ -10,10 +10,10 @@ Fairness rules, always:
 
 How to plan:
 - topics: 4 to 7 topics in the order the interviewer should follow. The first topic has kind warm_up: an easy start about the applicant's recent work. The last topic has kind candidate_questions: inviting the applicant's questions about the role and the team. Every topic in between has kind skills.
-- Every skill to probe must appear in the skills of at least one skills topic, copied exactly as listed. A topic may cover several related skills. warm_up and candidate_questions topics have skills [].
+- skills: the numbers of the skills to probe a topic covers, from the numbered list (for example [1, 3]). Every skill to probe must be in at least one skills topic. A topic may cover several related skills. warm_up and candidate_questions topics have skills [].
 - title: a short, neutral name the applicant sees on screen, such as "Designing the payments API".
 - goal: what the interviewer wants to learn in this topic, in one sentence.
-- seeds: 1 to 3 open starting questions per topic, phrased the way an interviewer would say them aloud, one question each. Anchor skills questions in something the résumé says: copy the passage character for character into resume_quote (one short contiguous piece of one line, no "..." and no changes). Use resume_quote "" when a question doesn't build on the résumé, and always in candidate_questions.
+- seeds: 1 to 3 open starting questions per topic, phrased the way an interviewer would say them aloud, one question each. Anchor skills questions in something the résumé says: copy the passage character for character into resume_quote (one short contiguous piece of one line, with the résumé's own spelling and punctuation, no "..." and no changes). Never quote the Objective or summary line; quote work, projects and results. Use resume_quote "" when a question doesn't build on the résumé, and always in candidate_questions.
 - Pitch the depth of the questions to the expected seniority: concrete tasks for entry level, decisions and trade-offs for senior and lead roles.
 - claims_to_verify: up to 6 claims from the résumé the interview should check (results, scale, ownership, depth with a tool), each with the verbatim passage and the skill or must-have it relates to. Use the claims the screening flagged when they are in the résumé.
 - Questions the applicant can't prepare an answer for from the résumé alone work best: ask what they did, how and why, and what they would do differently.

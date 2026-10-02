@@ -82,8 +82,8 @@ def resume_assessment(variables: dict[str, str]) -> dict[str, Any]:
 
 
 def interview_plan(variables: dict[str, str]) -> dict[str, Any]:
-    """Warm-up, one topic per skill to probe anchored in the résumé, then the candidate's
-    questions, so local runs and e2e get a plan that passes every check."""
+    """Warm-up, one topic per skill to probe (by number) anchored in the résumé, then the
+    candidate's questions, so local runs and e2e get a plan that passes every check."""
     resume = variables["resume_text"]
     quote = _quote(resume) if resume != "Not available" else ""
     skills = _items(variables["skills_to_probe"])
@@ -106,7 +106,7 @@ def interview_plan(variables: dict[str, str]) -> dict[str, Any]:
             "kind": "skills",
             "title": skill[:60],
             "goal": f"Understand the depth of the candidate's experience with {skill}.",
-            "skills": [skill],
+            "skills": [number],
             "seeds": [
                 {
                     "question": f"Tell me about a project where you used {skill}.",
@@ -114,10 +114,10 @@ def interview_plan(variables: dict[str, str]) -> dict[str, Any]:
                 }
             ],
         }
-        for skill in skills[:5]
+        for number, skill in enumerate(skills[:5], 1)
     ]
     if len(skills) > 5:
-        topics[-1]["skills"] += skills[5:]
+        topics[-1]["skills"] += list(range(6, len(skills) + 1))
     topics.append(
         {
             "kind": "candidate_questions",

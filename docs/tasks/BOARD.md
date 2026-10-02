@@ -13,7 +13,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | M0 Foundation | 14 | 14 |
 | M1 Access | 12 | 11 |
 | M2 Pipelines | 7 | 3 |
-| M3 Intake | 12 | 7 |
+| M3 Intake | 12 | 8 |
 | M4 AI interview | 8 | 0 |
 | M5 Review | 18 | 0 |
 | M6 Billing & analytics | 7 | 0 |
@@ -79,7 +79,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Done | #36 |
 | [SCREEN-002](SCREEN/SCREEN-002-resume-assessment-and-decision.md) | Résumé assessment and decision | L | SCREEN-001, PIPE-001 | Done | #37 |
 | [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Backlog | |
-| [INTV-001](INTV/INTV-001-interview-plan-generation.md) | Interview plan generation | M | SCREEN-002 | In review | |
+| [INTV-001](INTV/INTV-001-interview-plan-generation.md) | Interview plan generation | M | SCREEN-002 | Done | #38 |
 | [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Ready | |
 | [MSG-002](MSG/MSG-002-email-templates-list-and-editor.md) | Email templates list and editor | M | MSG-001, DASH-001 | Backlog | |
 | [MSG-003](MSG/MSG-003-email-scheduling-and-sending-engine.md) | Email scheduling and sending engine | M | MSG-001, FND-008 | Backlog | |

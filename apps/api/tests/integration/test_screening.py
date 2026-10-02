@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from app.ai import fakes
 from app.ai.client import AIOutputError
 from app.ai.prompts import Prompt
-from app.ai.schemas.interview_plan import InterviewPlan
+from app.ai.schemas.interview_plan import PlanAnswer
 from app.ai.schemas.resume_assessment import ResumeAssessment
 from app.integrations.storage import SupabaseStorage
 from app.jobs.queue import JobQueue, job_key
@@ -82,7 +82,7 @@ class ScreeningAI(StubAI):
         entity_id: uuid.UUID | None = None,
         temperature: float | None = None,
     ) -> T:
-        if schema is InterviewPlan:
+        if schema is PlanAnswer:
             self.planned.append(variables)
             plan = fakes.interview_plan(variables)
             if self.plan_change:

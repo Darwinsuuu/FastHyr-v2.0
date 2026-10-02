@@ -226,6 +226,21 @@ def test_publishing_reserves_credits_and_closing_returns_the_unused_reserve(
     assert free_credits(tenancy) == 100
 
 
+def test_credit_summary_shows_what_a_new_reserve_can_take(tenancy: Tenancy) -> None:
+    """The wizard checks its reserve against `free` before publishing (PIPE-003)."""
+    grant(tenancy, 100)
+    pipeline = draft(tenancy, credits_to_reserve=40)
+    ok(admin(tenancy).post(f"/v1/pipelines/{pipeline['id']}/publish", json=CONFIRM))
+
+    summary = {"balance": 100, "reserved": 40, "free": 60}
+    assert ok(admin(tenancy).get("/v1/credits/summary")) == summary
+    assert ok(tenancy.client("a", Role.RECRUITER).get("/v1/credits/summary")) == summary
+    # Another workspace's credits never show; Hiring managers can't see credits at all.
+    assert ok(tenancy.client("b", Role.ADMIN).get("/v1/credits/summary"))["balance"] == 0
+    hiring_manager = tenancy.client("a", Role.HIRING_MANAGER).get("/v1/credits/summary")
+    assert hiring_manager.status_code == 403
+
+
 def test_publish_refuses_a_reserve_bigger_than_the_free_credits(tenancy: Tenancy) -> None:
     grant(tenancy, 20)
     pipeline = draft(tenancy, credits_to_reserve=30)

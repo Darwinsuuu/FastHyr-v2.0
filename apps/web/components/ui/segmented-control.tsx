@@ -69,9 +69,10 @@ export function SegmentedControl<T extends string>({
             onClick={() => onValueChange(option.value)}
             onKeyDown={(event) => onKeyDown(event, index)}
             className={cn(
-              "shrink-0 rounded-[9px] px-3.5 font-semibold whitespace-nowrap transition-colors duration-200 ease-out",
+              "rounded-[9px] font-semibold whitespace-nowrap transition-colors duration-200 ease-out",
               size === "md" ? "min-h-10 text-[14px]" : "min-h-8 text-[13px]",
-              fullWidth && "flex-1",
+              // Full width: segments share the row and tighten on phones before scrolling.
+              fullWidth ? "min-w-0 flex-1 px-2 sm:px-3.5" : "shrink-0 px-3.5",
               selected
                 ? "bg-surface-raised text-ink shadow-[0_1px_2px_rgba(30,42,38,0.12)]"
                 : "text-ink-muted hover:text-ink",

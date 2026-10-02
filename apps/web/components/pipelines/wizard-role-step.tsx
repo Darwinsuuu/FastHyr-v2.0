@@ -181,6 +181,7 @@ export function RoleStep({
         hint={t("pipelines.wizard.role.passBarHint")}
       >
         <Slider
+          aria-label={t("pipelines.wizard.role.passBar")}
           value={form.resume_pass_bar}
           min={0}
           max={100}

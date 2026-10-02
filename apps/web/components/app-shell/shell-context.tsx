@@ -16,6 +16,8 @@ export interface ShellWorkspace {
   name: string;
   role: Role;
   memberCount: number;
+  /** For apply links: `/apply/{slug}/{pipeline-slug}`. */
+  slug: string;
 }
 
 export interface ShellState {

@@ -44,3 +44,14 @@ export function formatBytes(bytes: number, locale?: string): string {
   const digits = unit === 0 || value >= 10 ? 0 : 1;
   return `${new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value)} ${units[unit]}`;
 }
+
+/** "Thu, 31 Dec 2026" in en-GB: a date someone plans around, such as a pipeline's close date. */
+export function formatDayLong(value: DateInput, timeZone?: string, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone,
+  }).format(toDate(value));
+}

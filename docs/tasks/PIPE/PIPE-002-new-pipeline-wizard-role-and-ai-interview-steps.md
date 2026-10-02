@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M2 Pipelines |
-| Status | In review |
+| Status | Done |
 | Size | L |
 | Depends on | [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md), [WS-002](../WS/WS-002-departments.md), [FND-012](../FND/FND-012-ui-kit-design-system-components.md) |
 | Requirements | FR-PIPE-01, FR-PIPE-02 |

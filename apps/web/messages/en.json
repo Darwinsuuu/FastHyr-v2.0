@@ -597,6 +597,8 @@
       "saveDraft": "Save as draft",
       "saved": "Draft saved",
       "saving": "Saving…",
+      "saveScheduled": "Save changes",
+      "savedScheduled": "Changes saved",
       "cancel": "Cancel",
       "stepsLabel": "Pipeline setup steps",
       "stepOf": "Step {step} of {total}",
@@ -608,8 +610,6 @@
       "lockedTitle": "This pipeline's setup is locked",
       "lockedBody": "Once a pipeline opens, its role, interview, scoring and schedule stay fixed so every candidate is assessed the same way. You can still pause it, close it or add credits from the Pipelines page.",
       "goToPipelines": "Go to pipelines",
-      "comingTitle": "This step is on its way",
-      "comingBody": "Your draft is saved. Scoring, scheduling and publishing will be available here soon.",
       "steps": {
         "role": {
           "label": "Role",
@@ -644,12 +644,21 @@
       },
       "blocked": {
         "mustHaves": "Add at least 3 must-haves to continue",
-        "skills": "Add at least 3 skills to probe to continue"
+        "skills": "Add at least 3 skills to probe to continue",
+        "weights": "Make the rubric add up to 100% to continue",
+        "details": "Add the job title, location and job description in Role to publish",
+        "openingDate": "Pick an opening date from tomorrow onwards to publish",
+        "credits": "Reserve no more credits than your workspace has free to publish"
       },
       "errors": {
         "saveFailed": "We couldn't save your draft. Check your connection and try again.",
         "locked": "This pipeline has opened, so its setup can't be changed any more.",
-        "department": "You can only file pipelines under your own departments. Pick one of yours."
+        "department": "You can only file pipelines under your own departments. Pick one of yours.",
+        "incomplete": "Some details are missing or no longer valid. Check each step and try again.",
+        "credits": "Your workspace no longer has enough free credits for this reserve. Reserve fewer and try again.",
+        "alreadyPublished": "This pipeline has already been published.",
+        "publishFailed": "We couldn't publish this pipeline. Check your connection and try again.",
+        "creditsLoadFailed": "We couldn't check your free credits. Refresh the page to try again."
       },
       "hiddenFromCandidates": "Hidden from candidates",
       "countMin": "{count} of 3 minimum",
@@ -774,6 +783,170 @@
         "reminderHint": "One friendly nudge 24 hours before, to cut drop-off.",
         "integrity": "Flag possible impersonation",
         "integrityHint": "Second voice, face mismatch or read-aloud answers. Flags never auto-reject."
+      },
+      "scoring": {
+        "rubric": "Scoring rubric",
+        "sumOk": "Adds up to 100%",
+        "sumOff": "Adds up to {total}%. Needs to be 100%",
+        "weights": {
+          "weight_technical": "Technical fit",
+          "weight_communication": "Communication",
+          "weight_culture": "Culture alignment"
+        },
+        "percent": "{value}%",
+        "rubricHint": "Every report shows how each part was scored, with evidence from the interview.",
+        "passMark": "Pass mark",
+        "passMarkValue": "{value} / 100",
+        "passMarkHint": "Candidates at or above this score are marked \"Recommended\". You always make the final call.",
+        "messages": "Candidate messages",
+        "rejectMail": "Email candidates whose résumé isn't a match",
+        "rejectMailHint": "Sent the next working day with your \"Résumé not a match\" template.",
+        "resultMail": "Email candidates after their interview",
+        "resultMailHint": "Lets them know it's being reviewed, so nobody is left waiting in silence."
+      },
+      "schedule": {
+        "when": "When should it open?",
+        "modes": {
+          "now": {
+            "label": "Open now",
+            "description": "The apply link works as soon as you publish."
+          },
+          "scheduled": {
+            "label": "Schedule a date",
+            "description": "Get the link now, start accepting applicants later."
+          }
+        },
+        "openingDate": "Opening date",
+        "modeLocked": "To open it earlier, use Start now on the Pipelines page.",
+        "duration": "How long should it stay open?",
+        "durationDays": "{days} days",
+        "closesOn": "Closes on {date}.",
+        "noExtend": "Pausing doesn't extend this date.",
+        "reserve": "Reserve interview credits",
+        "reserveHint": "Credits you reserve here belong to this pipeline only. Busy pipelines can't use them up, so this role always has room for its applicants.",
+        "reserveLabel": "Credits to reserve",
+        "creditsUnit": "credits",
+        "reserveNote": "{credits} reserved for this pipeline · {left} left for your other pipelines",
+        "reserveOver": "That's more than the {free} credits your workspace has free. Top up in Billing, or reserve fewer.",
+        "reserveLocked": "{credits} credits reserved. To add more, top up this pipeline from the Pipelines page.",
+        "explainers": {
+          "perApplicant": {
+            "title": "1 applicant = 1 credit",
+            "body": "A credit is used when someone applies through the link."
+          },
+          "pauses": {
+            "title": "Runs out? It pauses",
+            "body": "New applicants wait until you add more. Other pipelines aren't touched."
+          },
+          "returns": {
+            "title": "Leftovers come back",
+            "body": "Unused credits return to your workspace when the pipeline closes."
+          }
+        }
+      },
+      "review": {
+        "edit": "Edit",
+        "editSection": "Edit {section}",
+        "notSet": "Not set",
+        "noneYet": "None yet",
+        "none": "None",
+        "lockNowTitle": "You can't edit this pipeline after publishing",
+        "lockNowBody": "The role, interview, scoring and schedule stay fixed so every candidate is assessed the same way. If something needs to change later, you'll create a new pipeline. You can still pause, close or add credits.",
+        "lockLaterTitle": "You can edit this pipeline until it opens on {date}",
+        "lockLaterBody": "Until then, you can change anything from the Pipelines page. Once the first applicant can apply, the setup locks so every candidate is assessed the same way.",
+        "rows": {
+          "title": "Job title",
+          "department": "Department",
+          "workSetup": "Work setup",
+          "location": "Location",
+          "jd": "Job description",
+          "mustHaves": "Must-haves",
+          "openTo": "Also open to",
+          "format": "Format",
+          "toneDepth": "Tone and depth",
+          "skills": "Skills to probe",
+          "integrity": "Integrity flags",
+          "rubric": "Rubric",
+          "passMark": "Pass mark",
+          "messages": "Candidate messages",
+          "opens": "Opens",
+          "closes": "Closes",
+          "credits": "Credits"
+        },
+        "jdAdded": "Added ({count} characters)",
+        "integrityOn": "On (flags never auto-reject)",
+        "off": "Off",
+        "rubricValue": "Technical fit {technical}% · Communication {communication}% · Culture alignment {culture}%",
+        "messageReject": "Résumé not a match",
+        "messageResult": "Interview results",
+        "opensNow": "As soon as you publish",
+        "closesValue": "{date} ({days} days)",
+        "creditsValue": "{credits} of {free} free",
+        "creditsReserved": "{credits} reserved"
+      },
+      "publish": {
+        "publish": "Publish pipeline",
+        "schedule": "Schedule pipeline",
+        "saveChanges": "Save changes",
+        "hintNow": "The setup locks once you publish",
+        "hintLater": "Editable until it opens on {date}",
+        "hintScheduled": "Editable until it opens on {date}",
+        "dialogNowTitle": "Once you publish, there's no going back",
+        "dialogNowBody": "You won't be able to edit the role, interview, scoring or schedule. This keeps every candidate's assessment consistent. You can still pause it, close it or add credits.",
+        "dialogLaterTitle": "Editing locks the moment it opens",
+        "dialogLaterBody": "You can keep editing this pipeline until it opens on {date}. From then on, the role, interview, scoring and schedule are locked so every candidate is assessed the same way. You can still pause it, close it or add credits.",
+        "goBack": "Go back",
+        "changesSaved": "Changes saved. {title} opens on {date}."
+      },
+      "done": {
+        "liveTitle": "{title} is live",
+        "scheduledTitle": "{title} opens {date}",
+        "pausedTitle": "{title} is published",
+        "pausedBody": "It's paused until your workspace has credits again. Applicants can't apply until then.",
+        "body": "Now share its apply link. Click where you'll post the job and we'll copy a tagged link, so you can see which board your applicants come from.",
+        "editableNote": "You can still edit the setup until {date}. After it opens, the setup is locked.",
+        "createAnother": "Create another",
+        "fallbackTitle": "Your pipeline"
+      }
+    },
+    "share": {
+      "label": "Where will you post this job?",
+      "copy": "Copy apply link for {source}",
+      "copied": "{source} link copied",
+      "copyFailed": "We couldn't copy the link. Copy it from here instead:",
+      "sources": {
+        "linkedin": {
+          "label": "LinkedIn",
+          "hint": "On LinkedIn, turn off Easy Apply and paste this as the external Apply URL."
+        },
+        "jobstreet": {
+          "label": "JobStreet",
+          "hint": "On JobStreet, paste this as the external application link for the job ad."
+        },
+        "indeed": {
+          "label": "Indeed",
+          "hint": "On Indeed, choose to receive applications on your own site and paste this link."
+        },
+        "kalibrr": {
+          "label": "Kalibrr",
+          "hint": "On Kalibrr, paste this as the external application link."
+        },
+        "glassdoor": {
+          "label": "Glassdoor",
+          "hint": "On Glassdoor, paste this as the apply URL for the job listing."
+        },
+        "facebook": {
+          "label": "Facebook",
+          "hint": "Use this link in your Facebook page post or job group listing."
+        },
+        "careers": {
+          "label": "Careers page",
+          "hint": "Add this to the Apply button on your own careers page."
+        },
+        "other": {
+          "label": "Other",
+          "hint": "Use this for emails, referrals or any place not listed. It shows up as “Other” in analytics."
+        }
       }
     }
   }

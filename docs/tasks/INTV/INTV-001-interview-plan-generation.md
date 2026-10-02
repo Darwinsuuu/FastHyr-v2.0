@@ -28,7 +28,7 @@ Every invited candidate has a personal interview plan built from the JD, their r
 - —
 
 ## Acceptance criteria
-- [ ] Plans generated for golden fixtures (`tests/ai_eval/test_interview_plan.py`, four golden résumés; needs a real-model run with `AI_EVAL=1`)
+- [x] Plans generated for golden fixtures (`tests/ai_eval/test_interview_plan.py`, four golden résumés; passed with gpt-4.1-mini on 2026-10-02)
 - [x] No personal data in plan text (masks and the candidate's name are refused by `problems()`; the fallback plan holds nothing from the résumé)
 - [x] Built mobile first and checked at 360, 768, 1024 and 1440 px: no screen in this task (topics show in INTV-005 and ASMT-006)
 - [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
@@ -57,6 +57,7 @@ _(Filled in by the implementer before coding; approved by the product owner.)_
 _(Branch name, decisions, deviations, PR links, review files.)_
 - 2026-10-02: branch `feature/interview-plan-r3k8v2` from `develop`. Plan auto-approved (owner's standing rule). Also marks SCREEN-002 Done on the board; no other task became Ready (SCREEN-003 still waits on MSG-003).
 - Decisions (defaults picked, open to change): a plain skills plan is stored when the model fails, so no passed candidate is held up (marked `source = fallback`); topics carry a `kind` so code can check the order; résumé quotes may not contain a mask, since the candidate sees them; the plan is built from the redacted text, so a candidate with no readable résumé still gets a plan without quotes.
-- Hand-tested on local Supabase with the real worker: a passed screen queued `plan_interview`, which stored a 5-topic plan covering the 3 skills to probe with quotes from the redacted résumé; a plan holding `[SCHOOL]` was asked for again and then replaced by the fallback; `AI_FAKE=1` builds a passing plan. The real-model golden set wasn't run (no OpenAI key in this session).
+- Hand-tested on local Supabase with the real worker: a passed screen queued `plan_interview`, which stored a 5-topic plan covering the 3 skills to probe with quotes from the redacted résumé; a plan holding `[SCHOOL]` was asked for again and then replaced by the fallback; `AI_FAKE=1` builds a passing plan. The real-model golden set was run by Darwin (see below).
 - 2026-10-02: Darwin ran the real-model golden set with gpt-4.1-mini: the fresh-graduate plan failed twice, rewording a skill to probe ("Data cleaning in Python") and quoting text the résumé didn't contain. Skills now come back as numbers from the prompt's list, quotes that aren't in the résumé are dropped instead of failing the plan, and the prompt asks for the résumé's own spelling and not to quote the Objective line. Darwin asked to mark INTV-001 Done on the board in this PR so it ships with the next deployment.
 - 2026-10-02 (second real-model run): the backend plan for one résumé left a skill to probe out of every topic on both tries. Code now adds a missing skill itself: to the topic that talks about it, else as a plain topic before the candidate's questions, else to the last skills topic. The live interviewer covers it with follow-ups.
+- 2026-10-02 (third run): Darwin ran `tests/ai_eval` with gpt-4.1-mini: plan, assessment and redaction golden sets all pass (5 passed).

@@ -78,7 +78,8 @@ def test_order_and_counts_are_checked() -> None:
     topics = answer()["topics"]
     assert problems(answer(topics=topics[1:])) == ["warm_up_first"]
     assert problems(answer(topics=topics[:-1])) == ["candidate_questions_last"]
-    assert "topic_count" in problems(answer(topics=[topics[0], topics[1], topics[-1]]))
+    all_skills = {**topics[1], "skills": [1, 2, 3]}
+    assert problems(answer(topics=[topics[0], all_skills, topics[-1]])) == ["topic_count"]
     too_many = [topics[0], *([topics[1]] * 6), topics[-1]]
     assert "topic_count" in problems(answer(topics=too_many))
     swapped = [topics[0], topics[-1], *topics[1:-1]]
@@ -90,20 +91,35 @@ def test_order_and_counts_are_checked() -> None:
     assert problems(answer(topics=[topics[0], *four, *topics[2:]])) == ["topic_2_seeds"]
 
 
-def test_every_skill_to_probe_must_be_covered() -> None:
+def test_every_skill_to_probe_is_covered() -> None:
     topics = answer()["topics"]
-    dropped = [topic for topic in topics if topic["skills"] != [2]]
-    dropped.insert(2, {**topics[1], "skills": [1]})
-    assert problems(answer(topics=dropped)) == ["skill_2_not_covered"]
     # Skills come back by number and are stored by name; one topic may cover several.
     merged = [topics[0], {**topics[1], "skills": [1, 2, 2]}, *topics[3:]]
     stored, found = resolved(answer(topics=merged))
     assert (stored.topics[1].skills, found) == (["API design", "PostgreSQL"], [])
-    # Only skills topics count, and a number outside the list is a problem.
-    in_warm_up = [{**topics[0], "skills": [2]}, topics[1], *topics[3:]]
-    assert problems(answer(topics=in_warm_up)) == ["skill_2_not_covered"]
+    # A number outside the list is a problem.
     wrong = [*topics[:2], {**topics[2], "skills": [2, 9]}, *topics[3:]]
     assert problems(answer(topics=wrong)) == ["topic_3_skill_number"]
+
+
+def test_a_skill_the_model_left_out_is_added_by_code() -> None:
+    topics = answer()["topics"]
+    # Joins the skills topic that talks about it...
+    about_it = {**topics[1], "title": "Running PostgreSQL", "skills": [1]}
+    stored, _ = resolved(answer(topics=[topics[0], about_it, topics[3], topics[4]]))
+    assert stored.topics[1].skills == ["API design", "PostgreSQL"]
+    assert problems(answer(topics=[topics[0], about_it, topics[3], topics[4]])) == []
+    # ...else gets its own plain topic before the candidate's questions...
+    without = [topic for topic in topics if topic["skills"] != [2]]
+    stored, _ = resolved(answer(topics=without))
+    assert [topic.skills for topic in stored.topics][-2:] == [["PostgreSQL"], []]
+    assert stored.topics[-2].seeds[0].resume_quote == ""
+    # ...else, with 7 topics already, joins the last skills topic. Warm-up skills don't count.
+    full = [{**topics[0], "skills": [2]}, *([topics[1]] * 5), topics[-1]]
+    stored, _ = resolved(answer(topics=full))
+    assert stored.topics[0].skills == []
+    assert stored.topics[5].skills == ["API design", "PostgreSQL", "Incident response"]
+    assert problems(answer(topics=full)) == []
 
 
 def test_quotes_the_resume_does_not_contain_are_dropped() -> None:

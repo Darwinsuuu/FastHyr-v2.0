@@ -189,8 +189,9 @@ def _usable_quote(quote: str, resume_text: str) -> bool:
 def resolve(answer: PlanAnswer, context: Context) -> tuple[InterviewPlan, list[str]]:
     """The stored form of the model's answer: skill numbers become the skills' names, and quotes
     the résumé doesn't contain are dropped (an unquoted question is still a good question; an
-    invented quote must never be shown). Returns the plan and its problems: skill numbers outside
-    the list. Labels only."""
+    invented quote must never be shown). A skill to probe the model left out is added by code
+    (`_cover_missing_skills()`). Returns the plan and its problems: skill numbers outside the
+    list. Labels only."""
     skills = context.skills()
     found: list[str] = []
     dropped = 0
@@ -210,6 +211,8 @@ def resolve(answer: PlanAnswer, context: Context) -> tuple[InterviewPlan, list[s
             seeds.append(
                 {"question": seed.question, "resume_quote": seed.resume_quote if keep else ""}
             )
+        # Only skills topics carry skills.
+        names = names if topic.kind == "skills" else []
         topics.append({**topic.model_dump(), "skills": names, "seeds": seeds})
     claims = [
         claim.model_dump()
@@ -217,10 +220,64 @@ def resolve(answer: PlanAnswer, context: Context) -> tuple[InterviewPlan, list[s
         if _usable_quote(claim.resume_quote, context.resume_text)
     ]
     dropped += len(answer.claims_to_verify) - len(claims)
+    repaired = _cover_missing_skills(topics, skills)
+    if repaired:
+        logger.info("interview plan: %d skills to probe added by code", repaired)
     if dropped:
         logger.info("interview plan: %d résumé quotes not found and dropped", dropped)
     plan = InterviewPlan.model_validate({"topics": topics, "claims_to_verify": claims})
     return plan, found
+
+
+_STOPWORDS = frozenset(
+    {"and", "the", "for", "with", "from", "are", "using", "use", "into", "about"}
+)
+
+
+def _words(text: str) -> set[str]:
+    return {word for word in _normal(text).split() if len(word) > 2 and word not in _STOPWORDS}
+
+
+def _cover_missing_skills(topics: list[dict[str, Any]], skills: list[str]) -> int:
+    """Gives every skill to probe a topic, in place: the skills topic whose text shares the most
+    words with the skill (so "PostgreSQL performance" joins the topic asking about PostgreSQL),
+    else a new plain topic before the candidate's questions while there is room, else the last
+    skills topic. The live interviewer covers it with follow-ups. Returns how many were added."""
+    added = 0
+    for skill in skills:
+        if any(skill in topic["skills"] for topic in topics if topic["kind"] == "skills"):
+            continue
+        added += 1
+        wanted = _words(skill)
+        scored = [
+            (
+                len(
+                    wanted
+                    & _words(
+                        " ".join(
+                            [topic["title"], topic["goal"]]
+                            + [seed["question"] for seed in topic["seeds"]]
+                        )
+                    )
+                ),
+                index,
+            )
+            for index, topic in enumerate(topics)
+            if topic["kind"] == "skills"
+        ]
+        best = max(scored, default=(0, -1))
+        if best[0] > 0:
+            topics[best[1]]["skills"].append(skill)
+        elif len(topics) < MAX_TOPICS:
+            at = (
+                len(topics) - 1
+                if topics and topics[-1]["kind"] == "candidate_questions"
+                else len(topics)
+            )
+            topics.insert(at, _skills_topic([skill]))
+        elif scored:
+            topics[scored[-1][1]]["skills"].append(skill)
+    return added
 
 
 def problems(plan: InterviewPlan, context: Context, candidate_name: str | None) -> list[str]:
@@ -288,6 +345,26 @@ def _groups(skills: list[str]) -> list[list[str]]:
     return [skills[index::FALLBACK_SKILL_TOPICS] for index in range(FALLBACK_SKILL_TOPICS)]
 
 
+def _skills_topic(group: list[str]) -> dict[str, Any]:
+    """A plain topic for one or more skills to probe, with no résumé quote."""
+    listed = " and ".join(group)
+    return {
+        "kind": "skills",
+        "title": group[0][:60] if len(group) == 1 else f"{group[0][:40]} and more",
+        "goal": f"Understand the depth of the candidate's experience with {listed}.",
+        "skills": list(group),
+        "seeds": [
+            {
+                "question": (
+                    f"Tell me about a time you worked with {listed}. What was the "
+                    "situation, what did you do, and how did it turn out?"
+                ),
+                "resume_quote": "",
+            }
+        ],
+    }
+
+
 def fallback(context: Context) -> InterviewPlan:
     """A plain plan from the skills to probe, with no résumé quotes and no claims, so it holds
     nothing about the candidate. The live interviewer still adapts with follow-ups."""
@@ -309,25 +386,7 @@ def fallback(context: Context) -> InterviewPlan:
             ],
         }
     ]
-    for group in _groups(skills):
-        listed = " and ".join(group)
-        topics.append(
-            {
-                "kind": "skills",
-                "title": group[0][:60] if len(group) == 1 else f"{group[0][:40]} and more",
-                "goal": f"Understand the depth of the candidate's experience with {listed}.",
-                "skills": group,
-                "seeds": [
-                    {
-                        "question": (
-                            f"Tell me about a time you worked with {listed}. What was the "
-                            "situation, what did you do, and how did it turn out?"
-                        ),
-                        "resume_quote": "",
-                    }
-                ],
-            }
-        )
+    topics += [_skills_topic(group) for group in _groups(skills)]
     topics.append(
         {
             "kind": "candidate_questions",

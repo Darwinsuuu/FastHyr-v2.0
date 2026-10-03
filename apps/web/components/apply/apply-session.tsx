@@ -35,6 +35,9 @@ import type { Notice } from "@/lib/notices";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { workspaceCookie } from "@/lib/workspace";
 
+const STATUS_POLL_EVERY_MS = 15_000;
+const STATUS_POLL_FOR_MS = 10 * 60_000;
+
 type Modal =
   | { kind: "signin"; intent: SignInIntent; problem: SignInProblem | null }
   | { kind: "form" }
@@ -114,6 +117,22 @@ export function ApplySessionProvider({
       setWorkspaceMember(initialMine.workspace_member);
     }
   }
+
+  // While the résumé is being screened, read the application again now and then so the notice
+  // turns into the invitation (or "with the team") without a reload (SCREEN-003). Screening
+  // takes a minute or two; after STATUS_POLL_FOR the candidate can reload.
+  useEffect(() => {
+    if (status !== "received") return;
+    const started = Date.now();
+    const timer = window.setInterval(() => {
+      if (Date.now() - started > STATUS_POLL_FOR_MS) {
+        window.clearInterval(timer);
+        return;
+      }
+      if (document.visibilityState === "visible") router.refresh();
+    }, STATUS_POLL_EVERY_MS);
+    return () => window.clearInterval(timer);
+  }, [status, router]);
 
   // A reload or a shared link shouldn't reopen the form or repeat the error.
   useEffect(() => {

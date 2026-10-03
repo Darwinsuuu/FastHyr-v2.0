@@ -79,8 +79,8 @@ def test_a_passed_screen_gets_a_personal_plan(
     assert variables["screening_claims"] != "None"
     assert not any("Paolo" in value for value in variables.values())
 
-    # Inviting is SCREEN-003's; the stage doesn't move here.
-    assert application(tenancy, application_id)["stage"] == "processing_resume"
+    # With its plan, the candidate is invited (SCREEN-003).
+    assert application(tenancy, application_id)["stage"] == "invited"
 
     # Running again changes nothing and asks the model nothing.
     asyncio.run(_enqueue(redis_url, queue_name, application_id))

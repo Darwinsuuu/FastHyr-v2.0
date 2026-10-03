@@ -18,7 +18,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, id_column
+from app.models.base import Base, created_at_column, id_column
 
 
 class Candidate(Base):
@@ -115,3 +115,31 @@ class Application(Base):
     advanced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     credit_ledger_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("credit_ledger.id"))
     applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ReviewLink(Base):
+    """The "Request a human review" link in an automated rejection email (ADR-015). Only the
+    token's hash is kept; ASMT-008 turns a used link into a human review request."""
+
+    __tablename__ = "review_links"
+    __table_args__ = (
+        UniqueConstraint(
+            "application_id",
+            "decision_type",
+            name="review_links_application_id_decision_type_key",
+        ),
+        ForeignKeyConstraint(
+            ["workspace_id", "application_id"],
+            ["applications.workspace_id", "applications.id"],
+            name="review_links_application_fkey",
+            ondelete="CASCADE",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    application_id: Mapped[uuid.UUID] = mapped_column()
+    decision_type: Mapped[str] = mapped_column(Text)
+    token_hash: Mapped[str] = mapped_column(Text, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = created_at_column()

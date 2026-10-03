@@ -58,7 +58,7 @@ _(Important functional tests only — write them after the feature works; see [`
 Defaults picked (not confirmed by the product owner): the link stays open to the end of its last day in the workspace time zone; the review link lasts 30 days from the email's send time; a pipeline closed after someone applied still invites them (they used a credit).
 
 ## Log
-- Branch `feature/screen-003-invite-or-reject-vdwf1v`.
+- Branch `feature/screen-003-invite-or-reject-vdwf1v`, PR #41.
 - 2026-10-03: plan auto-approved (owner's standing rule). Built as planned.
 - Hand test (local, `AI_FAKE=1`, seeded Acme Talent): a candidate applied with the worker stopped; the apply page showed "Your application is in", then switched to "Your AI interview is ready" 14 s after the worker started, without a reload (360 and 1440 px). The invitation reached Mailpit with `/interview/{token}` and "Fri, 9 Oct 2026, 11:59 PM PST". A screen failed by raising the pass bar to 100 landed in `resume_not_match` with `reject_resume` scheduled for the next business days at the same local time and a review link valid 30 days after it. Screenshots: `screenshots/SCREEN-003/` in the project files.
 - `services/applications.py` imports the screening job and the jobs now import `post_screen`, so `post_screen._move()` imports `move_stage` inside the function to break the cycle.

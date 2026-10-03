@@ -78,7 +78,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [APPLY-004](APPLY/APPLY-004-apply-edge-cases-and-states.md) | Apply edge cases and states | S | APPLY-003 | Done | |
 | [SCREEN-001](SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) | Résumé text extraction and PII redaction | M | FND-011, FND-013 | Done | #36 |
 | [SCREEN-002](SCREEN/SCREEN-002-resume-assessment-and-decision.md) | Résumé assessment and decision | L | SCREEN-001, PIPE-001 | Done | #37 |
-| [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Done | |
+| [SCREEN-003](SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) | Post-screen actions: invite or schedule rejection | M | SCREEN-002, MSG-003, INTV-001 | Done | #41 |
 | [INTV-001](INTV/INTV-001-interview-plan-generation.md) | Interview plan generation | M | SCREEN-002 | Done | #38 |
 | [MSG-001](MSG/MSG-001-email-templates-model-and-defaults.md) | Email templates model and defaults | M | FND-010, AUTH-003 | Done | #39 |
 | [MSG-002](MSG/MSG-002-email-templates-list-and-editor.md) | Email templates list and editor | M | MSG-001, DASH-001 | Ready | |

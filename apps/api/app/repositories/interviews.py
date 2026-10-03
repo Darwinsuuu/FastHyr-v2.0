@@ -3,12 +3,22 @@ application ID, read the application with `screening.application_by_id()`, then 
 these repositories for that application's workspace."""
 
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Application, CompanyProfile, Interview, InterviewPlan, ResumeAssessment
+from app.models import (
+    Application,
+    Candidate,
+    CompanyProfile,
+    Interview,
+    InterviewPlan,
+    Pipeline,
+    ResumeAssessment,
+    Workspace,
+)
 from app.repositories.base import WorkspaceRepository
 
 # Stages in which a plan is still useful: waiting for the screen's outcome, or invited.
@@ -54,6 +64,71 @@ async def screened_awaiting_action_before(
         .limit(500)
     )
     return [(row.application_id, row.passed) for row in rows]
+
+
+@dataclass(frozen=True)
+class InterviewLinkRow:
+    """What the interview link page needs about one interview (INTV-002)."""
+
+    interview: Interview
+    application_stage: str
+    candidate_auth_user_id: uuid.UUID
+    candidate_email: str
+    candidate_full_name: str
+    candidate_deleted_at: datetime | None
+    pipeline_status: str
+    job_title: str | None
+    company_name: str
+    website: str | None
+    careers_url: str | None
+    logo_path: str | None
+    profile_updated_at: datetime
+    timezone: str | None
+
+
+async def interview_link_of(session: AsyncSession, token_hash: str) -> InterviewLinkRow | None:
+    """The interview whose link token hashes to `token_hash`, with its application, candidate,
+    pipeline and company. Not workspace-scoped on purpose: the link's token is the key, as for
+    invite tokens, and the lookup is one equality match on the unique hash."""
+    row = (
+        await session.execute(
+            select(
+                Interview,
+                Application.stage,
+                Candidate.auth_user_id,
+                Candidate.email,
+                Candidate.full_name,
+                Candidate.deleted_at,
+                Pipeline.status,
+                Pipeline.title,
+                CompanyProfile.company_name,
+                CompanyProfile.website,
+                CompanyProfile.careers_url,
+                CompanyProfile.logo_path,
+                CompanyProfile.updated_at,
+                func.coalesce(CompanyProfile.timezone, Workspace.timezone),
+            )
+            .join(
+                Application,
+                (Application.workspace_id == Interview.workspace_id)
+                & (Application.id == Interview.application_id),
+            )
+            .join(
+                Candidate,
+                (Candidate.workspace_id == Application.workspace_id)
+                & (Candidate.id == Application.candidate_id),
+            )
+            .join(
+                Pipeline,
+                (Pipeline.workspace_id == Application.workspace_id)
+                & (Pipeline.id == Application.pipeline_id),
+            )
+            .join(Workspace, Workspace.id == Interview.workspace_id)
+            .join(CompanyProfile, CompanyProfile.workspace_id == Interview.workspace_id)
+            .where(Interview.token_hash == token_hash)
+        )
+    ).one_or_none()
+    return InterviewLinkRow(*tuple(row)) if row else None
 
 
 class InterviewPlanRepository(WorkspaceRepository[InterviewPlan]):

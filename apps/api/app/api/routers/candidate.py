@@ -1,11 +1,20 @@
 """Candidate endpoints (API.md "Candidate"): a signed-in Google or Microsoft account, acting only
-on its own applications. Pipelines are named by ID; drafts, cancelled and unknown ones are 404."""
+on its own applications. Pipelines are named by ID; drafts, cancelled and unknown ones are 404.
+Interview links are named by their token and also answer signed-out visitors (INTV-002)."""
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Path, Request, Response, status
 
-from app.api.deps import CandidateContextDep, JobQueueDep, Session, SettingsDep, StorageDep
+from app.api.deps import (
+    CandidateContextDep,
+    JobQueueDep,
+    OptionalCandidateDep,
+    Session,
+    SettingsDep,
+    StorageDep,
+)
 from app.core.errors import PROBLEM_RESPONSES
 from app.schemas.applications import (
     MyApplication,
@@ -13,7 +22,9 @@ from app.schemas.applications import (
     SubmitApplicationRequest,
     SubmittedApplication,
 )
+from app.schemas.interviews import InterviewLink
 from app.services import applications as application_service
+from app.services import interview_links
 
 router = APIRouter(prefix="/candidate", tags=["candidate"], responses=PROBLEM_RESPONSES)
 
@@ -65,3 +76,16 @@ async def get_my_application(
 ) -> MyApplication:
     """Whether the signed-in candidate has applied, and when ("Applied on {date}")."""
     return await application_service.my_application(session, ctx, pipeline_id)
+
+
+@router.get("/interviews/{token}", response_model=InterviewLink)
+async def get_interview_link(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    candidate: OptionalCandidateDep,
+    session: Session,
+    settings: SettingsDep,
+) -> InterviewLink:
+    """The interview link page (S-01). Sign-in is optional here: a signed-out visitor gets
+    `sign_in` (with the applying account's masked email) unless the link has expired or closed,
+    and a different account gets `wrong_account`. Unknown tokens are `404 interview_not_found`."""
+    return await interview_links.interview_link(session, token, candidate, api_url=settings.api_url)

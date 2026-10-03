@@ -36,7 +36,7 @@ Candidates who don't start or finish are nudged, can resume, and TA teams see wh
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- The link page (INTV-002) already shows `expired` once `expires_at` passes and `unavailable` for a link with `superseded_by` set, so a re-invite only needs to set `superseded_by` on the old row.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

@@ -168,6 +168,12 @@ def test_create_makes_the_caller_owner_with_trial_and_profile(
     )
     assert (trial["amount"], trial["remaining"], trial["kind"]) == (20, 20, "grant_trial")
     assert trial["expires_at"] == row["trial_granted_at"] + timedelta(days=30)
+    templates = fetch(
+        supabase,
+        "select key from email_templates where workspace_id = $1 and is_default",
+        workspace_id,
+    )
+    assert len(templates) == 9
 
 
 def test_create_gives_every_workspace_a_unique_url_safe_slug(

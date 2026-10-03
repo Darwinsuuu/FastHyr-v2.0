@@ -5,3 +5,11 @@ packages:
 # Packages allowed to run install scripts.
 onlyBuiltDependencies:
   - unrs-resolver
+
+# Advisories `pnpm audit` (CI "Secrets and audits") may ignore. Each needs a reason and is
+# removed once a fixed version exists.
+auditConfig:
+  ignoreGhsas:
+    # braces <=3.0.3 stack exhaustion (2026-10-03): no patched release yet; only reached
+    # through ESLint (eslint-config-next > fast-glob > micromatch), never shipped code.
+    - GHSA-vfj7-8cjw-p6xm

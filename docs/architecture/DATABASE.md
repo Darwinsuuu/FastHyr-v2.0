@@ -99,9 +99,9 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 **human_review_requests** — `id`, `workspace_id`, `application_id`, `decision_type` (`resume|interview`), `token_hash`, `candidate_message`, `status` (`open|upheld|overridden`), `resolved_by`, `resolved_at`, `resolution_note`, `created_at`.
 
 ### Messaging
-**email_templates** — `id`, `workspace_id`, `key` (`interview_invitation|interview_reminder|finish_interview|next_stage|reject_resume|reject_interview|interview_received|role_closed|review_received`), `subject`, `body_html`, `is_default bool`, `updated_by`, `updated_at`. Unique `(workspace_id, key)`.
+**email_templates** — `id`, `workspace_id`, `key` (`interview_invitation|interview_reminder|finish_interview|next_stage|reject_resume|reject_interview|interview_received|role_closed|review_received`), `subject` (1–200 characters), `body_html` (sanitised), `is_default bool` (true until someone saves their own wording), `updated_by` (null while default), `updated_at`. Unique `(workspace_id, key)`. Defaults come from `app/emails/defaults.py` (MSG-001).
 
-**email_template_versions** — `id`, `workspace_id`, `template_id`, `subject`, `body_html`, `created_by`, `created_at`, `note` (e.g. "Reset to default").
+**email_template_versions** — `id`, `workspace_id`, `template_id`, `subject`, `body_html`, `created_by`, `created_at`, `note` (e.g. "Reset to default"). One row per save; deleted with its template.
 
 **email_messages** — `id`, `workspace_id` (null only for the contact form), `application_id` (nullable), `template_key` (workspace template key, or a system key such as `member_invite`, `test`), `to_email`, `from_name`, `subject_rendered`, `html_rendered`, `text_rendered` (rendered when queued, FND-010), `scheduled_for`, `status` (`scheduled|cancelled|sending|sent|delivered|bounced|complained|failed`), `provider_message_id` (unique), `cancel_reason`, `sent_at`, `status_updated_at`, `error` (stable code: `provider_rejected`, `provider_unavailable`, `send_failed`), `created_at`.
 

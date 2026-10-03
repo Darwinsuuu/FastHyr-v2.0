@@ -386,3 +386,13 @@ class NoticeOutdatedError(AppError):
     status = 409
     code = "notice_outdated"
     title = "This notice has been updated. Read it again and agree to continue."
+
+
+class EmailTemplateInvalidError(AppError):
+    """A template save that would send a broken email (FR-MSG-03): an unknown parameter, or an
+    empty or too long subject or message. `errors` names each problem; for unknown parameters
+    `msg` is the parameter as written, which is template text, never personal data."""
+
+    status = 422
+    code = "email_template_invalid"
+    title = "This template can't be saved yet"

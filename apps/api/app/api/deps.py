@@ -127,6 +127,24 @@ async def get_candidate_context(user: CurrentUserDep) -> CandidateContext:
 
 
 CandidateContextDep = Annotated[CandidateContext, Depends(get_candidate_context)]
+
+
+async def get_optional_candidate(
+    request: Request,
+    authorization: Annotated[str | None, Header(include_in_schema=False)] = None,
+) -> CandidateContext | None:
+    """For pages a candidate opens before signing in (the interview link, INTV-002): no token, or
+    a session that isn't Google or Microsoft, is None. A token that fails its check is still 401,
+    so a stale session never reads as "signed out" by mistake."""
+    if not authorization:
+        return None
+    user = await get_current_user(request, authorization)
+    if not (user.providers & CANDIDATE_PROVIDERS) or not user.email:
+        return None
+    return CandidateContext(user_id=user.user_id, email=user.email)
+
+
+OptionalCandidateDep = Annotated[CandidateContext | None, Depends(get_optional_candidate)]
 RequestContextDep = Annotated[RequestContext, Depends(get_request_context)]
 
 

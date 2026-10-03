@@ -86,6 +86,12 @@ class NotFoundError(AppError):
     title = "Not found"
 
 
+class InterviewNotFoundError(AppError):
+    status = 404
+    code = "interview_not_found"
+    title = "We couldn't find that interview"
+
+
 class InviteNotFoundError(AppError):
     status = 404
     code = "invite_not_found"

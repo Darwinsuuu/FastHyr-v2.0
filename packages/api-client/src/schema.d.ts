@@ -591,6 +591,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/candidate/interviews/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Interview Link
+         * @description The interview link page (S-01). Sign-in is optional here: a signed-out visitor gets
+         *     `sign_in` (with the applying account's masked email) unless the link has expired or closed,
+         *     and a different account gets `wrong_account`. Unknown tokens are `404 interview_not_found`.
+         */
+        get: operations["get_interview_link_v1_candidate_interviews__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -951,6 +973,62 @@ export interface components {
         HealthResponse: {
             /** Status */
             status: string;
+        };
+        /** InterviewCompany */
+        InterviewCompany: {
+            /** Name */
+            name: string;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Website */
+            website: string | null;
+            /** Careers Url */
+            careers_url: string | null;
+        };
+        /**
+         * InterviewLink
+         * @description What the interview link page shows (INTV-002). Personal details (`first_name`) appear only
+         *     once the signed-in account is the one that applied; never a stage, score or flag.
+         */
+        InterviewLink: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "unavailable" | "expired" | "sign_in" | "wrong_account" | "completed" | "technical_problem" | "resume" | "welcome";
+            company: components["schemas"]["InterviewCompany"];
+            /** Job Title */
+            job_title: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "video_voice" | "voice_only";
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Expires Label
+             * @description The expiry as the invitation email writes it, in the company's time zone
+             */
+            expires_label: string;
+            /**
+             * First Name
+             * @description Only for the account that applied (not sign_in/wrong_account)
+             */
+            first_name?: string | null;
+            /**
+             * Masked Email
+             * @description Only on sign_in: the applying account, e.g. p•••@gmail.com
+             */
+            masked_email?: string | null;
+            /**
+             * Minutes Left
+             * @description Only on resume: what is left of the 30-minute cap
+             */
+            minutes_left?: number | null;
         };
         /**
          * Invite
@@ -3845,6 +3923,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyApplication"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_interview_link_v1_candidate_interviews__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewLink"];
                 };
             };
             /** @description Unauthorized */

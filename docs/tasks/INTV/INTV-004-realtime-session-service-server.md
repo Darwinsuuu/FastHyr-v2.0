@@ -37,6 +37,7 @@ The API starts, controls and ends OpenAI Realtime interview sessions with the ri
 
 ## Notes and edge cases
 - Keep the provider behind an interface for testing
+- The link page (INTV-002) reads `interviews.status`, `talk_seconds` and `drop_reason`: set `in_progress`/`abandoned` and `talk_seconds` as attempts run, and `drop_reason = technical_issue` after 3 failed connections so the page shows "We couldn't connect you". Look links up with `services/interview_links` (`hash_token` + `interview_link_of()`).
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

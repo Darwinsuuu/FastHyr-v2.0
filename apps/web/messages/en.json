@@ -1236,5 +1236,75 @@
         }
       }
     }
+  },
+  "interview": {
+    "pageTitle": "Your interview with {company}",
+    "interviewsWith": "interviews with",
+    "roleAt": "{title} · {company}",
+    "welcome": {
+      "title": "Hi {name}, ready for your interview?",
+      "titleNoName": "Ready for your interview?",
+      "body": "This is a conversation with an AI interviewer about your experience and the {title} role. It takes about 20–30 minutes. You can ask it questions about the role at any time.",
+      "beforeYouStart": "Before you start",
+      "quiet": "Find a quiet place with good light",
+      "browser": "Use Chrome, Edge, Safari or Firefox",
+      "video": "Your camera and microphone will be on",
+      "voice": "Only your microphone is used",
+      "openUntil": "Your link is open until {expiry}",
+      "decision": "A person on the {company} team makes every hiring decision.",
+      "howAi": "How AI is used in this interview",
+      "start": "Check my camera and mic",
+      "accommodation": "I need an accommodation"
+    },
+    "resume": {
+      "title": "Welcome back, {name}",
+      "titleNoName": "Welcome back",
+      "body": "You’ve already covered some of the interview. We’ll pick up where you left off.",
+      "minutesLeft": {
+        "one": "You have about {count} minute left.",
+        "other": "You have about {count} minutes left."
+      },
+      "continue": "Continue my interview"
+    },
+    "signIn": {
+      "title": "Sign in to start your interview",
+      "body": "Use the same Google or Microsoft account you applied with ({email}).",
+      "google": "Continue with Google",
+      "microsoft": "Continue with Microsoft",
+      "cancelled": "Sign-in was cancelled. Choose Google or Microsoft to try again.",
+      "failed": "We couldn’t sign you in. Try again, or use your other account."
+    },
+    "wrongAccount": {
+      "title": "This interview belongs to another account",
+      "body": "You’re signed in as {email}. Sign out and sign in with the account you used to apply.",
+      "bodyNoEmail": "Sign out and sign in with the account you used to apply.",
+      "switch": "Sign out and switch account",
+      "failed": "We couldn’t sign you out. Try again."
+    },
+    "expired": {
+      "title": "This interview link has expired",
+      "body": "The link was open until {expiry}. If you’d still like to interview, reply to the invitation email or contact {company}.",
+      "website": "Visit {company}’s website"
+    },
+    "completed": {
+      "title": "You’ve finished this interview",
+      "body": "Thanks, {name}. Your answers are with the {company} hiring team. You’ll hear from them, not from us.",
+      "bodyNoName": "Thanks. Your answers are with the {company} hiring team. You’ll hear from them, not from us."
+    },
+    "unavailable": {
+      "title": "This interview is no longer available",
+      "body": "The {company} team has closed this step. If you have questions, contact them directly."
+    },
+    "technical": {
+      "title": "We couldn’t connect you",
+      "body": "It’s not you — something went wrong on our side or with the connection. Your link still works until {expiry}; try again in a few minutes, ideally on another network or browser.",
+      "retry": "Try again"
+    },
+    "check": {
+      "title": "Camera and microphone check",
+      "body": "This step isn’t ready yet. Your link still works until {expiry}.",
+      "back": "Back"
+    },
+    "newTab": "(opens in a new tab)"
   }
 }

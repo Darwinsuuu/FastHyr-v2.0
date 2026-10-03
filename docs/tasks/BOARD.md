@@ -89,9 +89,9 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [INTV-002](INTV/INTV-002-interview-link-page-and-states.md) | Interview link page and states | M | SCREEN-003, APPLY-002 | Ready | |
-| [INTV-003](INTV/INTV-003-device-check-and-consent.md) | Device check and consent | M | INTV-002, COMP-002 | Backlog | |
-| [INTV-004](INTV/INTV-004-realtime-session-service-server.md) | Realtime session service (server) | L | INTV-001, INTV-002, FND-013 | Backlog | |
+| [INTV-002](INTV/INTV-002-interview-link-page-and-states.md) | Interview link page and states | M | SCREEN-003, APPLY-002 | Done | |
+| [INTV-003](INTV/INTV-003-device-check-and-consent.md) | Device check and consent | M | INTV-002, COMP-002 | Ready | |
+| [INTV-004](INTV/INTV-004-realtime-session-service-server.md) | Realtime session service (server) | L | INTV-001, INTV-002, FND-013 | Ready | |
 | [INTV-005](INTV/INTV-005-live-interview-ui-client.md) | Live interview UI (client) | L | INTV-003, INTV-004 | Backlog | |
 | [INTV-006](INTV/INTV-006-recording-capture-and-finalisation.md) | Recording capture and finalisation | L | INTV-005, FND-011 | Backlog | |
 | [INTV-007](INTV/INTV-007-interview-lifecycle-resume-expiry-reminders-re-inv.md) | Interview lifecycle: resume, expiry, reminders, re-invite, drop-off reasons | M | INTV-005, MSG-003 | Backlog | |

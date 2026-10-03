@@ -35,7 +35,7 @@ Candidates confirm camera and microphone work and give informed consent before s
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- INTV-002 left a holding step in `components/interview/interview-link-card.tsx` (`HoldingStep`): "Check my camera and mic", "Continue my interview" and "Try again" open it. Replace it with the device check.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

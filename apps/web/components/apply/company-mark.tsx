@@ -1,13 +1,13 @@
-import type { PublicPipeline } from "@/lib/apply";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
-/** The employer's logo, or its initial on evergreen when there's none (frame Apply). */
+/** The employer's logo, or its initial on evergreen when there's none (frame Apply). Also the
+ * interview link page's header (INTV-002). */
 export function CompanyMark({
   company,
   size,
 }: {
-  company: PublicPipeline["company"];
+  company: { name: string; logo_url?: string | null };
   size: "sm" | "lg";
 }) {
   const box =

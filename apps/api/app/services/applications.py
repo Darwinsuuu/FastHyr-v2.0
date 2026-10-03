@@ -37,7 +37,7 @@ from app.schemas.applications import (
     SubmitApplicationRequest,
     SubmittedApplication,
 )
-from app.services import consents, credits, files
+from app.services import consents, credits, emails, files
 from app.services.pdfs import MAX_PDF_BYTES, validate_pdf
 
 logger = logging.getLogger("app.applications")
@@ -201,3 +201,23 @@ async def my_application(
         status=candidate_status(existing.stage) if existing else None,
         workspace_member=member is not None,
     )
+
+
+async def move_stage(
+    session: AsyncSession,
+    workspace_id: uuid.UUID,
+    application_id: uuid.UUID,
+    stage: str,
+    *,
+    now: datetime | None = None,
+) -> str | None:
+    """The one way to change an application's stage (WORKFLOW.md §3). Emails still waiting for
+    the old stage are cancelled in the same transaction (FR-MSG-05), so a rejection scheduled
+    before an override never goes out. The caller commits. Returns the previous stage, or None
+    when the application doesn't exist."""
+    previous = await ApplicationRepository(session, workspace_id).set_stage(
+        application_id, stage, now or datetime.now(UTC)
+    )
+    if previous is not None and previous != stage:
+        await emails.cancel_scheduled(session, application_id)
+    return previous

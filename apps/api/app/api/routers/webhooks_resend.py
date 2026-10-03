@@ -39,4 +39,14 @@ async def resend_webhook_event(
     except (ValueError, KeyError, TypeError):
         return
     if isinstance(event_type, str) and isinstance(provider_id, str):
-        await email_service.apply_webhook_event(session, event_type, provider_id)
+        await email_service.apply_webhook_event(
+            session, event_type, provider_id, hard_bounce=_hard_bounce(event["data"])
+        )
+
+
+def _hard_bounce(data: dict[str, object]) -> bool:
+    """Resend's `email.bounced` is a permanent failure; its `bounce.type` says so ("Permanent").
+    Only an explicit other type ("Transient", "Undetermined") counts as soft."""
+    bounce = data.get("bounce")
+    kind = bounce.get("type") if isinstance(bounce, dict) else None
+    return not isinstance(kind, str) or kind == "Permanent"

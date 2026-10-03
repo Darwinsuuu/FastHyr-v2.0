@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFoundError
@@ -51,3 +51,15 @@ async def branding_of(session: AsyncSession, workspace_id: uuid.UUID) -> Brandin
         )
     ).one_or_none()
     return BrandingRow(*row) if row else None
+
+
+async def workspace_timezone(session: AsyncSession, workspace_id: uuid.UUID) -> str | None:
+    """The time zone candidate emails are timed and written in (MSG-003): the company profile's,
+    else the workspace's."""
+    timezone: str | None = await session.scalar(
+        select(func.coalesce(CompanyProfile.timezone, Workspace.timezone))
+        .select_from(Workspace)
+        .outerjoin(CompanyProfile, CompanyProfile.workspace_id == Workspace.id)
+        .where(Workspace.id == workspace_id)
+    )
+    return timezone

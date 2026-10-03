@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import case, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,6 +39,38 @@ async def candidate_pipeline(
         )
     ).one_or_none()
     return CandidatePipeline(*row) if row else None
+
+
+@dataclass(frozen=True)
+class EmailRecipient:
+    """What a candidate email needs about its application (MSG-003)."""
+
+    application_id: uuid.UUID
+    stage: str
+    email: str
+    full_name: str
+    job_title: str
+
+
+async def mark_email_undeliverable(
+    session: AsyncSession, application_id: uuid.UUID, email: str, now: datetime
+) -> bool:
+    """A hard bounce (MSG-003): marks the application's candidate while they still have the
+    address that bounced. Found by application ID across workspaces, like the webhook's email."""
+    candidate_id = (
+        select(Application.candidate_id).where(Application.id == application_id).scalar_subquery()
+    )
+    result = await session.execute(
+        update(Candidate)
+        .where(
+            Candidate.id == candidate_id,
+            func.lower(Candidate.email) == email.lower(),
+            Candidate.email_undeliverable_at.is_(None),
+        )
+        .values(email_undeliverable_at=now)
+        .returning(Candidate.id)
+    )
+    return result.first() is not None
 
 
 @dataclass(frozen=True)
@@ -87,20 +119,22 @@ class ApplicationRepository(WorkspaceRepository[Application]):
             "profile_url": details.profile_url,
             "last_activity_at": now,
         }
-        statement = (
-            insert(Candidate)
-            .values(
-                workspace_id=self.workspace_id,
-                auth_user_id=auth_user_id,
-                first_applied_at=now,
-                **values,
-            )
-            .on_conflict_do_update(
-                constraint="candidates_workspace_id_auth_user_id_key", set_=values
-            )
-            .returning(Candidate.id)
+        statement = insert(Candidate).values(
+            workspace_id=self.workspace_id,
+            auth_user_id=auth_user_id,
+            first_applied_at=now,
+            **values,
         )
-        candidate_id: uuid.UUID = (await self.session.execute(statement)).scalar_one()
+        # A new address may work where the old one bounced.
+        undeliverable = case(
+            (Candidate.email == statement.excluded.email, Candidate.email_undeliverable_at),
+            else_=None,
+        )
+        upsert = statement.on_conflict_do_update(
+            constraint="candidates_workspace_id_auth_user_id_key",
+            set_={**values, "email_undeliverable_at": undeliverable},
+        ).returning(Candidate.id)
+        candidate_id: uuid.UUID = (await self.session.execute(upsert)).scalar_one()
         return candidate_id
 
     def add(self, application: Application) -> Application:
@@ -108,3 +142,61 @@ class ApplicationRepository(WorkspaceRepository[Application]):
             raise ValueError("application belongs to another workspace")
         self.session.add(application)
         return application
+
+    async def email_recipient(self, application_id: uuid.UUID) -> EmailRecipient | None:
+        """The candidate, job title and workspace time zone for a candidate email. Deleted
+        candidates get no email."""
+        row = (
+            await self.session.execute(
+                select(
+                    Application.id,
+                    Application.stage,
+                    Candidate.email,
+                    Candidate.full_name,
+                    Pipeline.title,
+                )
+                .join(
+                    Candidate,
+                    (Candidate.workspace_id == Application.workspace_id)
+                    & (Candidate.id == Application.candidate_id),
+                )
+                .join(
+                    Pipeline,
+                    (Pipeline.workspace_id == Application.workspace_id)
+                    & (Pipeline.id == Application.pipeline_id),
+                )
+                .where(
+                    Application.workspace_id == self.workspace_id,
+                    Application.id == application_id,
+                    Candidate.deleted_at.is_(None),
+                )
+            )
+        ).one_or_none()
+        if row is None:
+            return None
+        return EmailRecipient(
+            application_id=row[0],
+            stage=row[1],
+            email=row[2],
+            full_name=row[3],
+            job_title=row[4] or "",
+        )
+
+    async def set_stage(self, application_id: uuid.UUID, stage: str, now: datetime) -> str | None:
+        """Moves the application to `stage`; returns the stage it was in (None if not found)."""
+        previous = await self.session.scalar(
+            self._scoped(select(Application.stage))
+            .where(Application.id == application_id)
+            .with_for_update()
+        )
+        if previous is None:
+            return None
+        if previous != stage:
+            await self.session.execute(
+                update(Application)
+                .where(
+                    Application.workspace_id == self.workspace_id, Application.id == application_id
+                )
+                .values(stage=stage, stage_changed_at=now)
+            )
+        return str(previous)

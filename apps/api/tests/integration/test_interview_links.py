@@ -103,7 +103,8 @@ def test_the_applying_account_sees_where_it_is_in_the_interview(
     update(
         tenancy,
         interview_id,
-        "status = 'completed', drop_reason = null, invited_at = now() - interval '6 days', expires_at = now() - interval '1 day'",
+        "status = 'completed', drop_reason = null, "
+        "invited_at = now() - interval '6 days', expires_at = now() - interval '1 day'",
     )
     stage(tenancy, interview_id, "rejected")
     completed = link(tenancy, token, paolo)

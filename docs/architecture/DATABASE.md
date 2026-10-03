@@ -60,7 +60,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Scoring and Schedule columns once `locked_at` is set (`department_id` may still become null, for department deletion), and any slug change after publish. Checks: enums and ranges, weights total 100 when set, `published_at`/`slug` set exactly when past draft.
 
 ### Candidates and applications
-**candidates** — `id`, `workspace_id`, `auth_user_id`, `email`, `full_name`, `phone_country_code`, `phone`, `city`, `profile_url`, `first_applied_at`, `last_activity_at`, `deleted_at`. Unique `(workspace_id, auth_user_id)`. Created on the first application to the workspace (APPLY-003); later applications keep the details sent last. `auth_user_id` has no FK, so deleting a sign-in account never touches the employer's records.
+**candidates** — `id`, `workspace_id`, `auth_user_id`, `email`, `full_name`, `phone_country_code`, `phone`, `city`, `profile_url`, `first_applied_at`, `last_activity_at`, `email_undeliverable_at` (set by a hard bounce, MSG-003), `deleted_at`. Unique `(workspace_id, auth_user_id)`. Created on the first application to the workspace (APPLY-003); later applications keep the details sent last. `auth_user_id` has no FK, so deleting a sign-in account never touches the employer's records.
 
 **applications**
 | Column | Notes |
@@ -103,7 +103,7 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 
 **email_template_versions** — `id`, `workspace_id`, `template_id`, `subject`, `body_html`, `created_by`, `created_at`, `note` (e.g. "Reset to default"). One row per save; deleted with its template.
 
-**email_messages** — `id`, `workspace_id` (null only for the contact form), `application_id` (nullable), `template_key` (workspace template key, or a system key such as `member_invite`, `test`), `to_email`, `from_name`, `subject_rendered`, `html_rendered`, `text_rendered` (rendered when queued, FND-010), `scheduled_for`, `status` (`scheduled|cancelled|sending|sent|delivered|bounced|complained|failed`), `provider_message_id` (unique), `cancel_reason`, `sent_at`, `status_updated_at`, `error` (stable code: `provider_rejected`, `provider_unavailable`, `send_failed`), `created_at`.
+**email_messages** — `id`, `workspace_id` (null only for the contact form), `application_id` (nullable), `template_key` (workspace template key, or a system key such as `member_invite`, `test`), `to_email`, `from_name`, `subject_rendered`, `html_rendered`, `text_rendered` (rendered when queued, FND-010), `scheduled_for`, `application_stage` (the stage a candidate email was written for; it is cancelled if the stage moves, MSG-003), `dedupe_key` (unique while not cancelled), `status` (`scheduled|cancelled|sending|sent|delivered|bounced|complained|failed`), `provider_message_id` (unique), `cancel_reason` (`stage_changed`), `sent_at`, `status_updated_at`, `error` (stable code: `provider_rejected`, `provider_unavailable`, `send_failed`), `created_at`.
 
 ### Ava and reports
 **ava_threads** — `id`, `workspace_id`, `member_id`, `scope` (`pipeline|workspace`), `pipeline_id`, `created_at`.

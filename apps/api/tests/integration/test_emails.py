@@ -1,6 +1,6 @@
 """FND-010: an email is logged with the change that causes it, sent by the worker through the
 provider, retried on outages, failed without retries when rejected, re-queued when Redis lost
-it, and moved to delivered or bounced by signed Resend webhooks."""
+it (by MSG-003's dispatch cron), and moved to delivered or bounced by signed Resend webhooks."""
 
 import asyncio
 import json
@@ -18,7 +18,7 @@ from app.core.context import Role
 from app.integrations.email import EmailRejectedError, EmailUnavailableError, OutgoingEmail
 from app.integrations.resend_webhook import sign
 from app.jobs.queue import JobQueue
-from app.jobs.system import requeue_stuck_work
+from app.jobs.system import dispatch_scheduled_emails
 from app.main import create_app
 from app.worker import shutdown, startup
 from tests.conftest import Supabase
@@ -128,7 +128,7 @@ def test_rejected_email_fails_without_retrying(
     assert (row["status"], row["error"]) == ("failed", "provider_rejected")
 
 
-def test_sweeper_requeues_due_emails_redis_lost(
+def test_dispatch_requeues_due_emails_redis_lost(
     tenancy: Tenancy, supabase: Supabase, redis_url: str, queue_name: str
 ) -> None:
     email = invite(tenancy)
@@ -149,7 +149,7 @@ def test_sweeper_requeues_due_emails_redis_lost(
         ctx: dict[str, Any] = {"redis": pool, "queue_name": queue_name, "email_sender": None}
         await startup(ctx)
         try:
-            requeued: int = await requeue_stuck_work(ctx)
+            requeued: int = await dispatch_scheduled_emails(ctx)
             return requeued
         finally:
             await shutdown(ctx)

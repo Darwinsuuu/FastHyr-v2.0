@@ -42,11 +42,20 @@ class EmailMessage(Base):
             "scheduled_for",
             postgresql_where=text("status = 'scheduled'"),
         ),
+        Index(
+            "email_messages_dedupe_key_key",
+            "dedupe_key",
+            unique=True,
+            postgresql_where=text("dedupe_key is not null and status <> 'cancelled'"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = id_column()
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
     application_id: Mapped[uuid.UUID | None] = mapped_column()
+    # The stage a candidate email was written for (MSG-003); it is cancelled if the stage moves.
+    application_stage: Mapped[str | None] = mapped_column(Text)
+    dedupe_key: Mapped[str | None] = mapped_column(Text)
     template_key: Mapped[str] = mapped_column(Text)
     to_email: Mapped[str] = mapped_column(Text)
     from_name: Mapped[str] = mapped_column(Text)

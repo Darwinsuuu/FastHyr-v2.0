@@ -25,6 +25,7 @@ from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.reports import sample_report_job
 from app.jobs.screening import screen_resume
 from app.jobs.system import (
+    dispatch_scheduled_emails,
     expire_credit_batches,
     expire_invites,
     open_and_close_pipelines,
@@ -53,6 +54,8 @@ CRON_JOBS: list[CronJob] = [
     cron(requeue_stuck_work, name="requeue_stuck_work", minute=EVERY_10_MINUTES),
     # Every minute, so a scheduled pipeline opens within a minute of its date.
     cron(open_and_close_pipelines, name="open_and_close_pipelines"),
+    # Every minute, so a scheduled email goes out within a minute of its time (MSG-003).
+    cron(dispatch_scheduled_emails, name="dispatch_scheduled_emails"),
     # Daily, at a quiet hour (UTC).
     cron(remove_storage_orphans, name="remove_storage_orphans", hour=3, minute=25),
 ]

@@ -4,7 +4,7 @@ Provider: Resend (ADR-008). All emails go through `services/emails.py`, which re
 
 How it works (FND-010):
 - **Render** with `app/emails/render.render()`: parameters filled (values HTML-escaped), body cleaned with the allow-list (`nh3`), Jinja2 layout `app/emails/templates/layout.html.jinja`, plain-text alternative generated from the HTML. System emails are built in `app/emails/system.py`.
-- **Queue** with `emails.queue_email()` in the same transaction as the change that causes the email, commit, then `emails.enqueue()`. The `send_email` job claims the row (`scheduled` → `sending`), sends it, and records the provider ID (`sent`). Provider outages retry 5 times with backoff; a rejected email fails at once (`provider_rejected`). Resend's `Idempotency-Key` is the row ID, so a retried send is never delivered twice. `requeue_stuck_work` re-queues due emails still `scheduled` after 10 minutes.
+- **Queue** with `emails.queue_email()` in the same transaction as the change that causes the email, commit, then `emails.enqueue()`. The `send_email` job claims the row (`scheduled` → `sending`), sends it, and records the provider ID (`sent`). Provider outages retry 5 times with backoff; a rejected email fails at once (`provider_rejected`). Resend's `Idempotency-Key` is the row ID, so a retried send is never delivered twice. Emails due later wait in Postgres: `emails.enqueue()` only queues an email that is already due, and the every-minute `dispatch_scheduled_emails` cron queues every due `scheduled` email (MSG-003), which also covers an enqueue Redis lost.
 - **Providers** (`app/integrations/email.py`, `EMAIL_BACKEND=auto`): Resend when `RESEND_API_KEY` is set; locally, local Supabase's Mailpit over SMTP (port 54325, read at http://127.0.0.1:54324); elsewhere without a key, log the message ID only.
 
 ## 1. Candidate emails (workspace templates, editable)
@@ -25,10 +25,14 @@ Templates (MSG-001): each workspace has one `email_templates` row per key, made 
 
 When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`.
 
-Business days skip Saturday/Sunday in the workspace time zone (public holidays: post-MVP). Scheduled emails are cancelled when the application's stage changes before send time (FR-MSG-05).
+Scheduling (MSG-003): `services/candidate_emails.schedule()` renders the workspace's template for one application (candidate first and last name are the first and last word of the name they gave; job title; company) plus the values only the caller knows (`Interview.link`, `Interview.expiry`, `Review.link`), and stores it with the application's current stage and a dedupe key (`{key}:{application}:{stage}` unless the caller gives one), so a retried job never schedules a second copy. Callers check the pipeline toggles themselves.
+
+Business days skip Saturday/Sunday in the workspace time zone (`app/core/business_days.py`; company profile time zone, else the workspace's; public holidays: post-MVP) and keep the local time of day: a résumé screened on Friday at 10:00 gets its rejection on Tuesday at 10:00 (`candidate_emails.send_at()`). `[Interview.expiry]` is written with `candidate_emails.local_time()`.
+
+Scheduled emails are cancelled when the application's stage changes before send time (FR-MSG-05): `services/applications.move_stage()` is the one way to change a stage and cancels the application's waiting emails in the same transaction (`cancel_reason = stage_changed`); the send job also cancels, rather than sends, an email whose application is no longer in the stage it was written for.
 
 ## 2. Parameters
-`[Candidate.firstname]`, `[Candidate.lastname]`, `[Job.title]`, `[Company.name]`, `[Interview.link]`, `[Interview.expiry]` (formatted in the workspace time zone, e.g. "Fri, 3 Oct 2026, 11:59 PM PHT"), `[Review.link]` (rejection templates only; auto-appended as a footer line if the editor removed it — ADR-015).
+`[Candidate.firstname]`, `[Candidate.lastname]`, `[Job.title]`, `[Company.name]`, `[Interview.link]`, `[Interview.expiry]` (formatted in the workspace time zone with the zone's abbreviation, e.g. "Fri, 3 Oct 2026, 11:59 PM PST" for Manila, or "GMT+8" where the zone has none), `[Review.link]` (rejection templates only; auto-appended as a footer line if the editor removed it — ADR-015).
 Only the three interview emails (`interview_invitation`, `interview_reminder`, `finish_interview`) take `[Interview.link]` and `[Interview.expiry]`, since no other email has an interview link to fill.
 Unknown parameters are rejected on save (`422 email_template_invalid`, one `errors` entry per parameter). Rendering escapes values; the body HTML is sanitised with an allow-list (p, br, strong, em, a[href], ul, li).
 
@@ -48,7 +52,7 @@ Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via Fa
 
 ## 5. Deliverability and logging
 - `mail.fasthyr.com` with SPF, DKIM, DMARC (p=quarantine after warm-up).
-- Resend webhooks update `email_messages.status`; hard bounces mark the candidate email as undeliverable (shown on the profile).
+- Resend webhooks update `email_messages.status`; a hard bounce (`bounce.type` `Permanent`, or no type) of a candidate email sets `candidates.email_undeliverable_at` while the candidate still has that address (shown on the profile); applying again with another address clears it.
 - No tracking pixels or link tracking on candidate emails (privacy).
 
 ## 6. In-app notifications

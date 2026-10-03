@@ -76,11 +76,11 @@ apps/api/
 | cron `open_and_close_pipelines` | every minute | opens scheduled pipelines at `opens_at` and closes open ones at `closes_at` (releasing their unused reserve), one transaction per pipeline (PIPE-001) |
 | cron `expire_interview_links` / `send_interview_reminders` / `nudge_unfinished` | every 10 min | |
 | cron `expire_credit_batches` | hourly | ledger entries |
-| cron `dispatch_scheduled_emails` | every minute | |
+| cron `dispatch_scheduled_emails` | every minute | queues the send of every `scheduled` email whose time has come, keyed by email ID; also picks up enqueues Redis lost (MSG-003) |
 | cron `retention_purge` | daily | `compliance/PRIVACY.md` |
 | cron `remove_storage_orphans` | daily 03:25 UTC | deletes temp uploads (`tmp/`) and demo files older than 24 h (FND-011); later tasks add files whose rows are gone |
 | cron `purge_demo_sessions` | hourly | |
-| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); applications/interviews in processing states (their tasks) |
+| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); résumé screens and interview plans (SCREEN-001, INTV-001); applications/interviews in processing states (their tasks) |
 
 ### How jobs work (FND-008)
 - **Worker:** `app/worker.py` `WorkerSettings` lists every function and cron; run it with `python -m app.worker` (`make worker` locally). Crons run at different minutes of the hour (`expire_credit_batches` :05, `expire_invites` :15; daily `remove_storage_orphans` 03:25 UTC) and are `unique`, so several workers run each tick once.

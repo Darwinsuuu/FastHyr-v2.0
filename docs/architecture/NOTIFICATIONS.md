@@ -8,6 +8,9 @@ How it works (FND-010):
 - **Providers** (`app/integrations/email.py`, `EMAIL_BACKEND=auto`): Resend when `RESEND_API_KEY` is set; locally, local Supabase's Mailpit over SMTP (port 54325, read at http://127.0.0.1:54324); elsewhere without a key, log the message ID only.
 
 ## 1. Candidate emails (workspace templates, editable)
+
+Templates (MSG-001): each workspace has one `email_templates` row per key, made from FastHyr's defaults in `app/emails/defaults.py` when the workspace is created (older workspaces get them the first time `services/email_templates.py` reads them). Saves go through `email_templates.save()`, which checks parameters, cleans the body and adds an `email_template_versions` row. Candidate emails are rendered with `app/emails/candidate.render_template()`, which adds the review line to rejections, makes link parameters clickable and refuses to render a parameter that has no value.
+
 | Key | Name (UI) | Trigger | Timing | Controlled by |
 |---|---|---|---|---|
 | `interview_invitation` | Interview invitation | Résumé passes, or manual invite / override | Immediately | always |
@@ -26,7 +29,8 @@ Business days skip Saturday/Sunday in the workspace time zone (public holidays: 
 
 ## 2. Parameters
 `[Candidate.firstname]`, `[Candidate.lastname]`, `[Job.title]`, `[Company.name]`, `[Interview.link]`, `[Interview.expiry]` (formatted in the workspace time zone, e.g. "Fri, 3 Oct 2026, 11:59 PM PHT"), `[Review.link]` (rejection templates only; auto-appended as a footer line if the editor removed it — ADR-015).
-Unknown parameters are rejected on save. Rendering escapes values; the body HTML is sanitised with an allow-list (p, br, strong, em, a[href], ul, li).
+Only the three interview emails (`interview_invitation`, `interview_reminder`, `finish_interview`) take `[Interview.link]` and `[Interview.expiry]`, since no other email has an interview link to fill.
+Unknown parameters are rejected on save (`422 email_template_invalid`, one `errors` entry per parameter). Rendering escapes values; the body HTML is sanitised with an allow-list (p, br, strong, em, a[href], ul, li).
 
 ## 3. Layout
 Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via FastHyr · Why am I getting this? · Privacy"). Plain-text alternative generated from HTML. From: `"{Company} via FastHyr" <no-reply@fasthyr.com>`, Reply-To: none in MVP (post-MVP: company reply address).

@@ -24,7 +24,7 @@ from app.repositories.users import UserRepository
 from app.repositories.workspaces import WorkspaceSetupRepository
 from app.schemas.me import MyWorkspace
 from app.schemas.workspaces import InvitePreview, InviteState
-from app.services import credits
+from app.services import credits, email_templates
 from app.services.me import to_my_workspace
 
 SLUG_MAX = 63
@@ -104,7 +104,8 @@ async def grant_trial(session: AsyncSession, workspace: Workspace) -> None:
 
 
 async def create_default_email_templates(session: AsyncSession, workspace: Workspace) -> None:
-    """MSG-001 adds the default candidate email templates here."""
+    """The nine candidate email templates every workspace starts with (FR-MSG-01)."""
+    await email_templates.ensure_defaults(session, workspace.id)
 
 
 async def create_workspace(session: AsyncSession, user: CurrentUser, name: str) -> MyWorkspace:

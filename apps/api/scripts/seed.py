@@ -11,7 +11,8 @@ email + password; the local password is printed at the end. Against any other da
 
 Credits go through `app.services.credits`, so batches, reserves and the ledger add up exactly as
 they would in the product. Each epic extends this file as its tables arrive: pipelines have their
-full setup, slugs and dates since PIPE-001; candidates and assessments come later.
+full setup, slugs and dates since PIPE-001; the nine default email templates since MSG-001 (the
+interview invitation edited by Maria, as in the design); candidates and assessments come later.
 """
 
 import asyncio
@@ -29,6 +30,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.slugs import slugify
+from app.emails.defaults import TemplateKey
 from app.models import (
     CompanyProfile,
     Department,
@@ -39,7 +41,7 @@ from app.models import (
     Workspace,
     WorkspaceMember,
 )
-from app.services import credits
+from app.services import credits, email_templates
 from app.services.invites import new_code, new_token_hash
 
 LOCAL_OWNER_DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
@@ -375,7 +377,34 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
         await session.commit()
 
         await seed_credits(session, workspace.id, departments, members, created, now)
+        await seed_email_templates(session, workspace.id)
     return True
+
+
+# The canvas EditEmailTemplate frame's second wording, saved by Maria.
+EDITED_INVITATION = (
+    "<p>Hi [Candidate.firstname],</p>"
+    "<p>Thank you for applying for [Job.title] at [Company.name]. Your résumé stood out and "
+    "we'd like to get to know you better.</p>"
+    "<p>Your next step is a short AI interview you can complete in your own time.</p>"
+    "<p>Start here: [Interview.link]</p>"
+    "<p>The link is open until [Interview.expiry].</p>"
+    "<p>Best of luck,<br>The [Company.name] hiring team</p>"
+)
+
+
+async def seed_email_templates(session: AsyncSession, workspace_id: uuid.UUID) -> None:
+    await email_templates.ensure_defaults(session, workspace_id)
+    maria = next(user for user in USERS if user.key == "maria")
+    await email_templates.save(
+        session,
+        workspace_id,
+        maria.id,
+        TemplateKey.INTERVIEW_INVITATION,
+        subject="You're invited to interview with [Company.name]",
+        body_html=EDITED_INVITATION,
+    )
+    await session.commit()
 
 
 async def seed_credits(

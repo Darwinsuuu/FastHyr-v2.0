@@ -1,10 +1,22 @@
-"""Email messages (DATABASE.md §2 Messaging): one row per email sent, rendered when queued.
-Only services/emails.py writes them. Check constraints live only in the migration."""
+"""Email messages and workspace email templates (DATABASE.md §2 Messaging). Messages are one row
+per email sent, rendered when queued; only services/emails.py writes them. Templates and their
+versions are written only by services/email_templates.py. Check constraints live only in the
+migrations."""
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Text, func, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, created_at_column, id_column
@@ -53,3 +65,46 @@ class EmailMessage(Base):
     )
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = created_at_column()
+
+
+class EmailTemplate(Base):
+    """A workspace's wording for one candidate email (MSG-001). Defaults: app/emails/defaults.py."""
+
+    __tablename__ = "email_templates"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "key", name="email_templates_workspace_id_key_key"),
+        UniqueConstraint("workspace_id", "id", name="email_templates_workspace_id_id_key"),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    key: Mapped[str] = mapped_column(Text)
+    subject: Mapped[str] = mapped_column(Text)
+    body_html: Mapped[str] = mapped_column(Text)
+    is_default: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class EmailTemplateVersion(Base):
+    """One saved version of a template, for the change history (FR-MSG-02)."""
+
+    __tablename__ = "email_template_versions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "template_id"],
+            ["email_templates.workspace_id", "email_templates.id"],
+            name="email_template_versions_template_fkey",
+            ondelete="CASCADE",
+        ),
+        Index("email_template_versions_template_id_created_at_idx", "template_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    template_id: Mapped[uuid.UUID] = mapped_column()
+    subject: Mapped[str] = mapped_column(Text)
+    body_html: Mapped[str] = mapped_column(Text)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+    created_at: Mapped[datetime] = created_at_column()
+    note: Mapped[str | None] = mapped_column(Text)

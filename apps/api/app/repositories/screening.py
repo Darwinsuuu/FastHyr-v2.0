@@ -27,6 +27,20 @@ async def application_by_id(session: AsyncSession, application_id: uuid.UUID) ->
     return await session.get(Application, application_id)
 
 
+async def application_for_update(
+    session: AsyncSession, application_id: uuid.UUID
+) -> Application | None:
+    """The application read fresh and locked until the transaction ends, so two runs acting on
+    the same screen take turns (SCREEN-003)."""
+    row: Application | None = await session.scalar(
+        select(Application)
+        .where(Application.id == application_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return row
+
+
 async def pending_before(session: AsyncSession, before: datetime) -> list[uuid.UUID]:
     """For the requeue_stuck_work sweeper: applications still waiting for their résumé screen
     that were submitted before `before`."""

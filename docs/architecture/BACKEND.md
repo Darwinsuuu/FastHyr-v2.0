@@ -64,8 +64,8 @@ apps/api/
 ## 4. Jobs catalogue
 | Job | Trigger | Notes |
 |---|---|---|
-| `screen_resume(application_id)` | apply | extract → redact → score → decide → next job/email |
-| `plan_interview(application_id)` | screen pass | creates `interview_plans` (INTV-001; after the last failed try the failure hook stores the plain skills plan), then invitation email (SCREEN-003) |
+| `screen_resume(application_id)` | apply | extract → redact → score → decide; a pass queues `plan_interview`, a fail moves to `resume_not_match` and schedules the rejection (`services/post_screen.act()`, SCREEN-003) |
+| `plan_interview(application_id)` | screen pass | creates `interview_plans` (INTV-001; after the last failed try the failure hook stores the plain skills plan), then `services/post_screen.act()`: stage `invited`, an `interviews` row with its link token, invitation email (SCREEN-003; the failure hook invites too, and its email goes with the next `dispatch_scheduled_emails` tick) |
 | `finalize_recording(interview_id)` | interview complete | remux chunks → single file, extract audio/frames |
 | `transcribe_interview(interview_id)` | after finalize | authoritative transcript |
 | `score_interview(interview_id)` | after transcribe | assessment + stage |
@@ -80,7 +80,7 @@ apps/api/
 | cron `retention_purge` | daily | `compliance/PRIVACY.md` |
 | cron `remove_storage_orphans` | daily 03:25 UTC | deletes temp uploads (`tmp/`) and demo files older than 24 h (FND-011); later tasks add files whose rows are gone |
 | cron `purge_demo_sessions` | hourly | |
-| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); résumé screens and interview plans (SCREEN-001, INTV-001); applications/interviews in processing states (their tasks) |
+| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); résumé screens and interview plans (SCREEN-001, INTV-001); screened applications still `processing_resume` 10 min after the screen (SCREEN-003: a fail re-runs `screen_resume`, a pass with its plan re-runs `plan_interview`; both skip finished steps); applications/interviews in processing states (their tasks) |
 
 ### How jobs work (FND-008)
 - **Worker:** `app/worker.py` `WorkerSettings` lists every function and cron; run it with `python -m app.worker` (`make worker` locally). Crons run at different minutes of the hour (`expire_credit_batches` :05, `expire_invites` :15; daily `remove_storage_orphans` 03:25 UTC) and are `unique`, so several workers run each tick once.

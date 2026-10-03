@@ -8,7 +8,10 @@ from app.integrations.storage import Storage
 from app.jobs.framework import NO_RETRY, JobRun, job
 from app.jobs.interviews import PLAN_JOB
 from app.jobs.screening import SCREEN_JOB
-from app.repositories.interviews import passed_without_plan_before
+from app.repositories.interviews import (
+    passed_without_plan_before,
+    screened_awaiting_action_before,
+)
 from app.repositories.jobs import queued_report_jobs_before
 from app.repositories.screening import pending_before
 from app.services import credits, emails, files, invites, pipelines
@@ -52,9 +55,10 @@ async def open_and_close_pipelines(run: JobRun) -> int:
 @job(retry=NO_RETRY)
 async def requeue_stuck_work(run: JobRun) -> int:
     """Every 10 minutes: queues again work that Postgres says is waiting but Redis lost
-    (ADR-009): report jobs, résumé screens (SCREEN-001) and interview plans (INTV-001); the
-    other interview tasks add theirs. Due emails are `dispatch_scheduled_emails`' job.
-    Re-enqueueing is safe: enqueue is keyed by the row ID and job bodies skip finished work."""
+    (ADR-009): report jobs, résumé screens (SCREEN-001), interview plans (INTV-001) and the
+    invitation or rejection after a screen (SCREEN-003); the other interview tasks add theirs.
+    Due emails are `dispatch_scheduled_emails`' job. Re-enqueueing is safe: enqueue is keyed by the
+    row ID and job bodies skip finished work."""
     requeued = 0
     for stuck in await queued_report_jobs_before(run.session, datetime.now(UTC) - STUCK_AFTER):
         function = JOB_FUNCTIONS.get(stuck.kind)
@@ -69,6 +73,14 @@ async def requeue_stuck_work(run: JobRun) -> int:
         run.session, datetime.now(UTC) - STUCK_AFTER
     ):
         if await run.queue.enqueue(PLAN_JOB, application_id, key=application_id):
+            requeued += 1
+    # Screened but not yet invited or rejected: the job that acts on it runs again and skips
+    # the steps already done.
+    for application_id, passed in await screened_awaiting_action_before(
+        run.session, datetime.now(UTC) - STUCK_AFTER
+    ):
+        function = PLAN_JOB if passed else SCREEN_JOB
+        if await run.queue.enqueue(function, application_id, key=application_id):
             requeued += 1
     logger.info("requeue_stuck_work: %d jobs requeued", requeued)
     return requeued

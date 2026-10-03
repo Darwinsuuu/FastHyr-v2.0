@@ -35,7 +35,7 @@ All AI runs on OpenAI (ADR-007) through `apps/api/app/ai/`. This document define
    - No degree required: degree requirements in the JD are ignored; a must-have the model marks `degree_requirement` counts as met.
    - Ready for a step up: seniority expectation drops one level (code lowers it before the prompt).
    - Relocating / remote-first: location is never a gap.
-6. Write `resume_assessments`, `ai_decisions` and `resume_status = done` in one transaction (each step of the job runs once, so a retry resumes where it stopped), then continue per WORKFLOW.md: SCREEN-003 invites or moves the application to `resume_not_match`; until then a screened application stays `processing_resume`. `AI_FAKE=1` answers from a builder in `app/ai/fakes.py` that mirrors the pipeline's criteria.
+6. Write `resume_assessments`, `ai_decisions` and `resume_status = done` in one transaction (each step of the job runs once, so a retry resumes where it stopped), then continue per WORKFLOW.md (`services/post_screen.act()`, SCREEN-003): a fail moves the application to `resume_not_match` with the rejection scheduled; a pass waits in `processing_resume` for its interview plan, then is invited. `AI_FAKE=1` answers from a builder in `app/ai/fakes.py` that mirrors the pipeline's criteria.
 
 ## 2. Interview plan (`plan_interview`)
 Queued by `screen_resume` when the screen passes (INTV-001). Inputs: JD, redacted résumé, the screen's claims, skills to probe, seniority (one level lower with "Ready for a step up"), tone, format, the interview length (30 minutes, ADR-012), the "Also open to" rules (interview versions: never ask about gaps, location or degrees when those rules apply), company "about". Prompt `interview_plan@v1`, output schema `InterviewPlan`:

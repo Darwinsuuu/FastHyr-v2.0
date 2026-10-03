@@ -19,7 +19,7 @@ Candidates opening their interview link always see the right next step.
 
 ## Scope
 **In:**
-- `interviews` migration (token hash, status, expiry…)
+- `interviews` table: already created by SCREEN-003 with every DATABASE.md column (token hash, status, expiry…); add only what this task finds missing
 - `GET /candidate/interviews/{token}` with state resolution
 - `/interview/[token]` page with every S-01 state
 - Same-account check

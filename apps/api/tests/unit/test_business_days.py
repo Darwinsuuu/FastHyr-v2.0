@@ -1,8 +1,9 @@
-"""MSG-003: business-day delays and email times in the workspace's time zone."""
+"""MSG-003: business-day delays and email times in the workspace's time zone; SCREEN-003:
+interview links that stay open to the end of their last day there."""
 
 from datetime import UTC, datetime
 
-from app.core.business_days import add_business_days, format_local, zone_of
+from app.core.business_days import add_business_days, end_of_day_after, format_local, zone_of
 from app.services.candidate_emails import names
 
 MANILA = zone_of("Asia/Manila")
@@ -67,3 +68,14 @@ def test_candidate_names_split_into_first_and_last() -> None:
     assert names("Maria Clara Santos") == ("Maria", "Santos")
     assert names("  Paolo  ") == ("Paolo", "Paolo")
     assert names("") == ("", "")
+
+
+def test_an_interview_link_stays_open_to_the_end_of_its_last_local_day() -> None:
+    # Saturday 3 Oct 2026, 20:00 UTC is already Sunday 04:00 in Manila: 5 days is Friday.
+    invited = datetime(2026, 10, 3, 20, 0, tzinfo=UTC)
+
+    expires = end_of_day_after(invited, 5, MANILA)
+
+    assert expires.astimezone(MANILA) == datetime(2026, 10, 9, 23, 59, 59, tzinfo=MANILA)
+    assert expires.tzinfo == UTC
+    assert format_local(expires, MANILA) == "Fri, 9 Oct 2026, 11:59 PM PST"

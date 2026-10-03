@@ -218,9 +218,9 @@ def test_a_passing_resume_is_scored_and_logged(
     # The decision log holds numbers and flags, never résumé text.
     assert "evidence_quote" not in decision["output"]
 
-    # SCREEN-003 acts on the decision; until then the stage doesn't move.
+    # With its interview plan, the candidate is invited (SCREEN-003).
     saved = application(tenancy, application_id)
-    assert (saved["stage"], saved["resume_status"]) == ("processing_resume", "done")
+    assert (saved["stage"], saved["resume_status"]) == ("invited", "done")
 
 
 def test_a_missing_must_have_fails_the_screen_whatever_the_score(
@@ -244,8 +244,9 @@ def test_a_missing_must_have_fails_the_screen_whatever_the_score(
     assert (row["score"], row["passed"]) == (83, False)
     assert [decision["outcome"] for decision in decisions(tenancy, application_id)] == ["fail"]
     saved = application(tenancy, application_id)
+    # Not a match (SCREEN-003), which is not a TA rejection.
     assert (saved["stage"], saved["resume_status"], saved["rejected_at"]) == (
-        "processing_resume",
+        "resume_not_match",
         "done",
         None,
     )

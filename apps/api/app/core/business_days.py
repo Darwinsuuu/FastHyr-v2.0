@@ -5,7 +5,7 @@ A delay keeps the local time of day, so a résumé screened on Friday at 10:00 i
 rejection email on Tuesday at 10:00 in Manila, whatever that is in UTC.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 SATURDAY = 5
@@ -34,6 +34,15 @@ def add_business_days(start: datetime, days: int, zone: ZoneInfo) -> datetime:
     # Rebuild from the wall-clock time so a daylight-saving change in between keeps the hour.
     moved = datetime.combine(day, local.time().replace(tzinfo=None), tzinfo=zone)
     return moved.astimezone(UTC)
+
+
+def end_of_day_after(start: datetime, days: int, zone: ZoneInfo) -> datetime:
+    """The last second of the local day `days` calendar days after `start`, in UTC: an
+    interview link sent on Monday with 5 days stays open until Saturday at 11:59 PM there."""
+    if start.tzinfo is None:
+        raise ValueError("start must be timezone-aware")
+    day = start.astimezone(zone).date() + timedelta(days=days)
+    return datetime.combine(day, time(23, 59, 59), tzinfo=zone).astimezone(UTC)
 
 
 def format_local(moment: datetime, zone: ZoneInfo) -> str:

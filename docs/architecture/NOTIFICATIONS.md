@@ -23,6 +23,8 @@ Templates (MSG-001): each workspace has one `email_templates` row per key, made 
 | `role_closed` | Role closed *(new)* | Pipeline closed with "let candidates know" ticked | Immediately, to candidates with no final outcome email | Close dialog |
 | `review_received` | Human review received *(new)* | Candidate submits a review request | Immediately | always |
 
+After the résumé screen (SCREEN-003, `services/post_screen.py`): a pass gets `interview_invitation` at once with `[Interview.link]` (`{SITE_URL}/interview/{token}`) and `[Interview.expiry]` (the link's last day, 11:59 PM in the workspace time zone); a fail gets `reject_resume` 2 business days after `screened_at` when the pipeline's toggle is on, with `[Review.link]` (`{SITE_URL}/review-request/{token}`, a `review_links` row valid 30 days after the send time).
+
 When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`.
 
 Scheduling (MSG-003): `services/candidate_emails.schedule()` renders the workspace's template for one application (candidate first and last name are the first and last word of the name they gave; job title; company) plus the values only the caller knows (`Interview.link`, `Interview.expiry`, `Review.link`), and stores it with the application's current stage and a dedupe key (`{key}:{application}:{stage}` unless the caller gives one), so a retried job never schedules a second copy. Callers check the pipeline toggles themselves.

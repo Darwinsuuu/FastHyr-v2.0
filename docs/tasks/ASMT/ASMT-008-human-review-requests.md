@@ -19,7 +19,7 @@ Candidates can ask a person to review an automated rejection, and TA teams resol
 
 ## Scope
 **In:**
-- `human_review_requests` migration
+- `human_review_requests` migration (requests point at the `review_links` row SCREEN-003 created with the rejection email; look the token up by hash there)
 - `/review-request/[token]` page
 - Owner notification + candidate acknowledgement emails
 - Filter/badge/banner and resolve actions (uphold/override)

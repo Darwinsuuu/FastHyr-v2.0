@@ -11,12 +11,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.business_days import format_local, zone_of
 from app.core.context import CandidateContext
-from app.core.errors import InterviewNotFoundError
+from app.core.errors import (
+    BiometricConsentRequiredError,
+    InterviewNotFoundError,
+    InterviewNotOpenError,
+)
 from app.core.tokens import hash_token
 from app.interview.plan import INTERVIEW_MINUTES
 from app.repositories.company_profiles import BrandingRow
 from app.repositories.interviews import InterviewLinkRow, interview_link_of
-from app.schemas.interviews import InterviewCompany, InterviewLink, InterviewLinkState
+from app.schemas.interviews import (
+    InterviewCompany,
+    InterviewConsent,
+    InterviewConsentRequest,
+    InterviewLink,
+    InterviewLinkState,
+)
+from app.services import consents
 from app.services.company_profile import branding_url
 from app.services.workspaces import mask_email
 
@@ -27,6 +38,8 @@ MAX_TOKEN_LENGTH = 128
 AFTER_INTERVIEW = frozenset({"scoring", "ready_for_review", "did_not_pass", "advanced"})
 # Stages that close the interview step before it is done.
 CLOSED_STAGES = frozenset({"rejected", "resume_not_match"})
+# States from which the candidate can go through the device check and start (or carry on).
+OPEN_STATES = frozenset({"welcome", "resume", "technical_problem"})
 
 
 async def interview_link(
@@ -39,15 +52,7 @@ async def interview_link(
 ) -> InterviewLink:
     """The link's state for whoever opened it (`candidate` is None when signed out, or signed in
     some other way than Google or Microsoft). `404 interview_not_found` for unknown tokens."""
-    if not token or len(token) > MAX_TOKEN_LENGTH:
-        raise InterviewNotFoundError()
-    token_hash = hash_token(token)
-    row = await interview_link_of(session, token_hash)
-    # The lookup is an equality match on the hash, so timing reveals nothing about the token;
-    # compare again in constant time so a row only ever matches its own hash.
-    if row is None or not hmac.compare_digest(row.interview.token_hash, token_hash):
-        raise InterviewNotFoundError()
-
+    row = await _row_of(session, token)
     state = resolve(row, candidate, now or datetime.now(UTC))
     interview = row.interview
     personal = state not in ("unavailable", "expired", "sign_in", "wrong_account")
@@ -64,7 +69,64 @@ async def interview_link(
         minutes_left=(
             max(1, math.ceil((INTERVIEW_MINUTES * 60 - talk) / 60)) if state == "resume" else None
         ),
+        face_check=face_check(row),
     )
+
+
+async def record_consent(
+    session: AsyncSession,
+    token: str,
+    candidate: CandidateContext,
+    body: InterviewConsentRequest,
+    *,
+    now: datetime | None = None,
+) -> InterviewConsent:
+    """Stores the device check's consent on the interview (INTV-003, PRIVACY.md §3): the
+    interview notice, and the biometric notice when the interview runs the face check. Agreeing
+    again (resuming, another try) keeps the latest agreement. Another account learns nothing
+    about the link (`404`); a link that can't start is `409 interview_not_open`."""
+    now = now or datetime.now(UTC)
+    row = await _row_of(session, token)
+    state = resolve(row, candidate, now)
+    if state == "wrong_account":
+        raise InterviewNotFoundError()
+    if state not in OPEN_STATES:
+        raise InterviewNotOpenError()
+
+    consent = consents.accept("interview", body.consent_notice_id, now=now)
+    biometric = None
+    if face_check(row):
+        if body.biometric_notice_id is None:
+            raise BiometricConsentRequiredError()
+        biometric = consents.accept("biometric", body.biometric_notice_id, now=now).notice_id
+
+    interview = row.interview
+    interview.consent_version = consent.notice_id
+    interview.consent_at = consent.at
+    interview.biometric_consent_version = biometric
+    await session.commit()
+    return InterviewConsent(
+        consent_version=consent.notice_id,
+        consent_at=consent.at,
+        biometric_consent_version=biometric,
+    )
+
+
+def face_check(row: InterviewLinkRow) -> bool:
+    """The same-face check runs only on video interviews with integrity checks on (ADR-016)."""
+    return row.interview.format != "voice_only" and row.integrity_enabled
+
+
+async def _row_of(session: AsyncSession, token: str) -> InterviewLinkRow:
+    if not token or len(token) > MAX_TOKEN_LENGTH:
+        raise InterviewNotFoundError()
+    token_hash = hash_token(token)
+    row = await interview_link_of(session, token_hash)
+    # The lookup is an equality match on the hash, so timing reveals nothing about the token;
+    # compare again in constant time so a row only ever matches its own hash.
+    if row is None or not hmac.compare_digest(row.interview.token_hash, token_hash):
+        raise InterviewNotFoundError()
+    return row
 
 
 def resolve(

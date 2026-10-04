@@ -1,5 +1,6 @@
 import { CompanyMark } from "@/components/apply/company-mark";
 import { TurnMark } from "@/components/brand/turn-mark";
+import type { DeviceCheckNotices } from "@/components/interview/device-check";
 import { InterviewLinkCard } from "@/components/interview/interview-link-card";
 import type { SignInProblem } from "@/lib/apply/session";
 import { t } from "@/lib/i18n";
@@ -13,11 +14,14 @@ import type { InterviewLink } from "@/lib/interview";
 export function InterviewLinkPage({
   token,
   link,
+  notices,
   signedInEmail,
   signInProblem,
 }: {
   token: string;
   link: InterviewLink;
+  /** The device check's consent texts (open links only). */
+  notices: DeviceCheckNotices | null;
   /** The Google or Microsoft account signed in on this device, for the wrong-account state. */
   signedInEmail: string | null;
   /** Why the last sign-in came back without a session. */
@@ -41,10 +45,11 @@ export function InterviewLinkPage({
         </div>
       </header>
 
-      <main className="page-gutter flex flex-1 flex-col items-center pt-6 pb-12 md:pt-12 lg:justify-center lg:pt-0 lg:pb-18">
+      <main className="page-gutter flex flex-1 flex-col items-center pt-6 pb-12 md:pt-12 lg:justify-center lg:pt-12 lg:pb-18">
         <InterviewLinkCard
           token={token}
           link={link}
+          notices={notices}
           signedInEmail={signedInEmail}
           signInProblem={signInProblem}
         />

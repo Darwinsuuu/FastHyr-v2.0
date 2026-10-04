@@ -92,6 +92,22 @@ class InterviewNotFoundError(AppError):
     title = "We couldn't find that interview"
 
 
+class InterviewNotOpenError(AppError):
+    """The interview link has expired, closed or finished, so it can't be started (INTV-003)."""
+
+    status = 409
+    code = "interview_not_open"
+    title = "This interview can't be started"
+
+
+class BiometricConsentRequiredError(AppError):
+    """A video interview with integrity checks needs the face-check consent too (ADR-016)."""
+
+    status = 422
+    code = "biometric_consent_required"
+    title = "Agree to the face check to start this interview"
+
+
 class InviteNotFoundError(AppError):
     status = 404
     code = "invite_not_found"

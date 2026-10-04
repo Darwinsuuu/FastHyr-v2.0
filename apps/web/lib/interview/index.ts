@@ -1,5 +1,6 @@
 // The interview link page (INTV-002, SCREEN_SPECS.md S-01): its states and the sign-in round trip
-// that brings the candidate back to the same link (ADR-014: Google or Microsoft only).
+// that brings the candidate back to the same link (ADR-014: Google or Microsoft only). The device
+// check's media helpers are in `./devices` (INTV-003).
 
 import type { components } from "@fasthyr/api-client";
 
@@ -8,6 +9,13 @@ import { SIGNIN_PARAM, type SignInProblem } from "@/lib/apply/session";
 export type InterviewLink = components["schemas"]["InterviewLink"];
 export type InterviewLinkState = InterviewLink["state"];
 export type InterviewCompany = InterviewLink["company"];
+
+/** States from which the candidate goes through the device check (the API's OPEN_STATES). */
+const OPEN_STATES: readonly InterviewLinkState[] = ["welcome", "resume", "technical_problem"];
+
+export function isOpenState(state: InterviewLinkState): boolean {
+  return OPEN_STATES.includes(state);
+}
 
 /** The page for an interview link token. */
 export function interviewPath(token: string): string {

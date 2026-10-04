@@ -613,6 +613,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/candidate/interviews/{token}/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Interview Consent
+         * @description The device check's consent (FR-INTV-03): the interview notice, plus the biometric notice
+         *     when `face_check` (`422 biometric_consent_required` without it). Another account gets
+         *     `404 interview_not_found`; an expired, closed or finished link `409 interview_not_open`.
+         */
+        post: operations["record_interview_consent_v1_candidate_interviews__token__consent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -986,6 +1008,38 @@ export interface components {
             careers_url: string | null;
         };
         /**
+         * InterviewConsent
+         * @description What the interview now records (PRIVACY.md §3).
+         */
+        InterviewConsent: {
+            /** Consent Version */
+            consent_version: string;
+            /**
+             * Consent At
+             * Format: date-time
+             */
+            consent_at: string;
+            /** Biometric Consent Version */
+            biometric_consent_version: string | null;
+        };
+        /**
+         * InterviewConsentRequest
+         * @description The device check's consent (INTV-003, FR-INTV-03): the notice ids the candidate agreed
+         *     to, from `GET /v1/public/notices`.
+         */
+        InterviewConsentRequest: {
+            /**
+             * Consent Notice Id
+             * @description The interview notice, e.g. interview@v1
+             */
+            consent_notice_id: string;
+            /**
+             * Biometric Notice Id
+             * @description The biometric notice (e.g. biometric@v1); required when `face_check`
+             */
+            biometric_notice_id?: string | null;
+        };
+        /**
          * InterviewLink
          * @description What the interview link page shows (INTV-002). Personal details (`first_name`) appear only
          *     once the signed-in account is the one that applied; never a stage, score or flag.
@@ -1029,6 +1083,11 @@ export interface components {
              * @description Only on resume: what is left of the 30-minute cap
              */
             minutes_left?: number | null;
+            /**
+             * Face Check
+             * @description Video interview with integrity checks on: the device check asks for the biometric consent too (S-01, ADR-016)
+             */
+            face_check: boolean;
         };
         /**
          * Invite
@@ -3985,6 +4044,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InterviewLink"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    record_interview_consent_v1_candidate_interviews__token__consent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterviewConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewConsent"];
                 };
             };
             /** @description Unauthorized */

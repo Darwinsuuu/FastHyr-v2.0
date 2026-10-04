@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 
 import { GoogleMark, MicrosoftMark } from "@/components/auth/provider-marks";
+import { DeviceCheck, type DeviceCheckNotices } from "@/components/interview/device-check";
 import { Button } from "@/components/ui/button";
 import type { SignInProblem } from "@/lib/apply/session";
 import { type OAuthProvider, OAUTH_SCOPES } from "@/lib/auth/flow";
@@ -27,6 +28,7 @@ import {
   accommodationHref,
   type InterviewLink,
   interviewPath,
+  isOpenState,
   SIGNIN_PARAM,
 } from "@/lib/interview";
 import { noticeLinkHref } from "@/lib/notices";
@@ -37,16 +39,19 @@ const linkClass = "text-evergreen underline hover:text-persimmon";
 
 /**
  * The S-01 card for the link's state. "Check my camera and mic", "Continue my interview" and
- * "Try again" open the device check, which INTV-003 adds; until then a holding step stands in.
+ * "Try again" open the device check (INTV-003) while the link is open.
  */
 export function InterviewLinkCard({
   token,
   link,
+  notices,
   signedInEmail,
   signInProblem,
 }: {
   token: string;
   link: InterviewLink;
+  /** The device check's consent texts; null when they couldn't load or aren't needed. */
+  notices: DeviceCheckNotices | null;
   signedInEmail: string | null;
   signInProblem: SignInProblem | null;
 }) {
@@ -62,19 +67,22 @@ export function InterviewLinkCard({
 
   const start = () => setChecking(true);
 
+  // A link that closed meanwhile (the page refreshed) shows its new state instead.
+  if (checking && isOpenState(link.state)) {
+    return (
+      <DeviceCheck token={token} link={link} notices={notices} onBack={() => setChecking(false)} />
+    );
+  }
+
   return (
     <section className="flex w-full max-w-[640px] flex-col gap-6 rounded-lg border border-line bg-surface-raised p-6 shadow-raised md:p-10">
-      {checking ? (
-        <HoldingStep link={link} onBack={() => setChecking(false)} />
-      ) : (
-        <LinkState
-          token={token}
-          link={link}
-          signedInEmail={signedInEmail}
-          signInProblem={signInProblem}
-          onStart={start}
-        />
-      )}
+      <LinkState
+        token={token}
+        link={link}
+        signedInEmail={signedInEmail}
+        signInProblem={signInProblem}
+        onStart={start}
+      />
     </section>
   );
 }
@@ -357,21 +365,6 @@ function WrongAccount({ email }: { email: string | null }) {
           ? t("interview.wrongAccount.body", { email })
           : t("interview.wrongAccount.bodyNoEmail")}
       </p>
-    </Message>
-  );
-}
-
-function HoldingStep({ link, onBack }: { link: InterviewLink; onBack: () => void }) {
-  return (
-    <Message
-      title={t("interview.check.title")}
-      action={
-        <Button variant="secondary" side="candidate" size="lg" onClick={onBack}>
-          {t("interview.check.back")}
-        </Button>
-      }
-    >
-      <p>{t("interview.check.body", { expiry: link.expires_label })}</p>
     </Message>
   );
 }

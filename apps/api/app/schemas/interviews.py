@@ -44,3 +44,31 @@ class InterviewLink(BaseModel):
     minutes_left: int | None = Field(
         default=None, description="Only on resume: what is left of the 30-minute cap"
     )
+    face_check: bool = Field(
+        description=(
+            "Video interview with integrity checks on: the device check asks for the biometric "
+            "consent too (S-01, ADR-016)"
+        )
+    )
+
+
+class InterviewConsentRequest(BaseModel):
+    """The device check's consent (INTV-003, FR-INTV-03): the notice ids the candidate agreed
+    to, from `GET /v1/public/notices`."""
+
+    consent_notice_id: str = Field(
+        max_length=64, description="The interview notice, e.g. interview@v1"
+    )
+    biometric_notice_id: str | None = Field(
+        default=None,
+        max_length=64,
+        description="The biometric notice (e.g. biometric@v1); required when `face_check`",
+    )
+
+
+class InterviewConsent(BaseModel):
+    """What the interview now records (PRIVACY.md §3)."""
+
+    consent_version: str
+    consent_at: datetime
+    biometric_consent_version: str | None

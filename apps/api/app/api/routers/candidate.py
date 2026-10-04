@@ -22,7 +22,7 @@ from app.schemas.applications import (
     SubmitApplicationRequest,
     SubmittedApplication,
 )
-from app.schemas.interviews import InterviewLink
+from app.schemas.interviews import InterviewConsent, InterviewConsentRequest, InterviewLink
 from app.services import applications as application_service
 from app.services import interview_links
 
@@ -89,3 +89,16 @@ async def get_interview_link(
     `sign_in` (with the applying account's masked email) unless the link has expired or closed,
     and a different account gets `wrong_account`. Unknown tokens are `404 interview_not_found`."""
     return await interview_links.interview_link(session, token, candidate, api_url=settings.api_url)
+
+
+@router.post("/interviews/{token}/consent", response_model=InterviewConsent)
+async def record_interview_consent(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: InterviewConsentRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+) -> InterviewConsent:
+    """The device check's consent (FR-INTV-03): the interview notice, plus the biometric notice
+    when `face_check` (`422 biometric_consent_required` without it). Another account gets
+    `404 interview_not_found`; an expired, closed or finished link `409 interview_not_open`."""
+    return await interview_links.record_consent(session, token, ctx, body)

@@ -7,7 +7,8 @@ import { InterviewLinkPage } from "@/components/interview/interview-link-page";
 import { type CandidateClaims, candidateFromClaims } from "@/lib/apply/session";
 import { env } from "@/lib/env";
 import { t } from "@/lib/i18n";
-import { type InterviewLink, readSignInProblem } from "@/lib/interview";
+import { type InterviewLink, isOpenState, readSignInProblem } from "@/lib/interview";
+import { loadNotices } from "@/lib/notices";
 import { supabaseServer } from "@/lib/supabase/server";
 
 interface Params {
@@ -73,8 +74,20 @@ export default async function InterviewLinkRoute({
     <InterviewLinkPage
       token={token}
       link={link}
+      notices={isOpenState(link.state) ? await deviceCheckNotices() : null}
       signedInEmail={candidate?.email ?? null}
       signInProblem={link.state === "sign_in" ? readSignInProblem(query.signin) : null}
     />
   );
+}
+
+/** The device check's consent texts (COMP-002). A failure shows a message in the check, not an
+ * error page: the candidate can still read the link's state. */
+async function deviceCheckNotices() {
+  try {
+    const { interview, biometric } = await loadNotices();
+    return { interview, biometric };
+  } catch {
+    return null;
+  }
 }

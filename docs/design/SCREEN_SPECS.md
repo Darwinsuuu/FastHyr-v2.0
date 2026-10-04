@@ -25,7 +25,7 @@ Base: `DemoDeviceCheck` header ("{Company logo} {Company} · interviews with Fas
 Device check reuses `DemoDeviceCheck` without the demo format toggle and "Leave demo" link. Consent area has **two** checkboxes when video + integrity checks are on:
 1. (required) "I understand I'll be talking with an AI interviewer and that this session is recorded and shared with the {Company} hiring team."
 2. (required for video + integrity) "I agree that FastHyr may compare my face across this session to confirm it's the same person. Face data isn't stored after the check. [Learn more]"
-Voice-only pipelines show only checkbox 1.
+Voice-only pipelines show only checkbox 1. The words come from the versioned notices (COMP-002); the API sends `face_check` with the link. Before the browser prompt the page explains it ("Your browser will ask to use your camera and microphone. Choose Allow. Nothing is recorded or sent anywhere during this check."); a blocked permission shows fix steps for the browser. Until the live interview exists (INTV-005), Start shows "You’re all set".
 
 ### S-02 Interview end screen — within `/interview/[token]`
 Base: `DemoInterview` done state. Heading "Thanks for the conversation, {first name}." Body: "Your interview is with the {Company} hiring team now. You'll hear from them by email — usually within a few days." Then the existing rating block (1–5 + optional comment, "isn't shared with the hiring team"). While the recording is still uploading, show above the heading: progress bar "Saving your interview… {n}%" and "Please keep this page open for a moment." — the page must not say "done" until uploads finish. No marketing CTAs.

@@ -1301,9 +1301,133 @@
       "retry": "Try again"
     },
     "check": {
-      "title": "Camera and microphone check",
-      "body": "This step isn’t ready yet. Your link still works until {expiry}.",
-      "back": "Back"
+      "eyebrow": "Before we start",
+      "titleVideo": "Let’s check your camera and mic",
+      "titleVoice": "Let’s check your microphone",
+      "subtitleVideo": "Two quick checks so the interviewer can see and hear you clearly. This takes less than a minute.",
+      "subtitleVoice": "One quick check so the interviewer can hear you clearly. This takes less than a minute.",
+      "allowBodyVideo": "Your browser will ask to use your camera and microphone. Choose Allow.",
+      "allowBodyVoice": "Your browser will ask to use your microphone. Choose Allow.",
+      "private": "Nothing is recorded or sent anywhere during this check.",
+      "allowVideo": "Allow camera and microphone",
+      "allowVoice": "Allow microphone",
+      "back": "Back",
+      "camera": {
+        "title": "Camera check",
+        "waiting": "Waiting for a wave",
+        "working": "Camera working",
+        "preview": "Your camera preview",
+        "waveLead": "Wave at the camera.",
+        "waveBody": "Keep your face inside the outline, in good light, with nothing covering it.",
+        "seeMyself": "I can see myself",
+        "seen": "We can see you",
+        "picker": "Camera",
+        "unnamed": "Camera {count}",
+        "face": {
+          "loading": "Getting ready…",
+          "none": "We can’t see your face yet. Move into the outline.",
+          "many": "Make sure only you are in view.",
+          "off_centre": "Move so your face is inside the outline.",
+          "too_far": "Move a little closer to the camera.",
+          "dark": "It’s a bit dark. Face a window or turn on a light.",
+          "ok": "Your face is in view."
+        }
+      },
+      "mic": {
+        "title": "Microphone check",
+        "notTested": "Not tested yet",
+        "listening": "Listening…",
+        "working": "Microphone working",
+        "readThis": "Read this out loud",
+        "sentence": "“Hi, my name is [your name]. I’m checking my microphone before my interview. Today is a good day to talk about the work I enjoy most.”",
+        "idle": "Speak at your normal volume, as if talking to someone across a table.",
+        "hintListening": "Keep reading at your normal speaking volume…",
+        "heard": "Clear and loud enough. You sound great.",
+        "tooQuiet": "We couldn’t hear you clearly. Check the right microphone is chosen and isn’t muted, then try again.",
+        "start": "Start reading",
+        "retry": "Try again",
+        "done": "We can hear you",
+        "picker": "Microphone",
+        "unnamed": "Microphone {count}"
+      },
+      "start": "Start interview",
+      "notReadyVideo": "Finish both checks and tick the box to start.",
+      "notReadyVoice": "Finish the check and tick the box to start.",
+      "notReadyBoxes": "Finish both checks and tick both boxes to start.",
+      "consentFailed": "We couldn’t save your agreement. Check your connection and try again.",
+      "consentOutdated": "The wording has changed. Read it again and tick the box to continue.",
+      "noticesFailed": "We couldn’t load this step. Check your connection and reload the page.",
+      "ready": {
+        "title": "You’re all set",
+        "bodyVideo": "Your camera and microphone work. The live interview isn’t open yet; your link still works until {expiry}.",
+        "bodyVoice": "Your microphone works. The live interview isn’t open yet; your link still works until {expiry}."
+      },
+      "problem": {
+        "deniedVideo": "Your browser blocked the camera or microphone",
+        "deniedVoice": "Your browser blocked the microphone",
+        "deniedBody": "The interview needs them. To allow them:",
+        "not_foundVideo": "We can’t find a camera or microphone",
+        "not_foundVoice": "We can’t find a microphone",
+        "not_foundBody": "Connect one, or switch to another device, then try again.",
+        "in_useVideo": "Your camera or microphone is busy",
+        "in_useVoice": "Your microphone is busy",
+        "in_useBody": "Close other apps or tabs that might be using it, such as a video call, then try again.",
+        "unsupportedTitle": "This browser can’t use your camera or microphone",
+        "unsupportedBody": "Open this link in Chrome, Edge, Safari or Firefox. If you opened it from an app, use the app’s menu to open it in your browser.",
+        "failedTitle": "We couldn’t start your camera or microphone",
+        "failedBody": "Try again. If it still doesn’t work, restart your browser or switch to another device.",
+        "system": "Still blocked? Your device’s privacy settings may be turning them off for this browser.",
+        "retry": "Try again",
+        "devicesVideo": "Camera and Microphone",
+        "devicesVoice": "Microphone"
+      },
+      "help": {
+        "chrome": {
+          "1": "Click the camera icon or the site settings icon in the address bar.",
+          "2": "Choose Allow for {devices}.",
+          "3": "Select Try again."
+        },
+        "edge": {
+          "1": "Click the lock icon at the left of the address bar.",
+          "2": "Set {devices} to Allow.",
+          "3": "Select Try again."
+        },
+        "firefox": {
+          "1": "Click the permissions icon at the left of the address bar.",
+          "2": "Clear Blocked for {devices}.",
+          "3": "Select Try again, then choose Allow."
+        },
+        "safari": {
+          "1": "In the menu bar, choose Safari, then Settings for this website.",
+          "2": "Set {devices} to Allow.",
+          "3": "Select Try again."
+        },
+        "ios": {
+          "1": "Tap the page settings icon in the address bar, then Website Settings.",
+          "2": "Set {devices} to Allow.",
+          "3": "Tap Try again."
+        },
+        "iosApp": {
+          "1": "Open the Settings app and find this browser.",
+          "2": "Turn on {devices}.",
+          "3": "Come back here and tap Try again."
+        },
+        "android": {
+          "1": "Tap the icon at the left of the address bar, then Permissions.",
+          "2": "Allow {devices}.",
+          "3": "Tap Try again."
+        },
+        "inApp": {
+          "1": "Open this page in Chrome or Safari from the app’s menu.",
+          "2": "Allow {devices} when your browser asks.",
+          "3": "Continue there."
+        },
+        "other": {
+          "1": "Open your browser’s settings for this site.",
+          "2": "Allow {devices}.",
+          "3": "Select Try again."
+        }
+      }
     },
     "newTab": "(opens in a new tab)"
   }

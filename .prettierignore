@@ -7,3 +7,4 @@ supabase
 packages/api-client/src/schema.d.ts
 *.md
 apps/web/styles/tokens.css
+apps/web/public/mediapipe

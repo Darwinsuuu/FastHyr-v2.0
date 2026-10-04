@@ -6,6 +6,7 @@
 - Microphone: level meter via Web Audio `AnalyserNode`; pass when speech-level audio is detected for ≥ 2 s while reading the sentence.
 - Device pickers for camera and mic; remember the choice in `localStorage` (try/catch).
 - Consent checkbox (FR-INTV-03). No media leaves the browser during the check.
+- As built (INTV-003): `lib/interview/devices.ts` (pure helpers) and `components/interview/use-device-check.ts`. MediaPipe (`@mediapipe/tasks-vision`, BlazeFace short range) runs on the CPU in the browser; its WebAssembly files are copied from `node_modules` to `apps/web/public/mediapipe/` by `scripts/copy-mediapipe.mjs` (run by `dev` and `build`) and the model is committed there, so nothing loads from a third party. Frames are read at 64 × 48 every 100 ms for motion and light; faces every 250 ms. The camera passes on a wave in the top right of the mirrored preview with one centred, well-lit face (or the wave alone if the model can't load), or by "I can see myself" after 5 s. The microphone passes after 2 s at or above −38 dBFS; after 20 s without it the card asks the candidate to check their mic. Fix steps for blocked permissions cover Chrome, Edge, Firefox, Safari, iOS Safari, other iOS browsers, Android and in-app browsers. "Start interview" posts the consent and stops the camera and microphone.
 
 ## 2. Live interview (OpenAI Realtime over WebRTC)
 ```

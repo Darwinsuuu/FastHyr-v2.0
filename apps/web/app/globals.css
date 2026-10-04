@@ -96,3 +96,14 @@
     opacity: 0.55;
   }
 }
+
+/* The device check's waving hand (frame DemoDeviceCheck); still under reduced motion. */
+@keyframes fh-wave {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}

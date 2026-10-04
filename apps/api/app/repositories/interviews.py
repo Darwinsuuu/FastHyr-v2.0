@@ -77,6 +77,7 @@ class InterviewLinkRow:
     candidate_full_name: str
     candidate_deleted_at: datetime | None
     pipeline_status: str
+    integrity_enabled: bool
     job_title: str | None
     company_name: str
     website: str | None
@@ -100,6 +101,7 @@ async def interview_link_of(session: AsyncSession, token_hash: str) -> Interview
                 Candidate.full_name,
                 Candidate.deleted_at,
                 Pipeline.status,
+                Pipeline.integrity_enabled,
                 Pipeline.title,
                 CompanyProfile.company_name,
                 CompanyProfile.website,

@@ -1,0 +1,2 @@
+# Copied from node_modules by scripts/copy-mediapipe.mjs.
+vision_wasm_*

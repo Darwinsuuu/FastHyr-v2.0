@@ -5,7 +5,8 @@
   résumé isn't a match" is on, `reject_resume` is scheduled 2 business days after the screen
   with a "Request a human review" link (ADR-015);
 - a passed screen waits for its interview plan (INTV-001), then goes to `invited` with a new
-  interview link and the `interview_invitation` email, sent now.
+  interview link, the `interview_invitation` email sent now and, with the pipeline's toggle, the
+  `interview_reminder` 24 hours before the link closes (INTV-007).
 
 It runs after every screen and every plan, from the jobs and the sweeper, and does nothing for
 an application that isn't screened yet, is unreadable, or has already moved on. The application
@@ -14,24 +15,22 @@ row is locked first, so two runs take turns and the second finds nothing to do.
 
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.business_days import end_of_day_after, zone_of
 from app.core.config import Settings
 from app.core.tokens import new_token
 from app.emails.defaults import TemplateKey
 from app.jobs.queue import JobQueue
-from app.models import Application, EmailMessage, Interview, ResumeAssessment, ReviewLink
+from app.models import Application, EmailMessage, ResumeAssessment, ReviewLink
 from app.repositories import screening as screening_repo
-from app.repositories.company_profiles import workspace_timezone
-from app.repositories.interviews import InterviewPlanRepository, InterviewRepository
+from app.repositories.interviews import InterviewPlanRepository
 from app.repositories.review_links import ReviewLinkRepository
 from app.repositories.screening import DONE, ScreeningRepository
-from app.services import candidate_emails, emails
+from app.services import candidate_emails, emails, interview_lifecycle
 
 logger = logging.getLogger("app.screening")
 
@@ -55,12 +54,8 @@ class Outcome(StrEnum):
 @dataclass(frozen=True)
 class Acted:
     outcome: Outcome
-    # The email to `emails.enqueue()` after the commit; None when there is none.
-    email: EmailMessage | None = None
-
-
-def interview_link(settings: Settings, token: str) -> str:
-    return f"{settings.site_url}/interview/{token}"
+    # The emails to `emails.enqueue()` after the commit (a no-op for the ones due later).
+    emails: list[EmailMessage] = field(default_factory=list)
 
 
 def review_link(settings: Settings, token: str) -> str:
@@ -110,8 +105,9 @@ async def act_and_commit(
     acted = await act(session, settings, application_id)
     if acted.outcome in (Outcome.INVITED, Outcome.REJECTED):
         await session.commit()
-        if acted.email is not None and queue is not None:
-            await emails.enqueue(queue, acted.email)
+        if queue is not None:
+            for message in acted.emails:
+                await emails.enqueue(queue, message)
     else:
         await session.rollback()
     return acted.outcome
@@ -127,40 +123,15 @@ async def _move(session: AsyncSession, application: Application, stage: str, now
 async def _invite(
     session: AsyncSession, settings: Settings, application: Application, now: datetime
 ) -> Acted:
-    workspace_id = application.workspace_id
-    pipeline = await ScreeningRepository(session, workspace_id).pipeline(application.pipeline_id)
+    pipeline = await ScreeningRepository(session, application.workspace_id).pipeline(
+        application.pipeline_id
+    )
     await _move(session, application, INVITED, now)
-
-    token, token_hash = new_token()
-    zone = zone_of(await workspace_timezone(session, workspace_id))
-    expires_at = end_of_day_after(now, pipeline.link_expiry_days, zone)
-    InterviewRepository(session, workspace_id).add(
-        Interview(
-            workspace_id=workspace_id,
-            application_id=application.id,
-            token_hash=token_hash,
-            format=pipeline.interview_format,
-            invited_at=now,
-            expires_at=expires_at,
-        )
-    )
-    # The invitation always goes out (NOTIFICATIONS.md §1).
-    scheduled = await candidate_emails.schedule(
-        session,
-        settings,
-        workspace_id=workspace_id,
-        application_id=application.id,
-        key=TemplateKey.INTERVIEW_INVITATION,
-        at=now,
-        values={
-            "Interview.link": interview_link(settings, token),
-            "Interview.expiry": await candidate_emails.local_time(
-                session, workspace_id, expires_at
-            ),
-        },
-    )
+    # The invitation always goes out, the reminder with the pipeline's toggle (NOTIFICATIONS.md
+    # §1); see services/interview_lifecycle.py.
+    issued = await interview_lifecycle.issue_link(session, settings, application, pipeline, now)
     logger.info("application %s invited to interview", application.id)
-    return Acted(Outcome.INVITED, scheduled.message)
+    return Acted(Outcome.INVITED, issued.emails)
 
 
 async def _reject(
@@ -200,4 +171,4 @@ async def _reject(
         values={"Review.link": review_link(settings, token)},
     )
     logger.info("application %s not a match; rejection email scheduled", application.id)
-    return Acted(Outcome.REJECTED, scheduled.message)
+    return Acted(Outcome.REJECTED, [scheduled.message])

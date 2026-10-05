@@ -15,9 +15,13 @@ from app.models import Application, EmailMessage
 SCHEDULED, SENDING, SENT, FAILED = "scheduled", "sending", "sent", "failed"
 DELIVERED, BOUNCED, COMPLAINED = "delivered", "bounced", "complained"
 CANCELLED = "cancelled"
+# Written but waiting for an event to schedule it; never dispatched (INTV-007).
+HELD = "held"
+WAITING = (HELD, SCHEDULED)
 
-# Cancel reasons (MSG-003).
+# Cancel reasons (MSG-003, INTV-007).
 STAGE_CHANGED = "stage_changed"
+LINK_CLOSED = "link_closed"
 
 # The application is still in the stage the email was written for (or it isn't about one).
 _STAGE_UNCHANGED = or_(
@@ -69,14 +73,40 @@ async def live_by_dedupe_key(session: AsyncSession, dedupe_key: str) -> EmailMes
 async def cancel_scheduled(
     session: AsyncSession, application_id: uuid.UUID, *, reason: str, now: datetime
 ) -> int:
-    """Cancels the application's emails that haven't started sending."""
+    """Cancels the application's emails that haven't started sending (held ones too)."""
     result = await session.execute(
         update(EmailMessage)
-        .where(EmailMessage.application_id == application_id, EmailMessage.status == SCHEDULED)
+        .where(EmailMessage.application_id == application_id, EmailMessage.status.in_(WAITING))
         .values(status=CANCELLED, cancel_reason=reason, status_updated_at=now)
         .returning(EmailMessage.id)
     )
     return len(result.all())
+
+
+async def move_waiting(
+    session: AsyncSession,
+    dedupe_key: str,
+    *,
+    only_from: str,
+    status: str,
+    now: datetime,
+    scheduled_for: datetime | None = None,
+    cancel_reason: str | None = None,
+) -> bool:
+    """Moves the live email with `dedupe_key` from `only_from` (held or scheduled) to `status`.
+    Returns whether there was one to move."""
+    values: dict[str, Any] = {"status": status, "status_updated_at": now}
+    if scheduled_for is not None:
+        values["scheduled_for"] = scheduled_for
+    if cancel_reason is not None:
+        values["cancel_reason"] = cancel_reason
+    result = await session.execute(
+        update(EmailMessage)
+        .where(EmailMessage.dedupe_key == dedupe_key, EmailMessage.status == only_from)
+        .values(**values)
+        .returning(EmailMessage.id)
+    )
+    return result.first() is not None
 
 
 async def cancel_if_stage_changed(

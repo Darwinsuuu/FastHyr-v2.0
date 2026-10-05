@@ -75,7 +75,7 @@ apps/api/
 | `generate_report(job_id)` | TA request | candidate / pipelines report PDF |
 | `stripe_event(event_id)` | webhook | grant credits etc. |
 | cron `open_and_close_pipelines` | every minute | opens scheduled pipelines at `opens_at` and closes open ones at `closes_at` (releasing their unused reserve), one transaction per pipeline (PIPE-001) |
-| cron `expire_interview_links` / `send_interview_reminders` / `nudge_unfinished` | every 10 min | |
+| cron `expire_interview_links` | every 10 min | moves live links past `expires_at` that were never started or were left unfinished to `expired` with their drop-off reason (`link_expired`, else the reason they had) and cancels their waiting reminder and finish emails; a link with a running attempt waits for the watchdog (INTV-007). Reminders and "Finish your interview" are scheduled emails, not crons (NOTIFICATIONS.md §1) |
 | cron `end_overdue_attempts` | every minute | ends live interview attempts past their share of the cap or without a heartbeat for 60 s and hangs up their calls (INTV-004) |
 | cron `expire_credit_batches` | hourly | ledger entries |
 | cron `dispatch_scheduled_emails` | every minute | queues the send of every `scheduled` email whose time has come, keyed by email ID; also picks up enqueues Redis lost (MSG-003) |

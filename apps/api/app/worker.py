@@ -31,6 +31,7 @@ from app.jobs.screening import screen_resume
 from app.jobs.system import (
     dispatch_scheduled_emails,
     expire_credit_batches,
+    expire_interview_links,
     expire_invites,
     open_and_close_pipelines,
     remove_storage_orphans,
@@ -65,6 +66,8 @@ CRON_JOBS: list[CronJob] = [
     cron(expire_credit_batches, name="expire_credit_batches", minute=5),
     cron(expire_invites, name="expire_invites", minute=15),
     cron(requeue_stuck_work, name="requeue_stuck_work", minute=EVERY_10_MINUTES),
+    # The link page already shows a link as expired on time; this records it (INTV-007).
+    cron(expire_interview_links, name="expire_interview_links", minute=EVERY_10_MINUTES),
     # Every minute, so a scheduled pipeline opens within a minute of its date.
     cron(open_and_close_pipelines, name="open_and_close_pipelines"),
     # Every minute, so a scheduled email goes out within a minute of its time (MSG-003).

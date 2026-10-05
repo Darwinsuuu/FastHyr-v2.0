@@ -116,12 +116,23 @@ def test_a_passed_screen_invites_with_a_personal_link(
         interview["invited_at"], pipeline["link_expiry_days"], manila
     )
 
-    # The invitation went out at once, with a link only this candidate has.
-    [email] = rows(tenancy, "email_messages", application_id)
+    # The invitation went out at once, with a link only this candidate has; the reminder waits
+    # for 24 hours before the link closes (the pipeline's toggle is on by default).
+    email, reminder = sorted(
+        rows(tenancy, "email_messages", application_id), key=lambda e: e["scheduled_for"]
+    )
     assert (email["template_key"], email["status"], email["application_stage"]) == (
         "interview_invitation",
         "sent",
         "invited",
+    )
+    assert (reminder["template_key"], reminder["status"], reminder["scheduled_for"]) == (
+        "interview_reminder",
+        "scheduled",
+        interview["expires_at"] - timedelta(hours=24),
+    )
+    assert token_in(reminder["html_rendered"], "interview") == token_in(
+        sender.sent[0].html, "interview"
     )
     [sent] = sender.sent
     assert sent.to == candidates[0].email
@@ -272,5 +283,9 @@ def test_a_fallback_plan_still_invites(
     assert application(tenancy, application_id)["stage"] == "invited"
     assert len(rows(tenancy, "interviews", application_id)) == 1
     # Queued without a worker queue: the dispatch cron sends it on its next tick.
-    [email] = rows(tenancy, "email_messages", application_id)
-    assert (email["template_key"], email["status"]) == ("interview_invitation", "scheduled")
+    email = next(
+        e
+        for e in rows(tenancy, "email_messages", application_id)
+        if e["template_key"] == "interview_invitation"
+    )
+    assert email["status"] == "scheduled"

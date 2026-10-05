@@ -449,6 +449,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pipelines/{pipeline_id}/reinvite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reinvite Unfinished
+         * @description The pipeline dashboard's "Re-invite all" (INTV-007, FR-PIPE-11): a new interview link and
+         *     invitation for every candidate whose link expired, who left their interview unfinished, or
+         *     who hit a technical issue. Candidates talking to the interviewer right now are left alone. A
+         *     cancelled or archived pipeline is `409 reinvite_not_allowed`.
+         */
+        post: operations["reinvite_unfinished_v1_pipelines__pipeline_id__reinvite_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/applications/{application_id}/reinvite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reinvite Application
+         * @description A new interview link for a candidate who hasn't finished their interview (INTV-007): the
+         *     old link stops working, the new one gets a fresh expiry and the full 30 minutes, and the
+         *     invitation goes out now. The application keeps its credit. A finished or running interview,
+         *     or a cancelled pipeline, is `409 reinvite_not_allowed`.
+         */
+        post: operations["reinvite_application_v1_applications__application_id__reinvite_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/public/pipelines/{workspace_slug}/{pipeline_slug}": {
         parameters: {
             query?: never;
@@ -1886,6 +1932,26 @@ export interface components {
             from_seq: number;
             /** Count */
             count: number;
+        };
+        /**
+         * ReinviteAllRequest
+         * @description The pipeline dashboard's "Re-invite all": candidates whose link expired, who left their
+         *     interview unfinished, or who hit a technical issue (FR-PIPE-11).
+         */
+        ReinviteAllRequest: {
+            /**
+             * Scope
+             * @constant
+             */
+            scope: "all_unfinished";
+        };
+        /**
+         * ReinviteResult
+         * @description How many candidates got a new interview link and invitation.
+         */
+        ReinviteResult: {
+            /** Reinvited */
+            reinvited: number;
         };
         /**
          * ResumeUpload
@@ -3804,6 +3870,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Pipeline"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    reinvite_unfinished_v1_pipelines__pipeline_id__reinvite_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReinviteAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReinviteResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    reinvite_application_v1_applications__application_id__reinvite_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReinviteResult"];
                 };
             };
             /** @description Unauthorized */

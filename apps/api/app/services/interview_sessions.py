@@ -9,8 +9,10 @@ past it or stopped sending heartbeats. The API opens every call itself (ADR-021)
 always hang one up.
 
 Ending an attempt (`end_attempt()`): `candidate_ended`, `wrap_up` and `time_cap` complete the
-interview and move the application to `scoring`; `disconnect` and `error` leave it `abandoned`,
-to be resumed while the link is valid. Three attempts that never connected within 5 minutes set
+interview and move the application to `scoring`; `disconnect` and `error` leave it `abandoned`
+(`drop_reason = left_unfinished`), to be resumed while the link is valid, and schedule the
+"Finish your interview" email an attempt's start wrote on hold (INTV-007,
+services/interview_lifecycle.py). Three attempts that never connected within 5 minutes set
 `drop_reason = technical_issue`, which the link page shows as "We couldn't connect you".
 """
 
@@ -61,7 +63,7 @@ from app.schemas.interviews import (
     InterviewSessionRequest,
     InterviewTopic,
 )
-from app.services import interview_links
+from app.services import interview_lifecycle, interview_links
 
 logger = logging.getLogger("app.interview")
 
@@ -178,6 +180,8 @@ async def start(
     prepared.plan.instructions_version = instructions.version
     if application.stage == "invited":
         await _move(session, application, "interview_in_progress", now)
+    interview_lifecycle.interview_resumed(interview)
+    await interview_lifecycle.hold_finish_email(session, settings, interview, token)
     await session.commit()
     await hang_up(realtime, ended)
     await queue.enqueue(SIDEBAND_JOB, workspace_id, attempt.id, key=attempt.id)
@@ -396,6 +400,7 @@ async def end_attempt(
         await _complete(session, interview, now)
     elif interview.status == "in_progress":
         interview.status = "abandoned"
+        await interview_lifecycle.interview_left(session, interview, now)
     return True
 
 
@@ -485,6 +490,7 @@ async def _complete(session: AsyncSession, interview: Interview, now: datetime) 
         return
     interview.status = "completed"
     interview.completed_at = now
+    await interview_lifecycle.interview_completed(session, interview)
     application = await _application(session, interview)
     if application.stage in ("invited", "interview_in_progress"):
         await _move(session, application, "scoring", now)

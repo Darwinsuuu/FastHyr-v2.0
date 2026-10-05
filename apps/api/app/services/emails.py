@@ -18,6 +18,7 @@ from app.core.config import Settings
 from app.core.context import RequestContext
 from app.core.ids import new_id
 from app.emails import system
+from app.emails.defaults import TemplateKey
 from app.emails.render import RenderedEmail
 from app.integrations.email import EmailSender, OutgoingEmail
 from app.jobs.queue import JobQueue
@@ -26,13 +27,16 @@ from app.repositories import emails as email_repo
 from app.repositories.applications import mark_email_undeliverable
 from app.repositories.emails import (
     BOUNCED,
+    CANCELLED,
     COMPLAINED,
     DELIVERED,
     FAILED,
+    HELD,
     SCHEDULED,
     SENDING,
     SENT,
 )
+from app.repositories.interviews import mark_reminder_sent
 from app.repositories.users import UserRepository
 from app.services import company_profile
 
@@ -79,20 +83,28 @@ async def queue_unique_email(
     *,
     dedupe_key: str,
     application_stage: str | None,
+    held: bool = False,
     **fields: Any,
 ) -> tuple[EmailMessage, bool]:
     """Like `queue_email()`, but writes the row now and keeps one live email per `dedupe_key`:
-    a repeat returns the email already there and False. The caller commits, then enqueues."""
+    a repeat returns the email already there and False. The caller commits, then enqueues.
+    A `held` email waits until `release_held()` schedules it."""
     message = _message(**fields)
     message.dedupe_key = dedupe_key
     message.application_stage = application_stage
+    if held:
+        message.status = HELD
     added = await email_repo.add_unless_duplicate(session, message)
     if added is not None:
         return added, True
     existing = await email_repo.live_by_dedupe_key(session, dedupe_key)
     if existing is None:  # cancelled between the insert and the read: try once more
         return await queue_unique_email(
-            session, dedupe_key=dedupe_key, application_stage=application_stage, **fields
+            session,
+            dedupe_key=dedupe_key,
+            application_stage=application_stage,
+            held=held,
+            **fields,
         )
     return existing, False
 
@@ -150,6 +162,40 @@ async def cancel_scheduled(
     )
 
 
+async def release_held(session: AsyncSession, dedupe_key: str, at: datetime) -> bool:
+    """Schedules the held email with `dedupe_key` for `at`, in the caller's transaction.
+    Returns False when there is no held one (never written, already sent or cancelled)."""
+    return await email_repo.move_waiting(
+        session, dedupe_key, only_from=HELD, status=SCHEDULED, scheduled_for=at, now=_now()
+    )
+
+
+async def hold(session: AsyncSession, dedupe_key: str) -> bool:
+    """Puts the scheduled email with `dedupe_key` back on hold, if it hasn't started sending."""
+    return await email_repo.move_waiting(
+        session, dedupe_key, only_from=SCHEDULED, status=HELD, now=_now()
+    )
+
+
+async def cancel_waiting(session: AsyncSession, dedupe_key: str, *, reason: str) -> bool:
+    """Cancels the held or scheduled email with `dedupe_key`, if there is one."""
+    for status in (HELD, SCHEDULED):
+        if await email_repo.move_waiting(
+            session,
+            dedupe_key,
+            only_from=status,
+            status=CANCELLED,
+            cancel_reason=reason,
+            now=_now(),
+        ):
+            return True
+    return False
+
+
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
 async def deliver(session: AsyncSession, sender: EmailSender, message_id: uuid.UUID) -> bool:
     """The send job's work: claim, send, record. Returns False when there was nothing to send
     (cancelled, already sent, or not yet due). Provider errors propagate for the job to retry."""
@@ -178,6 +224,8 @@ async def deliver(session: AsyncSession, sender: EmailSender, message_id: uuid.U
         provider_message_id=provider_id,
         sent_at=datetime.now(UTC),
     )
+    if message.template_key == TemplateKey.INTERVIEW_REMINDER and message.application_id:
+        await mark_reminder_sent(session, message.application_id, datetime.now(UTC))
     await session.commit()
     return True
 

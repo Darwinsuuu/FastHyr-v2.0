@@ -6,7 +6,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import delete, exists, func, select
+from sqlalchemy import case, delete, exists, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -335,3 +335,55 @@ class RecordingChunkRepository(WorkspaceRepository[RecordingChunk]):
                 RecordingChunk.interview_id == interview_id,
             )
         )
+
+
+# --- Lifecycle (INTV-007) ---------------------------------------------------------------------
+
+# Live interviews that can expire: nobody is talking on them right now.
+EXPIRABLE = ("not_started", "abandoned")
+
+
+async def mark_reminder_sent(
+    session: AsyncSession, application_id: uuid.UUID, now: datetime
+) -> None:
+    """For the send job: the application's live interview got its reminder email."""
+    await session.execute(
+        update(Interview)
+        .where(Interview.application_id == application_id, Interview.superseded_by.is_(None))
+        .values(reminder_sent_at=now)
+    )
+
+
+@dataclass(frozen=True)
+class ExpiredLink:
+    workspace_id: uuid.UUID
+    interview_id: uuid.UUID
+    application_id: uuid.UUID
+
+
+async def expire_links(session: AsyncSession, now: datetime) -> list[ExpiredLink]:
+    """For the expire_interview_links cron: live links past `expires_at` that were never started
+    or were left unfinished become `expired`, keeping the reason they already had and otherwise
+    getting `link_expired` (never started) or `left_unfinished`. An interview with an attempt
+    still running is left alone; the watchdog ends the attempt first."""
+    running = exists().where(
+        InterviewAttempt.interview_id == Interview.id, InterviewAttempt.ended_at.is_(None)
+    )
+    rows = await session.execute(
+        update(Interview)
+        .where(
+            Interview.status.in_(EXPIRABLE),
+            Interview.expires_at <= now,
+            Interview.superseded_by.is_(None),
+            ~running,
+        )
+        .values(
+            status="expired",
+            drop_reason=func.coalesce(
+                Interview.drop_reason,
+                case((Interview.status == "not_started", "link_expired"), else_="left_unfinished"),
+            ),
+        )
+        .returning(Interview.workspace_id, Interview.id, Interview.application_id)
+    )
+    return [ExpiredLink(*tuple(row)) for row in rows]

@@ -92,6 +92,15 @@ class InterviewNotFoundError(AppError):
     title = "We couldn't find that interview"
 
 
+class ReinviteNotAllowedError(AppError):
+    """The application can't get a new interview link: it isn't waiting on its interview, the
+    interview is finished or running right now, or the pipeline is cancelled (INTV-007)."""
+
+    status = 409
+    code = "reinvite_not_allowed"
+    title = "This candidate can't be re-invited"
+
+
 class InterviewNotOpenError(AppError):
     """The interview link has expired, closed or finished, so it can't be started (INTV-003)."""
 

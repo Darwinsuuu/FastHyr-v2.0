@@ -71,5 +71,6 @@ Tests: expiry cron (reasons, running attempt untouched), finish email held → s
 
 ## Log
 - 2026-10-05: branch `feature/intv-007-interview-lifecycle`; plan auto-approved (owner's standing rule).
+- PR #47.
 - Everything lives in `services/interview_lifecycle.py` (links and their emails, finish email, expiry, re-invites) rather than a separate re-invite module.
 - Hand test (local stack, `AI_FAKE=1`): applied as a Google candidate → invited with the invitation sent and the reminder scheduled for 24 h before 11:59 PM Manila; made the reminder due → sent to Mailpit and `reminder_sent_at` set; expired the link → `expired`/`link_expired` and a `v_dropoff_reasons` row; `POST /v1/applications/{id}/reinvite` as Dana → new invitation in Mailpit, old link `unavailable`, new link opens; "Re-invite all" then found nobody left. The finish email (needs a live attempt) is covered by the integration tests with the fake Realtime provider.

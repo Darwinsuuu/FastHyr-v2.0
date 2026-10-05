@@ -117,6 +117,8 @@ One-time steps in the owner's accounts for development (`develop`) and QA (`rele
 | `OPENAI_REALTIME_MODEL`, `OPENAI_CAPTION_MODEL` | the Realtime model for live interviews and the transcription model for live captions (INTV-004; the worker copies the Realtime model at creation, so set it there by hand if it changes) |
 | `SENTRY_DSN` | the api Sentry project on `fasthyr-api-*`, the worker project on `fasthyr-worker-*` (§5) |
 
+`FFMPEG_PATH` (optional) points the worker at a system ffmpeg for joining interview recordings (INTV-006); left unset, it uses the static binary that comes with the `imageio-ffmpeg` package, so nothing extra is installed on Render.
+
 The worker services read the rest from their API service. Then Settings → Custom Domains: `api.dev.fasthyr.com` on `fasthyr-api-dev`, `api.qa.fasthyr.com` on `fasthyr-api-qa`. Plans: API `free` (it sleeps after 15 idle minutes and the next request waits about a minute; no Render Shell), worker `0.5c-512mb` (Render's smallest paid size; workers have no free plan), Key Value `free` (no persistence, so queued jobs are lost if it restarts; fine for development and QA). Suspend the QA services until the first RELEASE deployment reaches `release`.
 
 **5. Vercel** (Add New → Project → this repository).

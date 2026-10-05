@@ -76,6 +76,10 @@ export function LiveInterview({
         <Centred>
           <FailedCard failure={state.failure ?? "connect"} video={video} onRetry={session.retry} />
         </Centred>
+      ) : state.phase === "ended" && session.upload.waiting > 0 ? (
+        <Centred>
+          <Saving percent={session.upload.percent} />
+        </Centred>
       ) : state.phase === "ended" ? (
         <Centred>
           <section
@@ -93,6 +97,7 @@ export function LiveInterview({
           company={company}
           video={video}
           stream={session.stream}
+          uploadBehind={session.upload.behind}
           onMute={session.setMuted}
           onEnd={session.end}
         />
@@ -106,6 +111,7 @@ function Stage({
   company,
   video,
   stream,
+  uploadBehind,
   onMute,
   onEnd,
 }: {
@@ -113,6 +119,7 @@ function Stage({
   company: InterviewCompany;
   video: boolean;
   stream: MediaStream | null;
+  uploadBehind: boolean;
   onMute: (muted: boolean) => void;
   onEnd: () => Promise<void>;
 }) {
@@ -176,6 +183,7 @@ function Stage({
           </div>
 
           {state.phase === "reconnecting" && <Reconnecting />}
+          {uploadBehind && state.phase !== "reconnecting" && <UploadBehind />}
 
           <p
             key={line?.id ?? "waiting"}
@@ -534,6 +542,48 @@ function Reconnecting() {
         </p>
       </div>
     </div>
+  );
+}
+
+function UploadBehind() {
+  return (
+    <p
+      role="status"
+      className="flex gap-2 rounded-md border border-line-strong bg-surface px-3.5 py-3 text-[14px] leading-5 text-ink-muted"
+    >
+      <WifiSlashIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+      {t("interview.live.uploadBehind")}
+    </p>
+  );
+}
+
+/** S-02's upload progress: the page doesn't say "done" until the recording is saved. */
+function Saving({ percent }: { percent: number }) {
+  const label = t("interview.live.saving.title", { percent });
+  return (
+    <section
+      aria-busy="true"
+      className="flex w-full max-w-[640px] flex-col gap-4 rounded-lg border border-line bg-surface-raised p-6 shadow-raised md:p-10"
+    >
+      <h1 className="type-heading">{label}</h1>
+      <div
+        role="progressbar"
+        aria-label={t("interview.live.saving.label")}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-2 overflow-hidden rounded-pill bg-surface-sunk"
+      >
+        <div
+          className="h-full rounded-pill bg-evergreen transition-[width] duration-300 ease-out motion-reduce:transition-none"
+          style={{ width: `${Math.max(4, percent)}%` }}
+        />
+      </div>
+      <p className="flex items-center gap-2 type-body text-ink-muted">
+        <Spinner className="size-4" />
+        {t("interview.live.saving.body")}
+      </p>
+    </section>
   );
 }
 

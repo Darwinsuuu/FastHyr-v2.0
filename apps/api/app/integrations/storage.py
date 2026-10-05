@@ -6,10 +6,11 @@ Paths carry IDs only, never names or emails. Nothing here logs paths' owners or 
 
 import logging
 import uuid
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
+from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import quote, urlencode
 
@@ -26,6 +27,8 @@ MAX_SIGNED_URL_TTL = timedelta(minutes=15)
 UPLOAD_WINDOW = timedelta(minutes=10)
 # Folder for uploads that haven't been checked yet. The orphan cron empties what's left behind.
 TEMP_PREFIX = "tmp"
+# Read size for streamed uploads.
+UPLOAD_BLOCK = 1024 * 1024
 
 
 class Bucket(StrEnum):
@@ -47,6 +50,27 @@ def temp_upload_path(workspace_id: uuid.UUID, upload_id: uuid.UUID) -> str:
 
 def resume_path(workspace_id: uuid.UUID, application_id: uuid.UUID) -> str:
     return f"{workspace_id}/{application_id}/resume.pdf"
+
+
+def recording_folder(workspace_id: uuid.UUID, interview_id: uuid.UUID) -> str:
+    return f"{workspace_id}/{interview_id}"
+
+
+def recording_chunks_folder(workspace_id: uuid.UUID, interview_id: uuid.UUID) -> str:
+    return f"{recording_folder(workspace_id, interview_id)}/chunks"
+
+
+def recording_chunk_path(
+    workspace_id: uuid.UUID, interview_id: uuid.UUID, attempt_id: uuid.UUID, seq: int, kind: str
+) -> str:
+    """One piece of an attempt's recording; `kind` is "webm" or "mp4". The zero-padded `seq`
+    keeps a folder listing in recording order."""
+    return f"{recording_chunks_folder(workspace_id, interview_id)}/{attempt_id}/{seq:05d}.{kind}"
+
+
+def recording_file_path(workspace_id: uuid.UUID, interview_id: uuid.UUID, name: str) -> str:
+    """The finished files: `recording.webm|mp4`, `audio.m4a`, `poster.jpg`."""
+    return f"{recording_folder(workspace_id, interview_id)}/{name}"
 
 
 def demo_resume_path(demo_session_id: uuid.UUID) -> str:
@@ -121,6 +145,10 @@ class Storage(Protocol):
 
     async def upload(
         self, bucket: Bucket, path: str, data: bytes, *, content_type: str, upsert: bool = False
+    ) -> None: ...
+
+    async def upload_file(
+        self, bucket: Bucket, path: str, file: Path, *, content_type: str, upsert: bool = False
     ) -> None: ...
 
     async def move(self, bucket: Bucket, source: str, destination: str) -> None: ...
@@ -232,6 +260,28 @@ class SupabaseStorage:
             f"/object/{bucket}/{_quote(path)}",
             content=data,
             headers={"Content-Type": content_type, "x-upsert": "true" if upsert else "false"},
+        )
+
+    async def upload_file(
+        self, bucket: Bucket, path: str, file: Path, *, content_type: str, upsert: bool = False
+    ) -> None:
+        """Uploads a file from disk without reading it all into memory (a recording can be
+        hundreds of megabytes)."""
+
+        async def body() -> AsyncIterator[bytes]:
+            with file.open("rb") as handle:
+                while block := handle.read(UPLOAD_BLOCK):
+                    yield block
+
+        await self._request(
+            "POST",
+            f"/object/{bucket}/{_quote(path)}",
+            content=body(),
+            headers={
+                "Content-Type": content_type,
+                "Content-Length": str(file.stat().st_size),
+                "x-upsert": "true" if upsert else "false",
+            },
         )
 
     async def move(self, bucket: Bucket, source: str, destination: str) -> None:

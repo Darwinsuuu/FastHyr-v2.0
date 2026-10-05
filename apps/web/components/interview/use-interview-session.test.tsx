@@ -57,6 +57,10 @@ function fakeClient(overrides: Partial<InterviewClient> = {}) {
     }),
     heartbeat: vi.fn(async () => ({ status: "active" as const, timeLeftSeconds: 1790 })),
     complete: vi.fn(async () => undefined),
+    recording: {
+      chunkUrls: vi.fn(async () => []),
+      register: vi.fn(async () => undefined),
+    },
     ...overrides,
   };
 }

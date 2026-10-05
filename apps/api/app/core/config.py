@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     # AI_FAKE=1 answers every AI call from fixtures (app/ai/fixtures/), with no network.
     ai_fake: bool = False
 
+    # Recordings (INTV-006): the ffmpeg the worker runs. Empty = the binary bundled with
+    # imageio-ffmpeg, so the host needs no system package.
+    ffmpeg_path: str = ""
+
     # Observability (FND-009). An empty SENTRY_DSN sends nothing. The API and worker are separate
     # Sentry projects, so each Render service sets its own DSN.
     sentry_dsn: str = ""

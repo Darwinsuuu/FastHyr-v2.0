@@ -123,6 +123,36 @@ class InterviewAttemptNotFoundError(AppError):
     title = "We couldn't find that interview session"
 
 
+class RecordingChunkMissingError(AppError):
+    """A recording chunk was registered before (or without) its upload (INTV-006)."""
+
+    status = 422
+    code = "recording_chunk_missing"
+    title = "That part of the recording hasn't arrived"
+
+
+class RecordingChunkTooLargeError(AppError):
+    status = 422
+    code = "recording_chunk_too_large"
+    title = "That part of the recording is too large"
+
+
+class RecordingTypeMismatchError(AppError):
+    """An attempt records one stream: its chunks can't switch between WebM and MP4."""
+
+    status = 409
+    code = "recording_type_mismatch"
+    title = "That recording format doesn't match this session"
+
+
+class RecordingFinalizedError(AppError):
+    """The interview's recording is already being put together; later chunks can't join it."""
+
+    status = 409
+    code = "recording_finalized"
+    title = "This recording is already saved"
+
+
 class RealtimeUnavailableAppError(AppError):
     status = 503
     code = "realtime_unavailable"

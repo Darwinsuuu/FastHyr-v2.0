@@ -27,6 +27,7 @@ import {
   type MediaProblem,
   readyToStart,
 } from "@/lib/interview/devices";
+import { unlockAudio } from "@/lib/interview/recorder";
 import type { Notice } from "@/lib/notices";
 
 import { type CameraState, type MicStatus, useDeviceCheck } from "./use-device-check";
@@ -80,6 +81,8 @@ export function DeviceCheck({
 
   async function start() {
     if (!notices || !ready) return;
+    // Inside the tap: iOS Safari only lets audio start from one (the recording's mix needs it).
+    unlockAudio();
     setSaving(true);
     setError(null);
     try {

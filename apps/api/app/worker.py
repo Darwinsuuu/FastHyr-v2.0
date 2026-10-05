@@ -25,6 +25,7 @@ from app.jobs.framework import WorkerFunction, retry_policy_of
 from app.jobs.interviews import plan_interview
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.realtime import SIDEBAND_TIMEOUT, end_overdue_attempts, run_realtime_session
+from app.jobs.recordings import FINALIZE_TIMEOUT, finalize_recording, finalize_recordings
 from app.jobs.reports import sample_report_job
 from app.jobs.screening import screen_resume
 from app.jobs.system import (
@@ -55,6 +56,8 @@ FUNCTIONS: list[Function] = [
     register(plan_interview),
     # Holds a live interview's sideband for as long as the call lasts (INTV-004).
     register(run_realtime_session, timeout=SIDEBAND_TIMEOUT),
+    # Joins an interview's recording chunks with ffmpeg (INTV-006).
+    register(finalize_recording, timeout=FINALIZE_TIMEOUT),
 ]
 
 CRON_JOBS: list[CronJob] = [
@@ -68,6 +71,8 @@ CRON_JOBS: list[CronJob] = [
     cron(dispatch_scheduled_emails, name="dispatch_scheduled_emails"),
     # Every minute, so no live interview runs more than a minute past its cap (INTV-004).
     cron(end_overdue_attempts, name="end_overdue_attempts"),
+    # Every minute, so a recording is put together soon after its last chunk can arrive.
+    cron(finalize_recordings, name="finalize_recordings"),
     # Daily, at a quiet hour (UTC).
     cron(remove_storage_orphans, name="remove_storage_orphans", hour=3, minute=25),
 ]

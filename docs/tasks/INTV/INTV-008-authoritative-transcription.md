@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M4 AI interview |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [INTV-006](../INTV/INTV-006-recording-capture-and-finalisation.md) |
 | Requirements | FR-ASMT-01 |

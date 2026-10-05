@@ -128,3 +128,41 @@ class InterviewCompleteRequest(BaseModel):
 class InterviewCompleted(BaseModel):
     status: Literal["completed"]
     talk_seconds: int
+
+
+# --- Recording (INTV-006) ---------------------------------------------------------------------
+
+RecordingType = Literal["webm", "mp4"]
+
+# 5-second chunks for 30 minutes are 360; the rest is room for a slower timeslice.
+MAX_CHUNK_SEQ = 2000
+CHUNK_URL_BATCH = 30
+
+
+class RecordingChunkUrlsRequest(BaseModel):
+    attempt_id: uuid.UUID
+    type: RecordingType = Field(description="The recorder's container: WebM, or MP4 (Safari)")
+    from_seq: int = Field(ge=0, lt=MAX_CHUNK_SEQ, description="The first chunk number wanted")
+    count: int = Field(ge=1, le=CHUNK_URL_BATCH)
+
+
+class RecordingChunkUrl(BaseModel):
+    seq: int
+    url: str = Field(description="Signed upload URL: PUT the chunk's bytes once")
+
+
+class RecordingChunkUrls(BaseModel):
+    urls: list[RecordingChunkUrl]
+
+
+class RecordingChunkRequest(BaseModel):
+    attempt_id: uuid.UUID
+    seq: int = Field(ge=0, lt=MAX_CHUNK_SEQ)
+    last: bool = Field(
+        default=False, description="The attempt's recorder stopped: no chunk comes after this one"
+    )
+
+
+class RecordingChunkRegistered(BaseModel):
+    seq: int
+    bytes: int

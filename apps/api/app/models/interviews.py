@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -66,6 +67,14 @@ class Interview(Base):
             postgresql_where=text("superseded_by IS NULL"),
         ),
         Index("interviews_status_expires_at_idx", "status", "expires_at"),
+        Index(
+            "interviews_recording_pending_idx",
+            "completed_at",
+            postgresql_where=text(
+                "status = 'completed'::text AND recording_status = ANY "
+                "(ARRAY['none'::text, 'uploading'::text, 'finalizing'::text])"
+            ),
+        ),
     )
 
     id: Mapped[uuid.UUID] = id_column()
@@ -126,3 +135,35 @@ class InterviewAttempt(Base):
     resume_from: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     topic_index: Mapped[int | None] = mapped_column(Integer)
     wrap_up_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    recording_type: Mapped[str | None] = mapped_column(Text)
+    recording_stopped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RecordingChunk(Base):
+    """One piece of an attempt's recording as the browser uploaded it (INTV-006). The
+    finalize_recording job joins them into the interview's recording, then deletes them."""
+
+    __tablename__ = "recording_chunks"
+    __table_args__ = (
+        UniqueConstraint("attempt_id", "seq", name="recording_chunks_attempt_id_seq_key"),
+        ForeignKeyConstraint(
+            ["workspace_id", "interview_id"],
+            ["interviews.workspace_id", "interviews.id"],
+            name="recording_chunks_interview_fkey",
+            ondelete="CASCADE",
+        ),
+        Index("recording_chunks_interview_id_idx", "interview_id"),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    interview_id: Mapped[uuid.UUID] = mapped_column()
+    attempt_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("interview_attempts.id", ondelete="CASCADE")
+    )
+    seq: Mapped[int] = mapped_column(Integer)
+    path: Mapped[str] = mapped_column(Text)
+    bytes: Mapped[int] = mapped_column(BigInteger)
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

@@ -121,6 +121,7 @@ def test_crons_run_on_the_documented_schedule() -> None:
         "dispatch_scheduled_emails",
         "end_overdue_attempts",
         "finalize_recordings",
+        "expire_interview_links",
     }
     # Every minute, so a scheduled pipeline opens within a minute of its date (PIPE-001), a
     # scheduled email goes out within a minute of its time (MSG-003), no live interview runs
@@ -134,10 +135,11 @@ def test_crons_run_on_the_documented_schedule() -> None:
     ):
         every_minute = schedule[name]
         assert (every_minute.minute, every_minute.hour, every_minute.second) == (None, None, 0)
-    # Hourly crons name one minute of the hour; the sweeper runs every 10 minutes.
+    # Hourly crons name one minute of the hour; the sweeper and link expiry run every 10 minutes.
     assert isinstance(schedule["expire_credit_batches"].minute, int)
     assert isinstance(schedule["expire_invites"].minute, int)
     assert schedule["requeue_stuck_work"].minute == EVERY_10_MINUTES
+    assert schedule["expire_interview_links"].minute == EVERY_10_MINUTES
     # Daily crons name one hour and minute.
     assert isinstance(schedule["remove_storage_orphans"].hour, int)
     assert isinstance(schedule["remove_storage_orphans"].minute, int)

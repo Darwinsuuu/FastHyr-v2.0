@@ -1,6 +1,6 @@
 # ADR-021: The API opens live interview calls; the browser gets no OpenAI key
 
-- **Status:** Proposed (amends ADR-007's client-secret line)
+- **Status:** Accepted (amends ADR-007's client-secret line; owner chose it on 2026-10-05)
 - **Date:** 2026-10-05
 - **Deciders:** Darwin (product owner), proposed by Claude in INTV-004
 

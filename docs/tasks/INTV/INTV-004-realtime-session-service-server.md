@@ -46,7 +46,7 @@ _(Important functional tests only — write them after the feature works; see [`
 ## Implementation plan
 _(Auto-approved per the owner's rule of 2026-09-29: plans are written here and built without a stop.)_
 
-**Connection setup (ADR-021, proposed).** The browser sends its WebRTC offer to `POST …/session`; the API opens the OpenAI call with the server key (`POST /v1/realtime/calls`, the "unified interface") and returns the SDP answer. Audio still flows browser ↔ OpenAI. The API therefore always knows the call id, so it can attach the sideband and hang up at the cap whatever the browser does, and no OpenAI key reaches the browser. ADR-021 amends ADR-007's "client secret" line.
+**Connection setup (ADR-021).** The browser sends its WebRTC offer to `POST …/session`; the API opens the OpenAI call with the server key (`POST /v1/realtime/calls`, the "unified interface") and returns the SDP answer. Audio still flows browser ↔ OpenAI. The API therefore always knows the call id, so it can attach the sideband and hang up at the cap whatever the browser does, and no OpenAI key reaches the browser. ADR-021 amends ADR-007's "client secret" line.
 
 **Provider interface** — `app/ai/realtime.py`: `RealtimeProvider` (`create_call(sdp, session) → RealtimeCall(call_id, sdp)`, `attach(call_id) → Sideband` (send/recv JSON events), `hangup(call_id)`), `OpenAIRealtime` (SDK `realtime.calls`, sideband over `websockets` to `wss://…/v1/realtime?call_id=…`), `FakeRealtime` for `AI_FAKE=1` (canned answer, an idle sideband), `realtime_from_settings()`. Settings `OPENAI_REALTIME_MODEL`, `OPENAI_REALTIME_VOICE`, `OPENAI_CAPTION_MODEL` (live captions only). `OPENAI_PRICES` entries may add `audio_input` / `audio_output` per million tokens.
 
@@ -72,6 +72,6 @@ _(Auto-approved per the owner's rule of 2026-09-29: plans are written here and b
 
 ## Log
 - Branch `feature/intv-004-realtime-session-8r77u6` from `develop`; PR #44. Plan auto-approved per the owner's rule.
-- Decision raised with the owner: the API opens each call with the browser's SDP offer instead of handing the browser a client secret (ADR-021, proposed, amends ADR-007), because with a client secret the API never learns a misbehaving browser's call id and can't enforce the cap. Built on that default while the owner decides.
+- Decision raised with the owner: the API opens each call with the browser's SDP offer instead of handing the browser a client secret (ADR-021, amends ADR-007), because with a client secret the API never learns a misbehaving browser's call id and can't enforce the cap. The owner chose it on the decision card (2026-10-05), so ADR-021 is Accepted.
 - Deviations: `set_topic` takes a 1-based `number` (the model reads numbered topics); the API returns `topics[{number, title}]`. Talk time counts from the call's creation on the server's clock, so connection set-up (a second or two) counts. Chunk upload URLs are left to INTV-006. `interview_attempts` gained `connected_at`, `last_seen_at`, `seconds_allowed`, `resume_from`, `topic_index`, `wrap_up_sent_at`. Worker `max_jobs` 10 → 50.
 - Not run against real OpenAI (no key in the cloud): the provider was tested against a fake Realtime server (WebSocket sideband, mocked REST). The owner runs one live session locally once INTV-005's UI exists, or with a small WebRTC script (see the PR).

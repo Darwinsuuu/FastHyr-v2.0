@@ -11,6 +11,7 @@ from app.api.deps import (
     CandidateContextDep,
     JobQueueDep,
     OptionalCandidateDep,
+    RealtimeDep,
     Session,
     SettingsDep,
     StorageDep,
@@ -22,9 +23,19 @@ from app.schemas.applications import (
     SubmitApplicationRequest,
     SubmittedApplication,
 )
-from app.schemas.interviews import InterviewConsent, InterviewConsentRequest, InterviewLink
+from app.schemas.interviews import (
+    InterviewCompleted,
+    InterviewCompleteRequest,
+    InterviewConsent,
+    InterviewConsentRequest,
+    InterviewHeartbeat,
+    InterviewHeartbeatRequest,
+    InterviewLink,
+    InterviewSession,
+    InterviewSessionRequest,
+)
 from app.services import applications as application_service
-from app.services import interview_links
+from app.services import interview_links, interview_sessions
 
 router = APIRouter(prefix="/candidate", tags=["candidate"], responses=PROBLEM_RESPONSES)
 
@@ -102,3 +113,47 @@ async def record_interview_consent(
     when `face_check` (`422 biometric_consent_required` without it). Another account gets
     `404 interview_not_found`; an expired, closed or finished link `409 interview_not_open`."""
     return await interview_links.record_consent(session, token, ctx, body)
+
+
+@router.post("/interviews/{token}/session", response_model=InterviewSession)
+async def start_interview_session(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: InterviewSessionRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+    realtime: RealtimeDep,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+) -> InterviewSession:
+    """Starts the live interview, or a new attempt after a drop or reload (FR-INTV-04/06): the
+    API opens the Realtime call with the browser's SDP offer and returns the answer (ADR-021).
+    Needs the device check's consent (`409 interview_consent_required`); a link that can't
+    start is `409 interview_not_open`; three failed connections in 5 minutes are
+    `409 interview_technical_issue`."""
+    return await interview_sessions.start(session, realtime, queue, settings, token, ctx, body)
+
+
+@router.post("/interviews/{token}/heartbeat", response_model=InterviewHeartbeat)
+async def interview_heartbeat(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: InterviewHeartbeatRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+    realtime: RealtimeDep,
+) -> InterviewHeartbeat:
+    """Every 15 s during the interview: talk time on the server's clock, and `ended` once the
+    attempt is over (its time ran out, the interviewer ended it, or a newer attempt began)."""
+    return await interview_sessions.heartbeat(session, realtime, token, ctx, body)
+
+
+@router.post("/interviews/{token}/complete", response_model=InterviewCompleted)
+async def complete_interview(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: InterviewCompleteRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+    realtime: RealtimeDep,
+) -> InterviewCompleted:
+    """The candidate ends the interview: the call is hung up and the interview is complete.
+    Ending it again is harmless."""
+    return await interview_sessions.complete(session, realtime, token, ctx, body)

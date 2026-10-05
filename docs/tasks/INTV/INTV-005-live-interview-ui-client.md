@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M4 AI interview |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [INTV-003](../INTV/INTV-003-device-check-and-consent.md), [INTV-004](../INTV/INTV-004-realtime-session-service-server.md) |
 | Requirements | FR-INTV-04, FR-INTV-09 |

@@ -100,6 +100,41 @@ class InterviewNotOpenError(AppError):
     title = "This interview can't be started"
 
 
+class InterviewConsentRequiredError(AppError):
+    """The session starts only after the device check's consent is recorded (INTV-003)."""
+
+    status = 409
+    code = "interview_consent_required"
+    title = "Agree to the interview notice first"
+
+
+class InterviewTechnicalIssueError(AppError):
+    """Three connections failed within 5 minutes (MEDIA.md §2): the link stays valid and the
+    page shows "We couldn't connect you"."""
+
+    status = 409
+    code = "interview_technical_issue"
+    title = "We couldn't connect you"
+
+
+class InterviewAttemptNotFoundError(AppError):
+    status = 404
+    code = "interview_attempt_not_found"
+    title = "We couldn't find that interview session"
+
+
+class RealtimeUnavailableAppError(AppError):
+    status = 503
+    code = "realtime_unavailable"
+    title = "The interviewer can't be reached right now"
+
+
+class RealtimeOfferRejectedAppError(AppError):
+    status = 422
+    code = "realtime_offer_rejected"
+    title = "Your browser's connection details were refused"
+
+
 class BiometricConsentRequiredError(AppError):
     """A video interview with integrity checks needs the face-check consent too (ADR-016)."""
 

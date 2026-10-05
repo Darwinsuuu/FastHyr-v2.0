@@ -7,6 +7,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from app.ai.realtime import RealtimeProvider, realtime_from_settings
 from app.api.routers import (
     candidate,
     company_profile,
@@ -45,6 +46,7 @@ def create_app(
     token_verifier: TokenVerifier | None = None,
     job_queue: JobQueue | None = None,
     storage: Storage | None = None,
+    realtime: RealtimeProvider | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level, settings.resolved_log_format)
@@ -72,6 +74,7 @@ def create_app(
     app.state.token_verifier = token_verifier or TokenVerifier.from_settings(settings)
     app.state.job_queue = job_queue or JobQueue(settings.redis_url)
     app.state.storage = storage or storage_from_settings(settings)
+    app.state.realtime = realtime or realtime_from_settings(settings)
 
     register_error_handlers(app)
     app.add_middleware(

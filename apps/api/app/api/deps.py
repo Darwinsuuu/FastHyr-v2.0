@@ -13,6 +13,7 @@ import sentry_sdk
 from fastapi import Depends, Header, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ai.realtime import RealtimeProvider
 from app.core.auth import CurrentUser, TokenVerifier, bearer_token
 from app.core.config import Settings
 from app.core.context import CandidateContext, RequestContext, Role
@@ -47,6 +48,14 @@ def get_storage(request: Request) -> Storage:
 
 
 StorageDep = Annotated[Storage, Depends(get_storage)]
+
+
+def get_realtime(request: Request) -> RealtimeProvider:
+    realtime: RealtimeProvider = request.app.state.realtime
+    return realtime
+
+
+RealtimeDep = Annotated[RealtimeProvider, Depends(get_realtime)]
 
 
 def get_app_settings(request: Request) -> Settings:

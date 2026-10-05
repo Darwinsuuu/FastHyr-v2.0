@@ -635,6 +635,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/candidate/interviews/{token}/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Interview Session
+         * @description Starts the live interview, or a new attempt after a drop or reload (FR-INTV-04/06): the
+         *     API opens the Realtime call with the browser's SDP offer and returns the answer (ADR-021).
+         *     Needs the device check's consent (`409 interview_consent_required`); a link that can't
+         *     start is `409 interview_not_open`; three failed connections in 5 minutes are
+         *     `409 interview_technical_issue`.
+         */
+        post: operations["start_interview_session_v1_candidate_interviews__token__session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidate/interviews/{token}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Interview Heartbeat
+         * @description Every 15 s during the interview: talk time on the server's clock, and `ended` once the
+         *     attempt is over (its time ran out, the interviewer ended it, or a newer attempt began).
+         */
+        post: operations["interview_heartbeat_v1_candidate_interviews__token__heartbeat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidate/interviews/{token}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Interview
+         * @description The candidate ends the interview: the call is hung up and the interview is complete.
+         *     Ending it again is harmless.
+         */
+        post: operations["complete_interview_v1_candidate_interviews__token__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -1007,6 +1073,24 @@ export interface components {
             /** Careers Url */
             careers_url: string | null;
         };
+        /** InterviewCompleteRequest */
+        InterviewCompleteRequest: {
+            /**
+             * Attempt Id
+             * @description The attempt the candidate ended, when one is running
+             */
+            attempt_id?: string | null;
+        };
+        /** InterviewCompleted */
+        InterviewCompleted: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "completed";
+            /** Talk Seconds */
+            talk_seconds: number;
+        };
         /**
          * InterviewConsent
          * @description What the interview now records (PRIVACY.md §3).
@@ -1038,6 +1122,35 @@ export interface components {
              * @description The biometric notice (e.g. biometric@v1); required when `face_check`
              */
             biometric_notice_id?: string | null;
+        };
+        /**
+         * InterviewHeartbeat
+         * @description `ended` means the session is over: the browser closes its connection and asks the link
+         *     page what to show next.
+         */
+        InterviewHeartbeat: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "wrap_up" | "ended";
+            /** Time Left Seconds */
+            time_left_seconds: number;
+            /** End Reason */
+            end_reason?: ("candidate_ended" | "wrap_up" | "time_cap" | "disconnect" | "error") | null;
+        };
+        /** InterviewHeartbeatRequest */
+        InterviewHeartbeatRequest: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Connected
+             * @description The peer connection is up (connectionState connected)
+             */
+            connected: boolean;
         };
         /**
          * InterviewLink
@@ -1088,6 +1201,65 @@ export interface components {
              * @description Video interview with integrity checks on: the device check asks for the biometric consent too (S-01, ADR-016)
              */
             face_check: boolean;
+        };
+        /**
+         * InterviewSession
+         * @description What the browser needs to finish the connection and run the interview UI.
+         */
+        InterviewSession: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Sdp
+             * @description OpenAI's SDP answer, for setRemoteDescription
+             */
+            sdp: string;
+            /**
+             * Time Left Seconds
+             * @description What is left of the 30-minute cap
+             */
+            time_left_seconds: number;
+            /**
+             * Wrap Up In Seconds
+             * @description When the interviewer starts wrapping up
+             */
+            wrap_up_in_seconds: number;
+            /**
+             * Heartbeat Seconds
+             * @description How often to call …/heartbeat
+             */
+            heartbeat_seconds: number;
+            /** Topics */
+            topics: components["schemas"]["InterviewTopic"][];
+            /**
+             * Topic Number
+             * @description The topic this attempt starts from
+             */
+            topic_number: number;
+        };
+        /**
+         * InterviewSessionRequest
+         * @description Starts or resumes the live interview (INTV-004): the browser's WebRTC offer.
+         */
+        InterviewSessionRequest: {
+            /**
+             * Sdp
+             * @description The RTCPeerConnection's SDP offer (microphone track, data channel)
+             */
+            sdp: string;
+        };
+        /** InterviewTopic */
+        InterviewTopic: {
+            /**
+             * Number
+             * @description 1 is the first topic; set_topic tool calls use it
+             */
+            number: number;
+            /** Title */
+            title: string;
         };
         /**
          * Invite
@@ -4110,6 +4282,204 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InterviewConsent"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    start_interview_session_v1_candidate_interviews__token__session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterviewSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewSession"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    interview_heartbeat_v1_candidate_interviews__token__heartbeat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterviewHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewHeartbeat"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    complete_interview_v1_candidate_interviews__token__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterviewCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewCompleted"];
                 };
             };
             /** @description Unauthorized */

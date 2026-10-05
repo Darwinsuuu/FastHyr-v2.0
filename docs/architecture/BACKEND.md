@@ -66,6 +66,7 @@ apps/api/
 |---|---|---|
 | `screen_resume(application_id)` | apply | extract → redact → score → decide; a pass queues `plan_interview`, a fail moves to `resume_not_match` and schedules the rejection (`services/post_screen.act()`, SCREEN-003) |
 | `plan_interview(application_id)` | screen pass | creates `interview_plans` (INTV-001; after the last failed try the failure hook stores the plain skills plan), then `services/post_screen.act()`: stage `invited`, an `interviews` row with its link token, invitation email (SCREEN-003; the failure hook invites too, and its email goes with the next `dispatch_scheduled_emails` tick) |
+| `run_realtime_session(workspace_id, attempt_id)` | `POST …/session` | holds the sideband to the attempt's Realtime call until it ends (INTV-004, `app/interview/sideband.py`): applies and guards the instructions, answers tool calls, wrap-up at 25 min, hangs up at the cap, logs the call's cost; timeout 35 min, a retry re-attaches without greeting again |
 | `finalize_recording(interview_id)` | interview complete | remux chunks → single file, extract audio/frames |
 | `transcribe_interview(interview_id)` | after finalize | authoritative transcript |
 | `score_interview(interview_id)` | after transcribe | assessment + stage |
@@ -75,6 +76,7 @@ apps/api/
 | `stripe_event(event_id)` | webhook | grant credits etc. |
 | cron `open_and_close_pipelines` | every minute | opens scheduled pipelines at `opens_at` and closes open ones at `closes_at` (releasing their unused reserve), one transaction per pipeline (PIPE-001) |
 | cron `expire_interview_links` / `send_interview_reminders` / `nudge_unfinished` | every 10 min | |
+| cron `end_overdue_attempts` | every minute | ends live interview attempts past their share of the cap or without a heartbeat for 60 s and hangs up their calls (INTV-004) |
 | cron `expire_credit_batches` | hourly | ledger entries |
 | cron `dispatch_scheduled_emails` | every minute | queues the send of every `scheduled` email whose time has come, keyed by email ID; also picks up enqueues Redis lost (MSG-003) |
 | cron `retention_purge` | daily | `compliance/PRIVACY.md` |

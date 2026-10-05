@@ -25,3 +25,4 @@ ADRs are append-only. To change a decision, write a new ADR that **supersedes** 
 | [018](ADR-018-mvp-scope-clarifications.md) | MVP scope clarifications: job board, Ava, demo settings, missing screens, Claude builds | Accepted |
 | [019](ADR-019-branching-environments-testing.md) | Branches master/release/develop ↔ production/QA/development; tests written after the feature works, important functional only | Accepted |
 | [020](ADR-020-mobile-first-responsive.md) | Every page is responsive and built mobile first | Accepted |
+| [021](ADR-021-api-opens-realtime-calls.md) | The API opens live interview calls with the browser's offer; no OpenAI key in the browser | Proposed |

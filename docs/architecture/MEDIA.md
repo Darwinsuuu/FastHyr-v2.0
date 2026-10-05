@@ -9,24 +9,31 @@
 - As built (INTV-003): `lib/interview/devices.ts` (pure helpers) and `components/interview/use-device-check.ts`. MediaPipe (`@mediapipe/tasks-vision`, BlazeFace short range) runs on the CPU in the browser; its WebAssembly files are copied from `node_modules` to `apps/web/public/mediapipe/` by `scripts/copy-mediapipe.mjs` (run by `dev` and `build`) and the model is committed there, so nothing loads from a third party. Frames are read at 64 × 48 every 100 ms for motion and light; faces every 250 ms. The camera passes on a wave in the top right of the mirrored preview with one centred, well-lit face (or the wave alone if the model can't load), or by "I can see myself" after 5 s. The microphone passes after 2 s at or above −38 dBFS; after 20 s without it the card asks the candidate to check their mic. Fix steps for blocked permissions cover Chrome, Edge, Firefox, Safari, iOS Safari, other iOS browsers, Android and in-app browsers. "Start interview" posts the consent and stops the camera and microphone.
 
 ## 2. Live interview (OpenAI Realtime over WebRTC)
+The API opens every call itself (ADR-021, INTV-004): the browser sends its SDP offer, never holds an OpenAI key, and its audio goes straight to OpenAI.
 ```
-Browser                                  FastAPI                                OpenAI Realtime
-  │ POST /candidate/interviews/{t}/session  │                                       │
-  │───────────────────────────────────────▶ │ build instructions from plan          │
-  │                                         │ create client secret (TTL ~1 min) ───▶ │
-  │ ◀── {client_secret, model, time_left, chunk_urls[], attempt_id}                  │
-  │ RTCPeerConnection (mic track in, AI audio track out, data channel "oai-events")  │
-  │────────────────────────────── SDP offer/answer ────────────────────────────────▶ │
-  │                                         │ attach sideband connection (call id) ─▶│
+Browser                                  FastAPI (+ worker)                     OpenAI Realtime
+  │ RTCPeerConnection: mic track, data channel "oai-events", createOffer()           │
+  │ POST /candidate/interviews/{t}/session {sdp}                                     │
+  │───────────────────────────────────────▶ │ instructions from plan (interviewer@vN)│
+  │                                         │ POST /v1/realtime/calls {sdp, session}▶│
+  │                                         │ ◀── SDP answer + call id               │
+  │ ◀── {attempt_id, sdp, time_left_seconds, wrap_up_in_seconds, topics[], …}         │
+  │ setRemoteDescription(answer) ─────────── ICE / DTLS ────────────────────────────▶ │
+  │                                         │ worker: run_realtime_session attaches  │
+  │                                         │ the sideband (wss …?call_id=) ────────▶│
   │ ◀─────────────── AI audio + events (captions, speaking state, tool calls) ───── │
-  │ heartbeat every 15 s ─────────────────▶ │ track talk time; at 25 min send wrap-up; at 30 min end
+  │ heartbeat every 15 s ─────────────────▶ │ talk time on the server clock; at 25 min wrap-up; at 30 min hang up
 ```
-- Voice activity detection: server VAD with settings tuned for interviews (longer silence before turn end, ~1 s) so candidates can pause to think.
-- Input audio transcription is enabled for **live captions only**; it is not used for scoring.
+- **Instructions** (`app/ai/interviewer.py`, `prompts/interviewer@vN.md`) and the session config go out when the API creates the call; the sideband applies them again and reverts any `session.update`, system message or typed message the browser sends on its data channel (three of those end the attempt as `error`). It then sends the opening cue so the interviewer speaks first.
+- Voice activity detection: server VAD with 1 s of silence before the turn ends, so candidates can pause to think.
+- Input audio transcription (`OPENAI_CAPTION_MODEL`) is enabled for **live captions only**; it is not used for scoring.
 - Captions: AI speech from response transcripts; candidate speech from input transcription events.
-- Tool calls (`set_topic`, `show_resume_quote`, `end_interview`) arrive on the data channel and the sideband; the server is authoritative for `end_interview` and time limits.
-- Reconnect: on ICE failure or page reload, the client calls `/session` again; the API creates a new attempt with a resume summary (WORKFLOW.md §4). After 3 failed connects in 5 minutes → `technical_issue` drop reason and a friendly "try again later" screen (link stays valid).
-- Mute pauses the mic track and tells the model the candidate is muted (status "Paused — your mic is off").
+- Tool calls (`set_topic(number)`, 1-based as the topics list; `show_resume_quote(text)`; `end_interview(reason)`) arrive on both the data channel and the sideband. The browser only displays them; **the server answers every tool call** and is authoritative for `end_interview` and time limits.
+- **Attempts** (`interview_attempts`): each `/session` call is an attempt with `seconds_allowed` = what is left of the 30-minute cap; it ends at `started_at + seconds_allowed` whatever the browser does. Three layers enforce it: the sideband job hangs up on time (`time_cap`), a heartbeat past the deadline ends it, and the every-minute `end_overdue_attempts` cron ends attempts past their deadline or silent for 60 s.
+- **Reconnect:** on ICE failure or page reload the client calls `/session` again; the previous attempt is ended (`disconnect`, or `error` if it never reported a connection) and hung up, and the new attempt's instructions carry a summary of the topics covered and continue from the topic after the furthest one reached (WORKFLOW.md §4). Three attempts that never connected within 5 minutes → `409 interview_technical_issue`, `drop_reason = technical_issue` and the "We couldn't connect you" screen; the link stays valid and the first heartbeat of a later connection clears it.
+- **Ending:** "End interview" calls `/complete` (`candidate_ended`); the interviewer's `end_interview` ends it once the goodbye has played (`wrap_up`, or `candidate_ended` when the candidate asked to stop); the cap ends it (`time_cap`). All three complete the interview and move the application to `scoring`. A dropped call leaves it `abandoned` to resume.
+- Mute pauses the mic track and tells the model the candidate is muted (status "Paused — your mic is off") (INTV-005).
+- Cost: one `ai_calls` row per sideband run (`interview_realtime`, tokens, `audio_seconds`, cost from `OPENAI_PRICES` with optional `audio_input`/`audio_output` prices).
 
 ## 3. Recording
 - Compose one `MediaStream`: candidate camera video (if video format) + an audio mix (candidate mic + AI audio) via Web Audio `MediaStreamAudioDestinationNode`.

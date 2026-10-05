@@ -16,6 +16,8 @@ export type LinkState = "connected" | "lost";
 export interface RealtimeHandlers {
   onEvent: (event: TalkEvent) => void;
   onState: (state: LinkState) => void;
+  /** The interviewer's audio, for the recording (INTV-006). */
+  onRemoteStream?: (stream: MediaStream) => void;
 }
 
 export interface RealtimeConnection {
@@ -68,7 +70,9 @@ export async function connectRealtime({
   };
 
   pc.ontrack = (event) => {
-    audio.srcObject = event.streams[0] ?? new MediaStream([event.track]);
+    const remote = event.streams[0] ?? new MediaStream([event.track]);
+    audio.srcObject = remote;
+    handlers.onRemoteStream?.(remote);
     void audio.play().catch(() => {
       // Autoplay is allowed after the Start tap; if a browser still refuses, captions carry on.
     });

@@ -4,9 +4,10 @@ these repositories for that application's workspace."""
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, exists, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -17,6 +18,7 @@ from app.models import (
     InterviewAttempt,
     InterviewPlan,
     Pipeline,
+    RecordingChunk,
     ResumeAssessment,
     Workspace,
 )
@@ -220,6 +222,14 @@ class InterviewAttemptRepository(WorkspaceRepository[InterviewAttempt]):
         )
         return list(rows)
 
+    async def get_interview(self, interview_id: uuid.UUID) -> Interview | None:
+        row: Interview | None = await self.session.scalar(
+            select(Interview)
+            .where(Interview.workspace_id == self.workspace_id, Interview.id == interview_id)
+            .execution_options(populate_existing=True)
+        )
+        return row
+
     async def lock_interview(self, interview_id: uuid.UUID) -> Interview:
         """The interview row, locked, so attempts on it start and end one at a time."""
         row: Interview = (
@@ -236,3 +246,92 @@ class InterviewAttemptRepository(WorkspaceRepository[InterviewAttempt]):
         if attempt.workspace_id != self.workspace_id:
             raise ValueError("interview attempt belongs to another workspace")
         self.session.add(attempt)
+
+
+# Statuses of a completed interview's recording that still need the finalize_recording job.
+RECORDING_PENDING = ("none", "uploading", "finalizing")
+
+
+async def recordings_due(
+    session: AsyncSession,
+    now: datetime,
+    *,
+    quiet: timedelta,
+    latest: timedelta,
+    interview_id: uuid.UUID | None = None,
+) -> list[tuple[uuid.UUID, uuid.UUID]]:
+    """Completed interviews whose recording can be put together now, as (workspace_id,
+    interview_id) (INTV-006): every attempt is settled, meaning the browser registered its last
+    chunk, or it ended and no chunk arrived for `quiet`; or the interview finished more than
+    `latest` ago, whatever is still missing. With `interview_id`, only that interview."""
+    last_upload = (
+        select(func.max(RecordingChunk.uploaded_at))
+        .where(RecordingChunk.attempt_id == InterviewAttempt.id)
+        .correlate(InterviewAttempt)
+        .scalar_subquery()
+    )
+    unsettled = exists().where(
+        InterviewAttempt.interview_id == Interview.id,
+        InterviewAttempt.recording_stopped_at.is_(None),
+        func.greatest(
+            func.coalesce(InterviewAttempt.ended_at, now),
+            func.coalesce(last_upload, InterviewAttempt.started_at),
+        )
+        > now - quiet,
+    )
+    statement = (
+        select(Interview.workspace_id, Interview.id)
+        .where(
+            Interview.status == "completed",
+            Interview.recording_status.in_(RECORDING_PENDING),
+            (Interview.completed_at < now - latest) | ~unsettled,
+        )
+        .order_by(Interview.completed_at)
+        .limit(200)
+    )
+    if interview_id is not None:
+        statement = statement.where(Interview.id == interview_id)
+    rows = await session.execute(statement)
+    return [(row.workspace_id, row.id) for row in rows]
+
+
+class RecordingChunkRepository(WorkspaceRepository[RecordingChunk]):
+    model = RecordingChunk
+
+    async def add_if_new(self, chunk: RecordingChunk) -> None:
+        """Stores the chunk unless it is already registered (the browser retried)."""
+        if chunk.workspace_id != self.workspace_id:
+            raise ValueError("recording chunk belongs to another workspace")
+        await self.session.execute(
+            insert(RecordingChunk)
+            .values(
+                id=chunk.id,
+                workspace_id=chunk.workspace_id,
+                interview_id=chunk.interview_id,
+                attempt_id=chunk.attempt_id,
+                seq=chunk.seq,
+                path=chunk.path,
+                bytes=chunk.bytes,
+                uploaded_at=chunk.uploaded_at,
+            )
+            .on_conflict_do_nothing(constraint="recording_chunks_attempt_id_seq_key")
+        )
+
+    async def count_of_interview(self, interview_id: uuid.UUID) -> int:
+        count: int = (
+            await self.session.scalar(
+                self._scoped(select(func.count()).select_from(RecordingChunk)).where(
+                    RecordingChunk.interview_id == interview_id
+                )
+            )
+            or 0
+        )
+        return count
+
+    async def delete_of_interview(self, interview_id: uuid.UUID) -> None:
+        await self.session.execute(
+            delete(RecordingChunk).where(
+                RecordingChunk.workspace_id == self.workspace_id,
+                RecordingChunk.interview_id == interview_id,
+            )
+        )

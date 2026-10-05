@@ -701,6 +701,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/candidate/interviews/{token}/chunk-urls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recording Chunk Urls
+         * @description Signed upload URLs for an attempt's next recording chunks (INTV-006): PUT each chunk's
+         *     bytes to its URL once. The first request fixes the attempt's type (`webm` or `mp4`); another
+         *     type later is `409 recording_type_mismatch`. Once the recording is being put together,
+         *     `409 recording_finalized`.
+         */
+        post: operations["recording_chunk_urls_v1_candidate_interviews__token__chunk_urls_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidate/interviews/{token}/chunks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Recording Chunk
+         * @description Registers an uploaded chunk (INTV-006); `last` says the attempt's recorder stopped.
+         *     Registering it again is harmless. Not uploaded yet `422 recording_chunk_missing`; over
+         *     50 MB `422 recording_chunk_too_large` (and deleted); once the recording is being put
+         *     together `409 recording_finalized`.
+         */
+        post: operations["register_recording_chunk_v1_candidate_interviews__token__chunks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/credits/summary": {
         parameters: {
             query?: never;
@@ -1781,6 +1827,65 @@ export interface components {
              * @constant
              */
             confirm: "I understand";
+        };
+        /** RecordingChunkRegistered */
+        RecordingChunkRegistered: {
+            /** Seq */
+            seq: number;
+            /** Bytes */
+            bytes: number;
+        };
+        /** RecordingChunkRequest */
+        RecordingChunkRequest: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /** Seq */
+            seq: number;
+            /**
+             * Last
+             * @description The attempt's recorder stopped: no chunk comes after this one
+             * @default false
+             */
+            last: boolean;
+        };
+        /** RecordingChunkUrl */
+        RecordingChunkUrl: {
+            /** Seq */
+            seq: number;
+            /**
+             * Url
+             * @description Signed upload URL: PUT the chunk's bytes once
+             */
+            url: string;
+        };
+        /** RecordingChunkUrls */
+        RecordingChunkUrls: {
+            /** Urls */
+            urls: components["schemas"]["RecordingChunkUrl"][];
+        };
+        /** RecordingChunkUrlsRequest */
+        RecordingChunkUrlsRequest: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Type
+             * @description The recorder's container: WebM, or MP4 (Safari)
+             * @enum {string}
+             */
+            type: "webm" | "mp4";
+            /**
+             * From Seq
+             * @description The first chunk number wanted
+             */
+            from_seq: number;
+            /** Count */
+            count: number;
         };
         /**
          * ResumeUpload
@@ -4480,6 +4585,138 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InterviewCompleted"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    recording_chunk_urls_v1_candidate_interviews__token__chunk_urls_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingChunkUrlsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingChunkUrls"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    register_recording_chunk_v1_candidate_interviews__token__chunks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingChunkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingChunkRegistered"];
                 };
             };
             /** @description Unauthorized */

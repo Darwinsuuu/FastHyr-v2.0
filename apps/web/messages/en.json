@@ -1498,7 +1498,13 @@
       "finishing": {
         "title": "Finishing up…",
         "body": "Please keep this page open for a moment."
-      }
+      },
+      "saving": {
+        "title": "Saving your interview… {percent}%",
+        "label": "Saving your interview",
+        "body": "Please keep this page open for a moment."
+      },
+      "uploadBehind": "Your connection is slow. We’re still saving your interview, so keep this page open."
     }
   }
 }

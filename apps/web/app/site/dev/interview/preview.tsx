@@ -8,7 +8,8 @@ import type { InterviewClient } from "@/lib/interview/client";
 
 const TOPICS = ["Warm-up", "Platform migration", "Working with other teams", "Your questions"];
 
-/** A fake API: a fixed session, heartbeats that count down, and an end that always works. */
+/** A fake API: a fixed session, heartbeats that count down, an end that always works, and
+ * recording uploads kept in memory (each takes a moment, so "Saving your interview" shows). */
 function previewClient(timeLeftSeconds: number): InterviewClient {
   let startedAt = 0;
   const left = () => Math.max(0, timeLeftSeconds - Math.floor((Date.now() - startedAt) / 1000));
@@ -33,6 +34,18 @@ function previewClient(timeLeftSeconds: number): InterviewClient {
     },
     async complete() {
       await new Promise((resolve) => setTimeout(resolve, 400));
+    },
+    recording: {
+      async chunkUrls(attemptId, kind, fromSeq, count) {
+        return Array.from({ length: count }, (_, index) => ({
+          seq: fromSeq + index,
+          url: `memory:${attemptId}/${fromSeq + index}.${kind}`,
+        }));
+      },
+      async register() {},
+      async put() {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      },
     },
   };
 }

@@ -5,6 +5,7 @@
 import { api, ApiError, unwrap } from "@/lib/api/client";
 
 import type { SessionStart } from "./session";
+import { RecordingClosedError, RecordingRejectedError, type RecordingApi } from "./uploader";
 
 export interface OpenedCall {
   session: SessionStart;
@@ -22,6 +23,8 @@ export interface InterviewClient {
   open: (offer: string) => Promise<OpenedCall>;
   heartbeat: (attemptId: string, connected: boolean) => Promise<HeartbeatResult>;
   complete: (attemptId: string | null) => Promise<void>;
+  /** Where the recording's chunks go (INTV-006). */
+  recording: RecordingApi;
 }
 
 /**
@@ -48,6 +51,24 @@ function closedOr(error: unknown): unknown {
   if (error instanceof ApiError && (error.status === 404 || CLOSED_CODES.has(error.code ?? ""))) {
     return new InterviewClosedError(error.code ?? null);
   }
+  return error;
+}
+
+const RECORDING_CLOSED_CODES = new Set([
+  "recording_finalized",
+  "recording_type_mismatch",
+  "interview_not_open",
+  "interview_not_found",
+  "interview_attempt_not_found",
+]);
+
+/** Sorts the API's answers for the uploader: stop this attempt, skip this chunk, or retry. */
+function recordingError(error: unknown): unknown {
+  if (!(error instanceof ApiError)) return error;
+  if (error.status === 404 || RECORDING_CLOSED_CODES.has(error.code ?? "")) {
+    return new RecordingClosedError(error.code ?? null);
+  }
+  if (error.code === "recording_chunk_too_large") return new RecordingRejectedError(error.status);
   return error;
 }
 
@@ -100,6 +121,33 @@ export function apiInterviewClient(token: string): InterviewClient {
       } catch (error) {
         throw closedOr(error);
       }
+    },
+    recording: {
+      async chunkUrls(attemptId, kind, fromSeq, count) {
+        try {
+          const batch = unwrap(
+            await api.POST("/v1/candidate/interviews/{token}/chunk-urls", {
+              params: { path },
+              body: { attempt_id: attemptId, type: kind, from_seq: fromSeq, count },
+            }),
+          );
+          return batch.urls;
+        } catch (error) {
+          throw recordingError(error);
+        }
+      },
+      async register(attemptId, seq, last) {
+        try {
+          unwrap(
+            await api.POST("/v1/candidate/interviews/{token}/chunks", {
+              params: { path },
+              body: { attempt_id: attemptId, seq, last },
+            }),
+          );
+        } catch (error) {
+          throw recordingError(error);
+        }
+      },
     },
   };
 }

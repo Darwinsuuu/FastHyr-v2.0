@@ -120,11 +120,18 @@ def test_crons_run_on_the_documented_schedule() -> None:
         "open_and_close_pipelines",
         "dispatch_scheduled_emails",
         "end_overdue_attempts",
+        "finalize_recordings",
     }
     # Every minute, so a scheduled pipeline opens within a minute of its date (PIPE-001), a
-    # scheduled email goes out within a minute of its time (MSG-003) and no live interview runs
-    # more than a minute past its cap (INTV-004).
-    for name in ("open_and_close_pipelines", "dispatch_scheduled_emails", "end_overdue_attempts"):
+    # scheduled email goes out within a minute of its time (MSG-003), no live interview runs
+    # more than a minute past its cap (INTV-004) and a recording is put together soon after it
+    # can be (INTV-006).
+    for name in (
+        "open_and_close_pipelines",
+        "dispatch_scheduled_emails",
+        "end_overdue_attempts",
+        "finalize_recordings",
+    ):
         every_minute = schedule[name]
         assert (every_minute.minute, every_minute.hour, every_minute.second) == (None, None, 0)
     # Hourly crons name one minute of the hour; the sweeper runs every 10 minutes.

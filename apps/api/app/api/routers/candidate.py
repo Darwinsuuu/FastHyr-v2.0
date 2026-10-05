@@ -33,9 +33,13 @@ from app.schemas.interviews import (
     InterviewLink,
     InterviewSession,
     InterviewSessionRequest,
+    RecordingChunkRegistered,
+    RecordingChunkRequest,
+    RecordingChunkUrls,
+    RecordingChunkUrlsRequest,
 )
 from app.services import applications as application_service
-from app.services import interview_links, interview_sessions
+from app.services import interview_links, interview_sessions, recordings
 
 router = APIRouter(prefix="/candidate", tags=["candidate"], responses=PROBLEM_RESPONSES)
 
@@ -157,3 +161,34 @@ async def complete_interview(
     """The candidate ends the interview: the call is hung up and the interview is complete.
     Ending it again is harmless."""
     return await interview_sessions.complete(session, realtime, token, ctx, body)
+
+
+@router.post("/interviews/{token}/chunk-urls", response_model=RecordingChunkUrls)
+async def recording_chunk_urls(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: RecordingChunkUrlsRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+    storage: StorageDep,
+) -> RecordingChunkUrls:
+    """Signed upload URLs for an attempt's next recording chunks (INTV-006): PUT each chunk's
+    bytes to its URL once. The first request fixes the attempt's type (`webm` or `mp4`); another
+    type later is `409 recording_type_mismatch`. Once the recording is being put together,
+    `409 recording_finalized`."""
+    return await recordings.chunk_urls(session, storage, token, ctx, body)
+
+
+@router.post("/interviews/{token}/chunks", response_model=RecordingChunkRegistered)
+async def register_recording_chunk(
+    token: Annotated[str, Path(min_length=1, max_length=128)],
+    body: RecordingChunkRequest,
+    ctx: CandidateContextDep,
+    session: Session,
+    storage: StorageDep,
+    queue: JobQueueDep,
+) -> RecordingChunkRegistered:
+    """Registers an uploaded chunk (INTV-006); `last` says the attempt's recorder stopped.
+    Registering it again is harmless. Not uploaded yet `422 recording_chunk_missing`; over
+    50 MB `422 recording_chunk_too_large` (and deleted); once the recording is being put
+    together `409 recording_finalized`."""
+    return await recordings.register_chunk(session, storage, queue, token, ctx, body)

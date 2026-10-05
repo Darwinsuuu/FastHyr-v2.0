@@ -177,7 +177,9 @@ class _IdleSideband:
 
 class FakeRealtime:
     """`AI_FAKE=1`: calls get a canned answer (a browser can't connect with it) and an idle
-    sideband, so the session's time limits, heartbeats and endings all run locally."""
+    sideband, so the session's time limits, heartbeats and endings all run locally. Local web
+    builds recognise the answer (`s=fake`) and play a scripted conversation instead
+    (apps/web lib/interview/fake-realtime.ts)."""
 
     def __init__(self) -> None:
         self.model = "fake"

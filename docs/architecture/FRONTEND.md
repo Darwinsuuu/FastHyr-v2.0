@@ -85,8 +85,8 @@ apps/web/
 
 ## 4. Interview client (`lib/interview/`)
 - `devices.ts` — permissions, camera/mic selection, level meter, face-in-frame + wave detection (on-device, e.g. MediaPipe Face Detection; no frames leave the browser for the check).
-- `realtime.ts` — WebRTC peer connection to OpenAI Realtime using the client secret from the API; data channel for events (captions, speaking state, topic updates via tool calls).
+- `realtime.ts` — WebRTC peer connection to OpenAI Realtime: the offer goes to the API, which opens the call and returns the answer (ADR-021); data channel for events (captions, speaking state, topic updates via tool calls), read only. `fake-realtime.ts` is the scripted stand-in for `AI_FAKE=1`.
 - `recorder.ts` — `MediaRecorder` on a composed stream (camera video + mixed candidate/AI audio), 10-second timeslices.
 - `uploader.ts` — uploads each chunk to its pre-signed URL with retry; reports progress; requests more URLs when running low.
-- `session.ts` — state machine (checking → ready → connecting → live → wrapping_up → uploading → done / error), heartbeat, reconnect, resume.
+- `session.ts` — the live stage's reducer (connecting → live → reconnecting → ending → ended / failed) and the Realtime event reader; `client.ts` the session, heartbeat and complete calls. `components/interview/use-interview-session.ts` drives them: heartbeat, reconnect, resume. Uploading joins with INTV-006.
 Details in `MEDIA.md`.

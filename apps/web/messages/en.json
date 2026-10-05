@@ -1357,11 +1357,6 @@
       "consentFailed": "We couldn’t save your agreement. Check your connection and try again.",
       "consentOutdated": "The wording has changed. Read it again and tick the box to continue.",
       "noticesFailed": "We couldn’t load this step. Check your connection and reload the page.",
-      "ready": {
-        "title": "You’re all set",
-        "bodyVideo": "Your camera and microphone work. The live interview isn’t open yet; your link still works until {expiry}.",
-        "bodyVoice": "Your microphone works. The live interview isn’t open yet; your link still works until {expiry}."
-      },
       "problem": {
         "deniedVideo": "Your browser blocked the camera or microphone",
         "deniedVoice": "Your browser blocked the microphone",
@@ -1429,6 +1424,81 @@
         }
       }
     },
-    "newTab": "(opens in a new tab)"
+    "newTab": "(opens in a new tab)",
+    "live": {
+      "liveRole": "Live · {title}",
+      "timeLeft": "Time remaining",
+      "timerLabel": "Time remaining in this interview",
+      "minutesLeft": {
+        "one": "About {count} minute left in the interview.",
+        "other": "About {count} minutes left in the interview."
+      },
+      "interviewer": "FastHyr interviewer",
+      "status": {
+        "connecting": "Connecting…",
+        "reconnecting": "Reconnecting…",
+        "speaking": "Speaking",
+        "thinking": "Thinking…",
+        "listening": "Listening…",
+        "paused": "Paused — your mic is off",
+        "ending": "Wrapping up"
+      },
+      "startingSoon": "The interviewer will start in a moment.",
+      "fromResume": "From your résumé:",
+      "topicOf": "Topic {number} of {total}",
+      "captions": {
+        "title": "Live captions",
+        "hint": "Scroll to see the full conversation",
+        "label": "Conversation transcript",
+        "ai": "AI interviewer",
+        "you": "You",
+        "empty": "Captions appear here as you talk."
+      },
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "muteHint": "Just talk. You can ask questions about the role anytime.",
+      "mutedHint": "Your mic is off. Unmute when you’re ready to answer.",
+      "end": "End interview",
+      "endConfirm": {
+        "title": "End the interview now?",
+        "body": "Your answers so far go to the {company} hiring team. You can’t continue this interview afterwards.",
+        "confirm": "End interview",
+        "cancel": "Keep talking",
+        "failed": "We couldn’t end the interview. Check your connection and try again."
+      },
+      "self": {
+        "cameraOn": "You · camera and mic on",
+        "micOn": "You · mic on",
+        "micOff": "You · mic off",
+        "preview": "Your camera"
+      },
+      "topics": {
+        "title": "What we’ll talk about",
+        "done": "covered",
+        "now": "now"
+      },
+      "tips": {
+        "title": "Good to know",
+        "1": "This is a conversation, not a test. Take your time before answering.",
+        "2": "Ask the interviewer to repeat or rephrase anything.",
+        "3": "Your answers go to the hiring team. You’ll hear from them, not from us."
+      },
+      "reconnecting": {
+        "title": "Reconnecting…",
+        "body": "Your connection dropped. We’re getting you back to where you left off."
+      },
+      "failed": {
+        "connectTitle": "We couldn’t connect you",
+        "connectBody": "Check your internet connection, then try again. What you’ve said so far is saved.",
+        "mediaTitleVideo": "We can’t reach your camera or microphone",
+        "mediaTitleVoice": "We can’t reach your microphone",
+        "mediaBody": "Another app may be using it, or it was unplugged. Close other apps that use it, then try again.",
+        "retry": "Try again"
+      },
+      "finishing": {
+        "title": "Finishing up…",
+        "body": "Please keep this page open for a moment."
+      }
+    }
   }
 }

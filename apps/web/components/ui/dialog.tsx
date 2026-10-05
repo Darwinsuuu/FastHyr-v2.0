@@ -139,7 +139,8 @@ export interface ConfirmDialogProps {
   /** Defaults to "Cancel". */
   cancelLabel?: string;
   destructive?: boolean;
-  /** Awaited; the dialog stays open with a loading button until it settles, and closes on success. */
+  /** Awaited; the dialog stays open with a loading button until it settles, and closes on success
+   * (a rejection keeps it open). */
   onConfirm: () => void | Promise<void>;
   children?: ReactNode;
   side?: "ta" | "candidate";
@@ -166,6 +167,8 @@ export function ConfirmDialog({
     try {
       await onConfirm();
       onOpenChange(false);
+    } catch {
+      // A failed action keeps the dialog open; the caller shows why in its body.
     } finally {
       setBusy(false);
     }

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M4 AI interview |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [INTV-005](../INTV/INTV-005-live-interview-ui-client.md), [MSG-003](../MSG/MSG-003-email-scheduling-and-sending-engine.md) |
 | Requirements | FR-INTV-06, FR-INTV-08, FR-PIPE-11 |

@@ -18,7 +18,6 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 
 import { GoogleMark, MicrosoftMark } from "@/components/auth/provider-marks";
-import { DeviceCheck, type DeviceCheckNotices } from "@/components/interview/device-check";
 import { Button } from "@/components/ui/button";
 import type { SignInProblem } from "@/lib/apply/session";
 import { type OAuthProvider, OAUTH_SCOPES } from "@/lib/auth/flow";
@@ -28,7 +27,6 @@ import {
   accommodationHref,
   type InterviewLink,
   interviewPath,
-  isOpenState,
   SIGNIN_PARAM,
 } from "@/lib/interview";
 import { noticeLinkHref } from "@/lib/notices";
@@ -39,24 +37,21 @@ const linkClass = "text-evergreen underline hover:text-persimmon";
 
 /**
  * The S-01 card for the link's state. "Check my camera and mic", "Continue my interview" and
- * "Try again" open the device check (INTV-003) while the link is open.
+ * "Try again" call `onStart`, which opens the device check (INTV-003).
  */
 export function InterviewLinkCard({
   token,
   link,
-  notices,
   signedInEmail,
   signInProblem,
+  onStart,
 }: {
   token: string;
   link: InterviewLink;
-  /** The device check's consent texts; null when they couldn't load or aren't needed. */
-  notices: DeviceCheckNotices | null;
   signedInEmail: string | null;
   signInProblem: SignInProblem | null;
+  onStart: () => void;
 }) {
-  const [checking, setChecking] = useState(false);
-
   // A reload or a shared link shouldn't repeat the sign-in error.
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -65,15 +60,6 @@ export function InterviewLinkCard({
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}`);
   }, []);
 
-  const start = () => setChecking(true);
-
-  // A link that closed meanwhile (the page refreshed) shows its new state instead.
-  if (checking && isOpenState(link.state)) {
-    return (
-      <DeviceCheck token={token} link={link} notices={notices} onBack={() => setChecking(false)} />
-    );
-  }
-
   return (
     <section className="flex w-full max-w-[640px] flex-col gap-6 rounded-lg border border-line bg-surface-raised p-6 shadow-raised md:p-10">
       <LinkState
@@ -81,7 +67,7 @@ export function InterviewLinkCard({
         link={link}
         signedInEmail={signedInEmail}
         signInProblem={signInProblem}
-        onStart={start}
+        onStart={onStart}
       />
     </section>
   );

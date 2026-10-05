@@ -92,9 +92,9 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [INTV-002](INTV/INTV-002-interview-link-page-and-states.md) | Interview link page and states | M | SCREEN-003, APPLY-002 | Done | #42 |
 | [INTV-003](INTV/INTV-003-device-check-and-consent.md) | Device check and consent | M | INTV-002, COMP-002 | Done | #43 |
 | [INTV-004](INTV/INTV-004-realtime-session-service-server.md) | Realtime session service (server) | L | INTV-001, INTV-002, FND-013 | Done | #44 |
-| [INTV-005](INTV/INTV-005-live-interview-ui-client.md) | Live interview UI (client) | L | INTV-003, INTV-004 | Ready | |
-| [INTV-006](INTV/INTV-006-recording-capture-and-finalisation.md) | Recording capture and finalisation | L | INTV-005, FND-011 | Backlog | |
-| [INTV-007](INTV/INTV-007-interview-lifecycle-resume-expiry-reminders-re-inv.md) | Interview lifecycle: resume, expiry, reminders, re-invite, drop-off reasons | M | INTV-005, MSG-003 | Backlog | |
+| [INTV-005](INTV/INTV-005-live-interview-ui-client.md) | Live interview UI (client) | L | INTV-003, INTV-004 | Done | |
+| [INTV-006](INTV/INTV-006-recording-capture-and-finalisation.md) | Recording capture and finalisation | L | INTV-005, FND-011 | Ready | |
+| [INTV-007](INTV/INTV-007-interview-lifecycle-resume-expiry-reminders-re-inv.md) | Interview lifecycle: resume, expiry, reminders, re-invite, drop-off reasons | M | INTV-005, MSG-003 | Ready | |
 | [INTV-008](INTV/INTV-008-authoritative-transcription.md) | Authoritative transcription | M | INTV-006 | Backlog | |
 | [INTV-009](INTV/INTV-009-interview-end-screen-and-feedback.md) | Interview end screen and feedback | S | INTV-006 | Backlog | |
 
@@ -137,7 +137,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [INTV-010](INTV/INTV-010-public-demo.md) | Public demo | L | INTV-005, SCREEN-001 | Backlog | |
+| [INTV-010](INTV/INTV-010-public-demo.md) | Public demo | L | INTV-005, SCREEN-001 | Ready | |
 | [WEB-001](WEB/WEB-001-main-landing-page.md) | Main landing page | M | FND-012 | Ready | |
 | [WEB-002](WEB/WEB-002-talent-acquisition-landing-and-contact-form.md) | Talent acquisition landing and contact form | M | FND-012, FND-010 | Ready | |
 | [WEB-003](WEB/WEB-003-for-candidates-page-marketing.md) | For candidates page (marketing) | S | FND-012 | Ready | |

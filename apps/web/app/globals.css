@@ -107,3 +107,25 @@
     transform: rotate(14deg);
   }
 }
+
+/* The live interview's Turn while the interviewer speaks, and the self-view's mic bars (frame
+   DemoInterview); still under reduced motion. */
+@keyframes fh-turn {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes fh-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}

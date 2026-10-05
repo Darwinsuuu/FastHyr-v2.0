@@ -30,6 +30,7 @@ import {
 import type { Notice } from "@/lib/notices";
 
 import { type CameraState, type MicStatus, useDeviceCheck } from "./use-device-check";
+import type { InterviewDevices } from "./use-interview-session";
 
 export interface DeviceCheckNotices {
   interview: Notice;
@@ -40,7 +41,8 @@ export interface DeviceCheckNotices {
  * The device check (INTV-003, FR-INTV-03, frame DemoDeviceCheck without the demo toggle): asks
  * for the camera (video interviews) and microphone after saying why, checks both on the device,
  * and takes the interview consent (plus the face-check consent when `face_check`). "Start
- * interview" records the consent and stops the devices; the live interview (INTV-005) follows.
+ * interview" records the consent, stops the check's devices and hands the chosen ones to the
+ * live interview (INTV-005).
  * Mobile first: the cards stack, and sit side by side from `lg`.
  */
 export function DeviceCheck({
@@ -48,12 +50,15 @@ export function DeviceCheck({
   link,
   notices,
   onBack,
+  onStarted,
 }: {
   token: string;
   link: InterviewLink;
   /** Null when the notices couldn't load: the check says so instead of a consent. */
   notices: DeviceCheckNotices | null;
   onBack: () => void;
+  /** Consent is recorded: the live interview starts with these devices. */
+  onStarted: (devices: InterviewDevices) => void;
 }) {
   const router = useRouter();
   const video = link.format === "video_voice";
@@ -107,28 +112,12 @@ export function DeviceCheck({
       }
       return;
     }
+    const devices = { camera: check.selected.camera, microphone: check.selected.microphone };
     check.stop();
-    setSaving(false);
+    onStarted(devices);
   }
 
-  if (check.phase === "stopped") {
-    return (
-      <Card className="max-w-[640px]">
-        <span
-          aria-hidden="true"
-          className="flex size-12 items-center justify-center rounded-md bg-evergreen-soft text-evergreen [&_svg]:size-6"
-        >
-          <CheckCircleIcon />
-        </span>
-        <h1 className="type-display-lg">{t("interview.check.ready.title")}</h1>
-        <p className="type-body">
-          {t(video ? "interview.check.ready.bodyVideo" : "interview.check.ready.bodyVoice", {
-            expiry: link.expires_label,
-          })}
-        </p>
-      </Card>
-    );
-  }
+  if (check.phase === "stopped") return null;
 
   const values = { company: link.company.name };
   const showCheck = check.phase === "checking";

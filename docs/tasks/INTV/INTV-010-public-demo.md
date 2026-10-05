@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M7 Public site & demo |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [INTV-005](../INTV/INTV-005-live-interview-ui-client.md), [SCREEN-001](../SCREEN/SCREEN-001-resume-text-extraction-and-pii-redaction.md) |
 | Requirements | FR-DEMO-01, FR-DEMO-02, FR-DEMO-03, FR-DEMO-04 |

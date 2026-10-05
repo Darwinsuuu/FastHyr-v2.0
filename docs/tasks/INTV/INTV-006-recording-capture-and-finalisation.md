@@ -4,7 +4,7 @@
 |---|---|
 | Epic | INTV — AI interview |
 | Milestone | M4 AI interview |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [INTV-005](../INTV/INTV-005-live-interview-ui-client.md), [FND-011](../FND/FND-011-storage-service-and-pdf-handling.md) |
 | Requirements | FR-INTV-05 |

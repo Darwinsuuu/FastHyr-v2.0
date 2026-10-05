@@ -69,12 +69,14 @@ async def schedule(
     at: datetime | None = None,
     values: dict[str, str] | None = None,
     dedupe_key: str | None = None,
+    held: bool = False,
 ) -> ScheduledEmail:
     """Renders and stores the email in the caller's transaction; the caller commits, then calls
     `emails.enqueue(queue, result.message)` (a no-op for emails due later). `dedupe_key` replaces
     the default `{key}:{application}:{stage}` when an email may rightly go twice in one stage
     (e.g. a re-invite). Raises `MissingParameterError` when the template uses a value nobody
-    gave, so a candidate never gets a literal "[Interview.link]"."""
+    gave, so a candidate never gets a literal "[Interview.link]". A `held` email is stored but
+    not sent until `emails.release_held()` schedules it (the "Finish your interview" email)."""
     recipient = await ApplicationRepository(session, workspace_id).email_recipient(application_id)
     if recipient is None:
         raise NotFoundError()
@@ -99,6 +101,7 @@ async def schedule(
         from_name=via_fasthyr(brand.company_name),
         email=email,
         scheduled_for=at or datetime.now(UTC),
+        held=held,
     )
     return ScheduledEmail(message=message, created=created)
 

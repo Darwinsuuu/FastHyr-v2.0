@@ -7,11 +7,13 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, status
 
-from app.api.deps import Session, require
+from app.api.deps import JobQueueDep, Session, SettingsDep, require
 from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
 from app.schemas.pipelines import Pipeline, PipelineSetup, PublishRequest, TopUpRequest
+from app.schemas.reinvites import ReinviteAllRequest, ReinviteResult
+from app.services import interview_lifecycle
 from app.services import pipelines as pipeline_service
 
 router = APIRouter(prefix="/pipelines", tags=["pipelines"], responses=PROBLEM_RESPONSES)
@@ -22,6 +24,7 @@ Viewer = Annotated[RequestContext, require(Action.VIEW_PIPELINES)]
 Editor = Annotated[RequestContext, require(Action.EDIT_PIPELINES)]
 StatusChanger = Annotated[RequestContext, require(Action.CHANGE_PIPELINE_STATUS)]
 TopUpper = Annotated[RequestContext, require(Action.TOP_UP_PIPELINE)]
+Decider = Annotated[RequestContext, require(Action.DECIDE_CANDIDATES)]
 
 
 @router.post("", response_model=Pipeline, status_code=status.HTTP_201_CREATED)
@@ -103,3 +106,20 @@ async def top_up_pipeline(
 ) -> Pipeline:
     """Reserves more free credits; a pipeline paused for credits goes back to live."""
     return await pipeline_service.top_up(session, ctx, pipeline_id, credits_to_add=body.credits)
+
+
+@router.post("/{pipeline_id}/reinvite", response_model=ReinviteResult, responses=CONFLICT)
+async def reinvite_unfinished(
+    pipeline_id: uuid.UUID,
+    body: ReinviteAllRequest,
+    ctx: Decider,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+) -> ReinviteResult:
+    """The pipeline dashboard's "Re-invite all" (INTV-007, FR-PIPE-11): a new interview link and
+    invitation for every candidate whose link expired, who left their interview unfinished, or
+    who hit a technical issue. Candidates talking to the interviewer right now are left alone. A
+    cancelled or archived pipeline is `409 reinvite_not_allowed`."""
+    done = await interview_lifecycle.reinvite_unfinished(session, settings, queue, ctx, pipeline_id)
+    return ReinviteResult(reinvited=len(done.application_ids))

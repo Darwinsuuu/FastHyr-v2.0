@@ -98,7 +98,10 @@ class Interview(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
     feedback_rating: Mapped[int | None] = mapped_column(Integer)
     feedback_comment: Mapped[str | None] = mapped_column(Text)
-    superseded_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("interviews.id"))
+    # Checked at commit: a re-invite points the old interview at the new one first (INTV-007).
+    superseded_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("interviews.id", deferrable=True, initially="DEFERRED")
+    )
 
 
 class InterviewAttempt(Base):

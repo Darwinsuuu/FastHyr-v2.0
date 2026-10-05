@@ -14,7 +14,7 @@ from app.repositories.interviews import (
 )
 from app.repositories.jobs import queued_report_jobs_before
 from app.repositories.screening import pending_before
-from app.services import credits, emails, files, invites, pipelines
+from app.services import credits, emails, files, interview_lifecycle, invites, pipelines
 from app.services.jobs import JOB_FUNCTIONS
 
 logger = logging.getLogger("app.jobs")
@@ -38,6 +38,18 @@ async def expire_invites(run: JobRun) -> int:
     expired = await invites.expire_invites(run.session)
     await run.session.commit()
     logger.info("expire_invites: %d invites expired", expired)
+    return expired
+
+
+@job(retry=NO_RETRY)
+async def expire_interview_links(run: JobRun) -> int:
+    """Every 10 minutes: closes interview links past their expiry that were never started or
+    were left unfinished, with their drop-off reason, and cancels their waiting reminder and
+    "Finish your interview" emails (INTV-007)."""
+    expired = await interview_lifecycle.expire_links(run.session)
+    await run.session.commit()
+    if expired:
+        logger.info("expire_interview_links: %d links expired", expired)
     return expired
 
 

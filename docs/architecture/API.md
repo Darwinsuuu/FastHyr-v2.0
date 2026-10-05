@@ -60,7 +60,7 @@ Candidate routes accept only a Google or Microsoft session (ADR-014); any other 
 | `POST /pipelines/{id}/top-up` ⚷ `{credits: 25\|50\|100\|200}` | reserve more from free credits; a pipeline paused for credits goes back to live |
 | `GET /pipelines/{id}/share-links` | tagged URLs per source |
 | `GET /pipelines/{id}/dashboard` | KPIs, funnel, daily, histogram, sources, drop-offs |
-| `POST /pipelines/{id}/reinvite` `{scope: "all_unfinished"}` | re-invite |
+| `POST /pipelines/{id}/reinvite` `{scope: "all_unfinished"}` | Recruiter (own departments) / Admin. "Re-invite all" (INTV-007): a new link and invitation for every application in `invited`/`interview_in_progress` whose live interview expired, was left unfinished, or hit a technical issue; candidates in a running attempt are skipped. Cancelled or archived pipeline: `409 reinvite_not_allowed`. `200 {reinvited}` |
 
 ### Applications & candidates
 | `GET /pipelines/{id}/applications?stage=&q=&page=` | Candidates tab |
@@ -69,6 +69,7 @@ Candidate routes accept only a Google or Microsoft session (ADR-014); any other 
 | `GET /applications/{id}/recording-url` · `GET /applications/{id}/resume-url` | signed URLs |
 | `POST /applications/{id}/reject` `{reason, send_email}` · `POST /applications/{id}/advance` `{note, send_email}` | Recruiter/Admin |
 | `POST /applications/{id}/invite-manually` | for unreadable résumés or overrides |
+| `POST /applications/{id}/reinvite` | Recruiter (own departments) / Admin. New interview link (new token, fresh expiry, full 30 minutes, same plan and credit); the old link reads `unavailable`; stage back to `invited`; waiting emails of the old link cancelled; invitation (and reminder) sent; audit `application.reinvited` (INTV-007). Finished or running interview, other stages, or a cancelled/archived pipeline: `409 reinvite_not_allowed`. `200 {reinvited: 1}` |
 | `PATCH /integrity-flags/{id}` `{status, note}` | resolve flag |
 | `GET /review-requests?status=open` · `POST /review-requests/{id}/resolve` `{outcome: uphold\|override, note}` | human review |
 | `GET /candidates?filter=&q=&page=` · `GET /candidates/{id}` · `GET /candidates/dashboard` | pool (read-only) |

@@ -44,6 +44,10 @@ Read [`/AGENTS.md`](../../AGENTS.md) first, then [`docs/architecture/BACKEND.md`
 - Add `app/ai/prompts/<name>@v1.md`, a schema in `app/ai/schemas/`, and a fake answer in `app/ai/fixtures/<name>@v1.json`; call `ai.structured(...)` from a service or job (never a router). Changing a prompt means a new `@vN` file and an `ai_eval` run.
 - Tests use `FakeAIClient` (or `AI_FAKE=1`); never call OpenAI from unit or integration tests.
 
+## Live interviews (INTV-004)
+- OpenAI Realtime sits behind `RealtimeProvider` (`app/ai/realtime.py`). `services/interview_sessions.py` calls it directly because the browser waits for the SDP answer; hang-ups happen after the commit. Tests pass `FakeRealtime` (`create_app(realtime=…)`, worker `ctx["realtime"]`), or `OpenAIRealtime` pointed at a fake server (`tests/integration/test_interview_sessions.py`).
+- The interviewer's instructions are `prompts/interviewer@vN.md` built by `app/ai/interviewer.py` (no schema or fixture: they are session instructions, not a structured call). Wording changes there or in the opening cues are a new `@vN`.
+
 ## Sample data (FND-014)
 - `scripts/seed.py` builds the Acme Talent workspace from the design. When you add a table the screens show, extend it with the design's sample rows (synthetic people, `.test` emails) and move credits only through `app/services/credits.py`. `tests/unit/test_seed_data.py` checks the sample data stays consistent.
 

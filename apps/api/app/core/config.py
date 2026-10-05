@@ -43,8 +43,14 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_text_model: str = ""
     openai_timeout_seconds: float = 60
+    # Live interviews (INTV-004): the Realtime model, its voice, and the model for live captions
+    # (input transcription; empty turns captions off). Captions are never used for scoring.
+    openai_realtime_model: str = ""
+    openai_realtime_voice: str = "marin"
+    openai_caption_model: str = ""
     # USD per million tokens, per model, for ai_calls.cost_usd, as JSON:
     # {"<model>": {"input": 0.0, "output": 0.0}}. A model without a price logs a null cost.
+    # Realtime models may add "audio_input" and "audio_output" for audio tokens.
     openai_prices: dict[str, dict[str, float]] = {}
     # AI_FAKE=1 answers every AI call from fixtures (app/ai/fixtures/), with no network.
     ai_fake: bool = False

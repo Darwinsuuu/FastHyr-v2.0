@@ -4,6 +4,7 @@ Every job function and cron is registered here. Functions go through `app.jobs.f
 which supplies the session and retries; arq's own `max_tries` is set from the same policy.
 """
 
+from datetime import timedelta
 from typing import Any, ClassVar
 
 from arq import cron, run_worker
@@ -12,6 +13,7 @@ from arq.cron import CronJob
 from arq.worker import Function, func
 
 from app.ai.client import ai_client_from_settings
+from app.ai.realtime import realtime_from_settings
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
@@ -22,6 +24,7 @@ from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
 from app.jobs.interviews import plan_interview
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
+from app.jobs.realtime import SIDEBAND_TIMEOUT, end_overdue_attempts, run_realtime_session
 from app.jobs.reports import sample_report_job
 from app.jobs.screening import screen_resume
 from app.jobs.system import (
@@ -36,8 +39,13 @@ from app.jobs.system import (
 EVERY_10_MINUTES = {0, 10, 20, 30, 40, 50}
 
 
-def register(function: WorkerFunction) -> Function:
-    return func(function, name=function.__qualname__, max_tries=retry_policy_of(function).max_tries)
+def register(function: WorkerFunction, *, timeout: timedelta | None = None) -> Function:
+    return func(
+        function,
+        name=function.__qualname__,
+        max_tries=retry_policy_of(function).max_tries,
+        timeout=timeout,
+    )
 
 
 FUNCTIONS: list[Function] = [
@@ -45,6 +53,8 @@ FUNCTIONS: list[Function] = [
     register(send_email),
     register(screen_resume),
     register(plan_interview),
+    # Holds a live interview's sideband for as long as the call lasts (INTV-004).
+    register(run_realtime_session, timeout=SIDEBAND_TIMEOUT),
 ]
 
 CRON_JOBS: list[CronJob] = [
@@ -56,6 +66,8 @@ CRON_JOBS: list[CronJob] = [
     cron(open_and_close_pipelines, name="open_and_close_pipelines"),
     # Every minute, so a scheduled email goes out within a minute of its time (MSG-003).
     cron(dispatch_scheduled_emails, name="dispatch_scheduled_emails"),
+    # Every minute, so no live interview runs more than a minute past its cap (INTV-004).
+    cron(end_overdue_attempts, name="end_overdue_attempts"),
     # Daily, at a quiet hour (UTC).
     cron(remove_storage_orphans, name="remove_storage_orphans", hour=3, minute=25),
 ]
@@ -68,10 +80,12 @@ async def startup(ctx: dict[str, Any]) -> None:
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests pass a fake email sender, storage or AI client, and their own queue's name in `ctx`.
+    # Tests pass a fake email sender, storage, AI client or Realtime provider, and their own
+    # queue's name in `ctx`.
     ctx.setdefault("email_sender", sender_from_settings(settings))
     ctx.setdefault("storage", storage_from_settings(settings))
     ctx.setdefault("ai", ai_client_from_settings(settings, ctx["sessionmaker"]))
+    ctx.setdefault("realtime", realtime_from_settings(settings))
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 
@@ -90,7 +104,9 @@ class WorkerSettings:
     # keyed job be enqueued again as soon as the previous one finished.
     keep_result = 0
     job_timeout = 600
-    max_jobs = 10
+    # A live interview's sideband job mostly waits on its socket for up to 35 minutes, so
+    # room for many at once (INTV-004).
+    max_jobs = 50
 
 
 if __name__ == "__main__":

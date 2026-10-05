@@ -114,6 +114,7 @@ One-time steps in the owner's accounts for development (`develop`) and QA (`rele
 | `DATABASE_URL` | step 2 (`fasthyr_api` user) |
 | `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` | step 6 |
 | `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL` | OpenAI project key with a spend limit, and the text model name (FND-013) |
+| `OPENAI_REALTIME_MODEL`, `OPENAI_CAPTION_MODEL` | the Realtime model for live interviews and the transcription model for live captions (INTV-004; the worker copies the Realtime model at creation, so set it there by hand if it changes) |
 | `SENTRY_DSN` | the api Sentry project on `fasthyr-api-*`, the worker project on `fasthyr-worker-*` (§5) |
 
 The worker services read the rest from their API service. Then Settings → Custom Domains: `api.dev.fasthyr.com` on `fasthyr-api-dev`, `api.qa.fasthyr.com` on `fasthyr-api-qa`. Plans: API `free` (it sleeps after 15 idle minutes and the next request waits about a minute; no Render Shell), worker `0.5c-512mb` (Render's smallest paid size; workers have no free plan), Key Value `free` (no persistence, so queued jobs are lost if it restarts; fine for development and QA). Suspend the QA services until the first RELEASE deployment reaches `release`.

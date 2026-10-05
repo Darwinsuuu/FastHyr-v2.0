@@ -90,3 +90,39 @@ class Interview(Base):
     feedback_rating: Mapped[int | None] = mapped_column(Integer)
     feedback_comment: Mapped[str | None] = mapped_column(Text)
     superseded_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("interviews.id"))
+
+
+class InterviewAttempt(Base):
+    """One connection to the live AI interviewer (INTV-004). A reconnect or a resume is a new
+    attempt; the interview's `talk_seconds` is the sum of its attempts'."""
+
+    __tablename__ = "interview_attempts"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "interview_id"],
+            ["interviews.workspace_id", "interviews.id"],
+            name="interview_attempts_interview_fkey",
+            ondelete="CASCADE",
+        ),
+        Index("interview_attempts_interview_id_started_at_idx", "interview_id", "started_at"),
+        Index(
+            "interview_attempts_open_idx",
+            "started_at",
+            postgresql_where=text("ended_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    interview_id: Mapped[uuid.UUID] = mapped_column()
+    realtime_session_id: Mapped[str | None] = mapped_column(Text)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    end_reason: Mapped[str | None] = mapped_column(Text)
+    seconds_allowed: Mapped[int] = mapped_column(Integer)
+    talk_seconds: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    resume_from: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    topic_index: Mapped[int | None] = mapped_column(Integer)
+    wrap_up_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

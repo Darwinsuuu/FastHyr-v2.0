@@ -15,7 +15,7 @@ from app.models.identity import (
     Workspace,
     WorkspaceMember,
 )
-from app.models.interviews import Interview, InterviewPlan
+from app.models.interviews import Interview, InterviewAttempt, InterviewPlan
 from app.models.jobs import ReportJob
 from app.models.pipelines import Pipeline
 from app.models.screening import ResumeAssessment, ResumeText
@@ -35,6 +35,7 @@ __all__ = [
     "EmailTemplate",
     "EmailTemplateVersion",
     "Interview",
+    "InterviewAttempt",
     "InterviewPlan",
     "Invite",
     "MemberDepartment",

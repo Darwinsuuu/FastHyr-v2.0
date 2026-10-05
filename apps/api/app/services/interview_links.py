@@ -52,7 +52,7 @@ async def interview_link(
 ) -> InterviewLink:
     """The link's state for whoever opened it (`candidate` is None when signed out, or signed in
     some other way than Google or Microsoft). `404 interview_not_found` for unknown tokens."""
-    row = await _row_of(session, token)
+    row = await link_row(session, token)
     state = resolve(row, candidate, now or datetime.now(UTC))
     interview = row.interview
     personal = state not in ("unavailable", "expired", "sign_in", "wrong_account")
@@ -86,7 +86,7 @@ async def record_consent(
     again (resuming, another try) keeps the latest agreement. Another account learns nothing
     about the link (`404`); a link that can't start is `409 interview_not_open`."""
     now = now or datetime.now(UTC)
-    row = await _row_of(session, token)
+    row = await link_row(session, token)
     state = resolve(row, candidate, now)
     if state == "wrong_account":
         raise InterviewNotFoundError()
@@ -117,7 +117,9 @@ def face_check(row: InterviewLinkRow) -> bool:
     return row.interview.format != "voice_only" and row.integrity_enabled
 
 
-async def _row_of(session: AsyncSession, token: str) -> InterviewLinkRow:
+async def link_row(session: AsyncSession, token: str) -> InterviewLinkRow:
+    """The interview a link token names, with what the page needs. `404 interview_not_found` for
+    unknown tokens."""
     if not token or len(token) > MAX_TOKEN_LENGTH:
         raise InterviewNotFoundError()
     token_hash = hash_token(token)

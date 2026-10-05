@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -72,3 +73,58 @@ class InterviewConsent(BaseModel):
     consent_version: str
     consent_at: datetime
     biometric_consent_version: str | None
+
+
+class InterviewSessionRequest(BaseModel):
+    """Starts or resumes the live interview (INTV-004): the browser's WebRTC offer."""
+
+    sdp: str = Field(
+        min_length=1,
+        max_length=65536,
+        description="The RTCPeerConnection's SDP offer (microphone track, data channel)",
+    )
+
+
+class InterviewTopic(BaseModel):
+    number: int = Field(description="1 is the first topic; set_topic tool calls use it")
+    title: str
+
+
+class InterviewSession(BaseModel):
+    """What the browser needs to finish the connection and run the interview UI."""
+
+    attempt_id: uuid.UUID
+    sdp: str = Field(description="OpenAI's SDP answer, for setRemoteDescription")
+    time_left_seconds: int = Field(description="What is left of the 30-minute cap")
+    wrap_up_in_seconds: int = Field(description="When the interviewer starts wrapping up")
+    heartbeat_seconds: int = Field(description="How often to call …/heartbeat")
+    topics: list[InterviewTopic]
+    topic_number: int = Field(description="The topic this attempt starts from")
+
+
+EndReason = Literal["candidate_ended", "wrap_up", "time_cap", "disconnect", "error"]
+
+
+class InterviewHeartbeatRequest(BaseModel):
+    attempt_id: uuid.UUID
+    connected: bool = Field(description="The peer connection is up (connectionState connected)")
+
+
+class InterviewHeartbeat(BaseModel):
+    """`ended` means the session is over: the browser closes its connection and asks the link
+    page what to show next."""
+
+    status: Literal["active", "wrap_up", "ended"]
+    time_left_seconds: int
+    end_reason: EndReason | None = None
+
+
+class InterviewCompleteRequest(BaseModel):
+    attempt_id: uuid.UUID | None = Field(
+        default=None, description="The attempt the candidate ended, when one is running"
+    )
+
+
+class InterviewCompleted(BaseModel):
+    status: Literal["completed"]
+    talk_seconds: int

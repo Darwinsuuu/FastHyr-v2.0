@@ -14,6 +14,7 @@ from app.models import (
     Candidate,
     CompanyProfile,
     Interview,
+    InterviewAttempt,
     InterviewPlan,
     Pipeline,
     ResumeAssessment,
@@ -142,6 +143,17 @@ class InterviewPlanRepository(WorkspaceRepository[InterviewPlan]):
         )
         return row
 
+    async def company(self) -> tuple[str, str]:
+        """The company's name and "About" text, for the live interviewer (INTV-004)."""
+        row = (
+            await self.session.execute(
+                select(CompanyProfile.company_name, CompanyProfile.about).where(
+                    CompanyProfile.workspace_id == self.workspace_id
+                )
+            )
+        ).one()
+        return row.company_name, row.about or ""
+
     async def company_about(self) -> str:
         about: str | None = await self.session.scalar(
             select(CompanyProfile.about).where(CompanyProfile.workspace_id == self.workspace_id)
@@ -170,3 +182,57 @@ class InterviewRepository(WorkspaceRepository[Interview]):
         if interview.workspace_id != self.workspace_id:
             raise ValueError("interview belongs to another workspace")
         self.session.add(interview)
+
+
+async def open_attempts(session: AsyncSession) -> list[tuple[uuid.UUID, uuid.UUID]]:
+    """For the end_overdue_attempts watchdog (INTV-004): every open attempt, as (workspace_id,
+    attempt_id). There are only as many as interviews running right now; the watchdog checks
+    each one's own cap, which depends on the talk time before it started."""
+    rows = await session.execute(
+        select(InterviewAttempt.workspace_id, InterviewAttempt.id)
+        .where(InterviewAttempt.ended_at.is_(None))
+        .order_by(InterviewAttempt.started_at)
+        .limit(1000)
+    )
+    return [(row.workspace_id, row.id) for row in rows]
+
+
+class InterviewAttemptRepository(WorkspaceRepository[InterviewAttempt]):
+    model = InterviewAttempt
+
+    async def get(self, attempt_id: uuid.UUID, *, lock: bool = False) -> InterviewAttempt | None:
+        # Always the row as it is now: the API and the sideband job both change attempts.
+        statement = (
+            self._scoped()
+            .where(InterviewAttempt.id == attempt_id)
+            .execution_options(populate_existing=True)
+        )
+        if lock:
+            statement = statement.with_for_update()
+        row: InterviewAttempt | None = await self.session.scalar(statement)
+        return row
+
+    async def of_interview(self, interview_id: uuid.UUID) -> list[InterviewAttempt]:
+        rows = await self.session.scalars(
+            self._scoped()
+            .where(InterviewAttempt.interview_id == interview_id)
+            .order_by(InterviewAttempt.started_at)
+        )
+        return list(rows)
+
+    async def lock_interview(self, interview_id: uuid.UUID) -> Interview:
+        """The interview row, locked, so attempts on it start and end one at a time."""
+        row: Interview = (
+            await self.session.scalars(
+                select(Interview)
+                .where(Interview.workspace_id == self.workspace_id, Interview.id == interview_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+        ).one()
+        return row
+
+    def add(self, attempt: InterviewAttempt) -> None:
+        if attempt.workspace_id != self.workspace_id:
+            raise ValueError("interview attempt belongs to another workspace")
+        self.session.add(attempt)

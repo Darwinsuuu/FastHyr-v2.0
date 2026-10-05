@@ -66,6 +66,11 @@ services:
         sync: false
       - key: OPENAI_TEXT_MODEL
         sync: false
+      # Live interviews (INTV-004): the Realtime model and the live-caption model.
+      - key: OPENAI_REALTIME_MODEL
+        sync: false
+      - key: OPENAI_CAPTION_MODEL
+        sync: false
       - key: SENTRY_DSN
         sync: false
 
@@ -104,6 +109,8 @@ services:
         fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_API_KEY }
       - key: OPENAI_TEXT_MODEL
         fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_TEXT_MODEL }
+      - key: OPENAI_REALTIME_MODEL
+        fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_REALTIME_MODEL }
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -166,6 +173,11 @@ services:
         sync: false
       - key: OPENAI_TEXT_MODEL
         sync: false
+      # Live interviews (INTV-004): the Realtime model and the live-caption model.
+      - key: OPENAI_REALTIME_MODEL
+        sync: false
+      - key: OPENAI_CAPTION_MODEL
+        sync: false
       - key: SENTRY_DSN
         sync: false
 
@@ -203,6 +215,8 @@ services:
         fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_API_KEY }
       - key: OPENAI_TEXT_MODEL
         fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_TEXT_MODEL }
+      - key: OPENAI_REALTIME_MODEL
+        fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_REALTIME_MODEL }
       - key: REDIS_URL
         fromService:
           type: keyvalue

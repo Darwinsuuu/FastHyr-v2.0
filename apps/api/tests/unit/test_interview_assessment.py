@@ -173,18 +173,24 @@ def test_evidence_must_quote_the_candidate_word_for_word() -> None:
 
 def test_summary_is_checked_and_unscored_topics_are_kept() -> None:
     answer = fake()
-    answer["topics"] = [topic for topic in answer["topics"] if topic["topic"] != 2]
-    answer["summary"]["text"] += " Asked about on-call [3]."
     answer["summary"]["refs"][1]["quote"] = "invented"
-    assert assessment.problems(parsed(answer), context(), TURNS) == [
-        "summary_ref_2",
-        "summary_cites_missing_ref",
-    ]
-    # A topic left unscored doesn't discard the answer; it is kept without a score.
+    assert assessment.problems(parsed(answer), context(), TURNS) == ["summary_ref_2"]
+    answer = fake()
+    answer["summary"]["text"] = "Gave concrete examples [3]. Explained choices clearly [4]."
+    assert assessment.problems(parsed(answer), context(), TURNS) == ["summary_uncited"]
+
+    # A citation of a reference the summary doesn't list is taken out; the answer is kept.
+    answer = fake()
+    answer["summary"]["text"] += " Asked about on-call [3]."
+    # A topic left unscored doesn't discard the answer either; it is kept without a score.
+    answer["topics"] = [topic for topic in answer["topics"] if topic["topic"] != 2]
+    assert assessment.problems(parsed(answer), context(), TURNS) == []
     assert assessment.unscored_topics(parsed(answer), TURNS) == [1]
-    unscored = fake()
-    unscored["topics"] = [topic for topic in unscored["topics"] if topic["topic"] != 2]
-    decision = assessment.decide(parsed(unscored), context(), TURNS, RUBRIC)
+    decision = assessment.decide(parsed(answer), context(), TURNS, RUBRIC)
+    assert decision.summary["text"] == (
+        "Gave concrete examples from recent work [1]. Explained choices clearly [2]."
+        " Asked about on-call."
+    )
     assert [topic["score"] for topic in decision.topics] == [80, None, 80]
 
 

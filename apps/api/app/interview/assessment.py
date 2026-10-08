@@ -7,9 +7,10 @@
    alignment with signals and evidence, score the topics, summarise with references, and label
    the turns. Evidence must quote a candidate turn or the résumé word for word; evidence that
    doesn't is dropped, and an answer left with a criterion under 2 pieces of evidence (or none
-   from the interview), or a summary reference that doesn't check out is asked for once more,
-   then fails (`AIOutputError`): no score without evidence. An answered topic the model left
-   unscored is kept without a score and logged.
+   from the interview), a summary reference that doesn't check out or a summary citing none of
+   its references is asked for once more, then fails (`AIOutputError`): no score without
+   evidence. Citations of references the summary doesn't list are taken out of its text, and
+   an answered topic the model left unscored is kept without a score and logged.
 3. `decide()` computes everything that isn't judgement in code: points and the overall score
    from the pipeline's weights, pass/fail against the pass mark, the fit badge, topic start
    times and question counts, and answer patterns from the transcript's timings.
@@ -52,6 +53,7 @@ STRONG_FIT_SCORE = 80
 
 SPEAKERS = {"interviewer": "Interviewer", "candidate": "Candidate"}
 _REFERENCE = re.compile(r"\[(\d+)\]")
+_CITATION = re.compile(r" ?\[(\d+)\]")
 
 OPEN_TO_RULES = {
     "fresh_grads": (
@@ -301,9 +303,20 @@ def problems(answer: InterviewAssessment, context: Context, found: Sequence[Turn
         if evidence_row(ref, found, context.resume_text) is None:
             issues.append(f"summary_ref_{number}")
     cited = {int(number) for number in _REFERENCE.findall(answer.summary.text)}
-    if any(not 1 <= number <= len(refs) for number in cited):
-        issues.append("summary_cites_missing_ref")
+    if refs and not any(1 <= number <= len(refs) for number in cited):
+        issues.append("summary_uncited")
     return issues
+
+
+def summary_text(answer: InterviewAssessment) -> str:
+    """The summary with citations of references it doesn't list taken out: the sentence stays,
+    without a reference that can't be shown."""
+    count = len(answer.summary.refs)
+
+    def keep(match: re.Match[str]) -> str:
+        return match.group(0) if 1 <= int(match.group(1)) <= count else ""
+
+    return _CITATION.sub(keep, answer.summary.text)
 
 
 async def assess(
@@ -486,7 +499,7 @@ def decide(
         fit=fit_of(passed, overall, context.must_haves_met),
         criteria=criteria,
         topics=topics,
-        summary={"text": answer.summary.text, "refs": [ref for ref in refs if ref is not None]},
+        summary={"text": summary_text(answer), "refs": [ref for ref in refs if ref is not None]},
         strengths=[point.model_dump() for point in answer.strengths[:MAX_POINTS]],
         probes=[point.model_dump() for point in answer.probes[:MAX_POINTS]],
         claims_checked=claims_checked,

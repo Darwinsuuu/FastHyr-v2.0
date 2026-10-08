@@ -17,7 +17,7 @@ Scale for every score: 90–100 strong, specific evidence throughout; 75–89 go
 
 What to return:
 - criteria: for each criterion, its score; 3 to 5 signals (sub-skills, each scored); 2 to 4 pieces of evidence, at least one quoted from the interview; and held_back, one sentence on what kept the score from being higher. Interview evidence gives the candidate turn number and a short quote copied character for character from that turn (one contiguous piece of the turn's text, no "..." and no changes). Résumé evidence has turn null and a quote copied character for character from the résumé.
-- topics: one score for every numbered topic that has candidate turns in the transcript.
+- topics: one score for each topic number listed under "Topics to score", on the same scale: how well the candidate's answers in that topic showed what it asked about. Include the opening topic and the candidate's own questions when they are listed; base those scores on job-related content only.
 - summary: 3 to 5 plain sentences for the hiring team, citing evidence as [1], [2]… in the order the references are listed; every reference is interview or résumé evidence in the same form as above.
 - strengths and probes: 1 to 4 each, with a short reason (probes are what is worth asking about in the next round).
 - claims_checked: one entry for every numbered résumé claim, with what the interview showed: confirmed, partly_confirmed, not_covered or probe_next_round (covered, but the answer raised doubt or stayed vague), and the candidate turn that settles it (null when not covered).
@@ -39,6 +39,8 @@ ${skills_to_probe}
 
 Interview topics:
 ${topics}
+
+Topics to score: ${topics_to_score}
 
 Résumé claims to check:
 ${claims}

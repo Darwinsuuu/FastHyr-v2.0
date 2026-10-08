@@ -1,9 +1,9 @@
 """`interview_assessment@v1` against the real model (ASMT-001, AI_PIPELINE.md §4 and §7): each
 golden transcript is turned into masked, numbered turns and scored exactly as the scoring job
 does; the overall score and decision land in the case's ranges, every criterion keeps 2 to 4
-pieces of checked evidence, and counterfactual pairs score within ±5 on communication: the same
-answers with different personal details (name, gender, age, family, origin), and the same
-answers in native and non-native phrasing.
+pieces of checked evidence, every answered topic is scored, and counterfactual pairs score
+within ±5 on communication: the same answers with different personal details (name, gender,
+age, family, origin), and the same answers in native and non-native phrasing.
 
     AI_EVAL=1 OPENAI_API_KEY=… OPENAI_TEXT_MODEL=… \
         uv run pytest tests/ai_eval/test_interview_assessment.py
@@ -66,6 +66,7 @@ async def score_all(cases: list[tuple[str, dict[str, Any]]]) -> dict[str, dict[s
                 "passed": int(decision.passed),
                 "communication": decision.criteria["communication"]["score"],
                 "evidence_min": min(evidence),
+                "topics_unscored": len(assessment.unscored_topics(answer, found)),
             }
         return results
     finally:
@@ -87,6 +88,8 @@ def test_interview_assessment_cases() -> None:
             value = results[name][key]
             if not low <= value <= high:
                 misses.append(f"{name}: {key} = {value}, expected {low} to {high}")
+        if results[name]["topics_unscored"]:
+            misses.append(f"{name}: {results[name]['topics_unscored']} answered topics unscored")
         if case.get("pair"):
             pairs.setdefault(case["pair"], {})[name] = results[name]["communication"]
     for pair, scores in pairs.items():

@@ -7,8 +7,9 @@
    alignment with signals and evidence, score the topics, summarise with references, and label
    the turns. Evidence must quote a candidate turn or the résumé word for word; evidence that
    doesn't is dropped, and an answer left with a criterion under 2 pieces of evidence (or none
-   from the interview), a reached topic without a score, or a summary reference that doesn't
-   check out is asked for once more, then fails (`AIOutputError`): no score without evidence.
+   from the interview), or a summary reference that doesn't check out is asked for once more,
+   then fails (`AIOutputError`): no score without evidence. An answered topic the model left
+   unscored is kept without a score and logged.
 3. `decide()` computes everything that isn't judgement in code: points and the overall score
    from the pipeline's weights, pass/fail against the pass mark, the fit badge, topic start
    times and question counts, and answer patterns from the transcript's timings.
@@ -207,6 +208,7 @@ def variables(context: Context, found: Sequence[Turn]) -> dict[str, str]:
         "job_description": context.job_description.strip() or "Not provided",
         "skills_to_probe": _numbered(context.skills_to_probe),
         "topics": _numbered(context.topics),
+        "topics_to_score": ", ".join(str(index + 1) for index in answered_topics(found)) or "None",
         "claims": _numbered(claims),
         "resume_text": context.resume_text.strip() or "Not available",
         "transcript": transcript_text(context, found),
@@ -261,12 +263,22 @@ def reached_topics(found: Sequence[Turn]) -> list[int]:
     return sorted({turn.topic_index for turn in found if turn.topic_index is not None})
 
 
-def _answered_topics(found: Sequence[Turn]) -> set[int]:
-    return {
-        turn.topic_index
-        for turn in found
-        if turn.speaker == "candidate" and turn.topic_index is not None
-    }
+def answered_topics(found: Sequence[Turn]) -> list[int]:
+    """The plan topics with candidate turns, in order: each gets a score."""
+    return sorted(
+        {
+            turn.topic_index
+            for turn in found
+            if turn.speaker == "candidate" and turn.topic_index is not None
+        }
+    )
+
+
+def unscored_topics(answer: InterviewAssessment, found: Sequence[Turn]) -> list[int]:
+    """Answered topics the model left without a score. Not a reason to discard the answer: the
+    criteria carry the decision, so such a topic is stored without a score and logged."""
+    scored = {topic.topic - 1 for topic in answer.topics}
+    return [index for index in answered_topics(found) if index not in scored]
 
 
 def problems(answer: InterviewAssessment, context: Context, found: Sequence[Turn]) -> list[str]:
@@ -282,9 +294,6 @@ def problems(answer: InterviewAssessment, context: Context, found: Sequence[Turn
             issues.append(f"{name}_signals")
         if not criterion.held_back.strip():
             issues.append(f"{name}_held_back")
-    scored = {topic.topic - 1 for topic in answer.topics}
-    for index in sorted(_answered_topics(found) - scored):
-        issues.append(f"topic_{index + 1}_score")
     refs = answer.summary.refs
     if not answer.summary.text.strip() or not refs:
         issues.append("summary_missing")
@@ -318,6 +327,11 @@ async def assess(
         )
         issues = problems(answer, context, found)
         if not issues:
+            if unscored := unscored_topics(answer, found):
+                logger.warning(
+                    "interview assessment left topics unscored: %s",
+                    ", ".join(str(index + 1) for index in unscored),
+                )
             return answer
         logger.warning("interview assessment unusable on try %d: %s", attempt, ", ".join(issues))
     raise AIOutputError()
@@ -434,7 +448,7 @@ def decide(
 
     marked = labels(answer, found)
     scores = {topic.topic - 1: topic.score for topic in answer.topics}
-    answered = _answered_topics(found)
+    answered = set(answered_topics(found))
     topics = []
     for index in reached_topics(found):
         in_topic = [turn for turn in found if turn.topic_index == index]

@@ -88,7 +88,9 @@ def test_turns_join_one_speaker_per_topic_and_leave_out_other_voices() -> None:
     ]
     joined = TURNS[1]
     assert (joined.start_ms, joined.end_ms, joined.speech_ms) == (7_000, 20_000, 12_500)
-    transcript = assessment.variables(context(), TURNS)["transcript"]
+    found = assessment.variables(context(), TURNS)
+    transcript = found["transcript"]
+    assert found["topics_to_score"] == "1, 2, 3"
     assert "Bea" not in transcript and "Garcia" not in transcript
     assert "#2 [00:07] Candidate: I'm [NAME]. I lead the payments ledger team." in transcript
     assert "--- Topic 2: Sharding ---" in transcript
@@ -169,16 +171,21 @@ def test_evidence_must_quote_the_candidate_word_for_word() -> None:
     assert row["evidence"][2]["start_ms"] == 29_000
 
 
-def test_topics_summary_and_claims_are_checked() -> None:
+def test_summary_is_checked_and_unscored_topics_are_kept() -> None:
     answer = fake()
     answer["topics"] = [topic for topic in answer["topics"] if topic["topic"] != 2]
     answer["summary"]["text"] += " Asked about on-call [3]."
     answer["summary"]["refs"][1]["quote"] = "invented"
     assert assessment.problems(parsed(answer), context(), TURNS) == [
-        "topic_2_score",
         "summary_ref_2",
         "summary_cites_missing_ref",
     ]
+    # A topic left unscored doesn't discard the answer; it is kept without a score.
+    assert assessment.unscored_topics(parsed(answer), TURNS) == [1]
+    unscored = fake()
+    unscored["topics"] = [topic for topic in unscored["topics"] if topic["topic"] != 2]
+    decision = assessment.decide(parsed(unscored), context(), TURNS, RUBRIC)
+    assert [topic["score"] for topic in decision.topics] == [80, None, 80]
 
 
 def test_an_unusable_answer_is_asked_for_once_more_then_fails() -> None:

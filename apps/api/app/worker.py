@@ -28,6 +28,7 @@ from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.realtime import SIDEBAND_TIMEOUT, end_overdue_attempts, run_realtime_session
 from app.jobs.recordings import FINALIZE_TIMEOUT, finalize_recording, finalize_recordings
 from app.jobs.reports import sample_report_job
+from app.jobs.scoring import SCORE_TIMEOUT, score_interview
 from app.jobs.screening import screen_resume
 from app.jobs.system import (
     dispatch_scheduled_emails,
@@ -63,6 +64,8 @@ FUNCTIONS: list[Function] = [
     register(finalize_recording, timeout=FINALIZE_TIMEOUT),
     # The authoritative transcript from the recording's audio (INTV-008).
     register(transcribe_interview, timeout=TRANSCRIBE_TIMEOUT),
+    # The interview assessment from the transcript (ASMT-001).
+    register(score_interview, timeout=SCORE_TIMEOUT),
 ]
 
 CRON_JOBS: list[CronJob] = [

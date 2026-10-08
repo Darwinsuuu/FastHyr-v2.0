@@ -15,7 +15,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
-| M5 Review | 18 | 0 |
+| M5 Review | 18 | 1 |
 | M6 Billing & analytics | 7 | 0 |
 | M7 Public site & demo | 6 | 0 |
 | M8 Launch readiness | 6 | 0 |
@@ -102,13 +102,13 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [DASH-003](DASH/DASH-003-analytics-views-and-endpoints.md) | Analytics views and endpoints | M | PIPE-001, APPLY-003, INTV-007, ASMT-001 | Backlog | |
+| [DASH-003](DASH/DASH-003-analytics-views-and-endpoints.md) | Analytics views and endpoints | M | PIPE-001, APPLY-003, INTV-007, ASMT-001 | Ready | |
 | [PIPE-007](PIPE/PIPE-007-pipeline-details-header-and-dashboard-tab.md) | Pipeline details — header and Dashboard tab | M | DASH-003, PIPE-004 | Backlog | |
 | [PIPE-008](PIPE/PIPE-008-pipeline-details-candidates-tab.md) | Pipeline details — Candidates tab | M | PIPE-007, APPLY-003 | Backlog | |
 | [PIPE-009](PIPE/PIPE-009-pipeline-details-setup-tab-and-duplicate.md) | Pipeline details — Setup tab and duplicate | S | PIPE-007 | Backlog | |
 | [PIPE-010](PIPE/PIPE-010-pipelines-report-pdf.md) | Pipelines report PDF | M | DASH-003, FND-008 | Backlog | |
 | [SCREEN-004](SCREEN/SCREEN-004-unreadable-resumes-and-manual-invite.md) | Unreadable résumés and manual invite | S | SCREEN-003, PIPE-008 | Backlog | |
-| [ASMT-001](ASMT/ASMT-001-interview-scoring.md) | Interview scoring | L | INTV-008, FND-013 | Ready | |
+| [ASMT-001](ASMT/ASMT-001-interview-scoring.md) | Interview scoring | L | INTV-008, FND-013 | Done | #49 |
 | [ASMT-002](ASMT/ASMT-002-integrity-checks-worker.md) | Integrity checks (worker) | L | INTV-008 | Ready | |
 | [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Backlog | |
 | [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Backlog | |

@@ -42,6 +42,7 @@ from tests.integration.test_recordings import (
     tenancy_app,
     upload,
 )
+from tests.integration.test_scoring import ScoringAI
 from tests.integration.worker import drain
 from tests.media_fixtures import chunks, ffmpeg, webm
 from tests.tenancy.harness import Tenancy
@@ -145,10 +146,12 @@ def test_a_finished_recording_becomes_its_transcript(
             await jobs.close()
 
     asyncio.run(enqueue())
-    drain(redis_url, queue_name, storage=storage, transcriber=transcriber)
+    drain(redis_url, queue_name, storage=storage, transcriber=transcriber, ai=ScoringAI())
 
     row = interview(tenancy, interview_id)
     assert (row["recording_status"], row["transcript_status"]) == ("ready", "ready")
+    # The ready transcript queued its scoring (ASMT-001).
+    assert (row["assessment_status"], row["stage"]) == ("ready", "ready_for_review")
     assert row["transcribed_at"] is not None
     offsets = [a["recording_offset_ms"] for a in attempts(tenancy, interview_id)]
     lengths = [a["recording_ms"] for a in attempts(tenancy, interview_id)]

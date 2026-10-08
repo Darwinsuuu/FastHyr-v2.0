@@ -2,6 +2,7 @@
 answer from a fixed `fixtures/<name>@v<N>.json`; a prompt whose answer must mirror its input
 (one result per pipeline criterion, quotes taken from the résumé) registers a builder here."""
 
+import copy
 import re
 from collections.abc import Callable
 from typing import Any
@@ -134,7 +135,87 @@ def interview_plan(variables: dict[str, str]) -> dict[str, Any]:
     return {"topics": topics, "claims_to_verify": claims}
 
 
+_TURN = re.compile(r"^#(\d+) \[[\d:]+\] (Interviewer|Candidate): (.+)$")
+_TOPIC = re.compile(r"^--- Topic (\d+): ")
+
+
+def interview_assessment(variables: dict[str, str]) -> dict[str, Any]:
+    """Good scores (overall 80) quoting the candidate's own turns, a score for every topic,
+    every résumé claim confirmed, so local runs and e2e reach Ready for review."""
+    turns: list[tuple[int, str, str, int]] = []  # number, speaker, text, topic
+    topic = 0
+    for line in variables["transcript"].splitlines():
+        if heading := _TOPIC.match(line):
+            topic = int(heading.group(1))
+        elif turn := _TURN.match(line):
+            turns.append((int(turn.group(1)), turn.group(2), turn.group(3), topic))
+    answers = [turn for turn in turns if turn[1] == "Candidate"] or [(1, "Candidate", "", 0)]
+
+    def quote(text: str, last: bool = False) -> str:
+        words = text.split()
+        return " ".join(words[-8:] if last else words[:8])
+
+    first, second = answers[0], answers[min(1, len(answers) - 1)]
+    evidence = [
+        {"source": "interview", "turn": first[0], "quote": quote(first[2]), "label": "Opening"},
+        {
+            "source": "interview",
+            "turn": second[0],
+            "quote": quote(second[2], last=second is first),
+            "label": "Follow-up",
+        },
+    ]
+
+    def criterion(score: int, names: list[str]) -> dict[str, Any]:
+        return {
+            "score": score,
+            "signals": [{"name": name, "score": score} for name in names],
+            "evidence": copy.deepcopy(evidence),
+            "held_back": "Some answers stayed general.",
+        }
+
+    asked: set[int] = set()
+    questions: list[int] = []
+    follow_ups: list[int] = []
+    for number, speaker, _text, in_topic in turns:
+        if speaker == "Interviewer":
+            (follow_ups if in_topic in asked else questions).append(number)
+            asked.add(in_topic)
+    claims = _items(variables["claims"]) if variables["claims"] != "None" else []
+    return {
+        "criteria": {
+            "technical": criterion(82, ["System design", "Tools of the job", "Trade-offs"]),
+            "communication": criterion(78, ["Structure and clarity", "Answers the question"]),
+            "culture": criterion(80, ["Ownership", "Collaboration", "Curiosity"]),
+        },
+        "topics": [
+            {"topic": number, "score": 80}
+            for number in range(1, len(_items(variables["topics"])) + 1)
+        ],
+        "summary": {
+            "text": "Gave concrete examples from recent work [1]. Explained choices clearly [2].",
+            "refs": copy.deepcopy(evidence),
+        },
+        "strengths": [{"title": "Concrete examples", "reason": "specific answers"}],
+        "probes": [{"title": "Depth at scale", "reason": "answers stayed general"}],
+        "claims_checked": [
+            {"claim": number, "status": "confirmed", "turn": first[0]}
+            for number in range(1, len(claims) + 1)
+        ],
+        "turns": {
+            "questions": questions,
+            "follow_ups": follow_ups,
+            "candidate_questions": [
+                number
+                for number, speaker, text, _ in turns
+                if speaker == "Candidate" and "?" in text
+            ],
+        },
+    }
+
+
 BUILDERS: dict[str, Callable[[dict[str, str]], dict[str, Any]]] = {
     "resume_assessment@v1": resume_assessment,
     "interview_plan@v1": interview_plan,
+    "interview_assessment@v1": interview_assessment,
 }

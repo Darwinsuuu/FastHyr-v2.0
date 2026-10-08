@@ -1,0 +1,161 @@
+{
+  "context": {
+    "job_title": "Senior Backend Engineer",
+    "job_description": "Design, build and run the payment APIs and ledger services for a growing fintech. Work with product and on-call.",
+    "seniority": "senior",
+    "open_to": [],
+    "skills_to_probe": [
+      "System design",
+      "PostgreSQL at scale",
+      "Incident handling"
+    ],
+    "topics": [
+      "Getting started",
+      "System design",
+      "PostgreSQL at scale",
+      "Incident handling",
+      "Your questions"
+    ],
+    "resume_text": "Senior Backend Engineer, PayLane, 2022 - present\nSharded, multi-region PostgreSQL handling 4M transactions a day.\nBuilt gRPC services in Go; cut p99 latency by 40%.\nBackend Engineer, Kinetiq, 2020 - 2022\nEvent-driven order processing with Kafka.",
+    "claims": [
+      {
+        "requirement": "PostgreSQL at scale",
+        "type": "must_have",
+        "found": "Sharded, multi-region, 4M transactions a day",
+        "strength": 3
+      },
+      {
+        "requirement": "Kubernetes",
+        "type": "nice_to_have",
+        "found": "Listed in skills only",
+        "strength": 1
+      }
+    ],
+    "must_haves_met": true
+  },
+  "candidate_name": "Maria Santos",
+  "lines": [
+    [
+      0,
+      5,
+      "interviewer",
+      "Thanks for joining today. Could you walk me through your current role?",
+      0
+    ],
+    [
+      7,
+      11,
+      "candidate",
+      "I work on backend stuff. Mostly APIs.",
+      0
+    ],
+    [
+      13,
+      18,
+      "interviewer",
+      "Let's talk about system design. How would you design an idempotent payments API?",
+      1
+    ],
+    [
+      20,
+      26,
+      "candidate",
+      "I would use a good framework and make it scalable. Probably microservices.",
+      1
+    ],
+    [
+      28,
+      32,
+      "interviewer",
+      "What happens if the same request arrives twice at the same time?",
+      1
+    ],
+    [
+      34,
+      38,
+      "candidate",
+      "I'm not sure. Maybe the database handles it.",
+      1
+    ],
+    [
+      40,
+      45,
+      "interviewer",
+      "You mention sharding PostgreSQL. How did you choose the shard key?",
+      2
+    ],
+    [
+      47,
+      52,
+      "candidate",
+      "We used PostgreSQL. I think someone else set up the sharding.",
+      2
+    ],
+    [
+      54,
+      58,
+      "interviewer",
+      "How did you deal with hot shards?",
+      2
+    ],
+    [
+      60,
+      64,
+      "candidate",
+      "I don't remember exactly.",
+      2
+    ],
+    [
+      66,
+      71,
+      "interviewer",
+      "Tell me about a production incident you handled.",
+      3
+    ],
+    [
+      73,
+      77,
+      "candidate",
+      "There was an outage once. The team fixed it.",
+      3
+    ],
+    [
+      79,
+      83,
+      "interviewer",
+      "What changed afterwards?",
+      3
+    ],
+    [
+      85,
+      89,
+      "candidate",
+      "Not much, I think.",
+      3
+    ],
+    [
+      91,
+      96,
+      "interviewer",
+      "What would you like to know about the role?",
+      4
+    ],
+    [
+      98,
+      102,
+      "candidate",
+      "No questions.",
+      4
+    ]
+  ],
+  "expect": {
+    "overall_score": [
+      0,
+      60
+    ],
+    "passed": [
+      0,
+      0
+    ]
+  }
+}

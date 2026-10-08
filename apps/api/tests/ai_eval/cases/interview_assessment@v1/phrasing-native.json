@@ -1,0 +1,158 @@
+{
+  "context": {
+    "job_title": "Senior Backend Engineer",
+    "job_description": "Design, build and run the payment APIs and ledger services for a growing fintech. Work with product and on-call.",
+    "seniority": "senior",
+    "open_to": [],
+    "skills_to_probe": [
+      "System design",
+      "PostgreSQL at scale",
+      "Incident handling"
+    ],
+    "topics": [
+      "Getting started",
+      "System design",
+      "PostgreSQL at scale",
+      "Incident handling",
+      "Your questions"
+    ],
+    "resume_text": "Senior Backend Engineer, PayLane, 2022 - present\nSharded, multi-region PostgreSQL handling 4M transactions a day.\nBuilt gRPC services in Go; cut p99 latency by 40%.\nBackend Engineer, Kinetiq, 2020 - 2022\nEvent-driven order processing with Kafka.",
+    "claims": [
+      {
+        "requirement": "PostgreSQL at scale",
+        "type": "must_have",
+        "found": "Sharded, multi-region, 4M transactions a day",
+        "strength": 3
+      },
+      {
+        "requirement": "Kubernetes",
+        "type": "nice_to_have",
+        "found": "Listed in skills only",
+        "strength": 1
+      }
+    ],
+    "must_haves_met": true
+  },
+  "candidate_name": "Maria Santos",
+  "lines": [
+    [
+      0,
+      5,
+      "interviewer",
+      "Thanks for joining today. Could you walk me through your current role?",
+      0
+    ],
+    [
+      7,
+      22,
+      "candidate",
+      "I lead the ledger team at PayLane. We own the services that record every payment, and I spend most of my time on the storage layer and on reviewing designs.",
+      0
+    ],
+    [
+      24,
+      29,
+      "interviewer",
+      "Let's talk about system design. How would you design an idempotent payments API?",
+      1
+    ],
+    [
+      31,
+      51,
+      "candidate",
+      "Every write takes an idempotency key from the client. We store the key with the response in the same transaction as the ledger entry, so a retry returns the stored response instead of writing twice. Keys expire after a day.",
+      1
+    ],
+    [
+      53,
+      57,
+      "interviewer",
+      "What happens if the same request arrives twice at the same time?",
+      1
+    ],
+    [
+      59,
+      76,
+      "candidate",
+      "There is a unique index on the key, so the second insert fails and that request waits for the first and then reads the stored response. We never rely on application locks for this.",
+      1
+    ],
+    [
+      78,
+      83,
+      "interviewer",
+      "You mention sharding PostgreSQL. How did you choose the shard key?",
+      2
+    ],
+    [
+      85,
+      97,
+      "candidate",
+      "We shard by merchant ID, because almost every query is for one merchant, so reads stay on one shard and cross-shard joins are rare.",
+      2
+    ],
+    [
+      99,
+      103,
+      "interviewer",
+      "How did you deal with hot shards?",
+      2
+    ],
+    [
+      105,
+      118,
+      "candidate",
+      "Our biggest merchants created hot shards, so we split them into sub-shards with a lookup table. In hindsight I would have planned for that from day one.",
+      2
+    ],
+    [
+      120,
+      125,
+      "interviewer",
+      "Tell me about a production incident you handled.",
+      3
+    ],
+    [
+      127,
+      142,
+      "candidate",
+      "A migration locked a large table during peak hours and payments started timing out. I rolled it back within ten minutes, posted updates in the incident channel and wrote the review.",
+      3
+    ],
+    [
+      144,
+      148,
+      "interviewer",
+      "What changed afterwards?",
+      3
+    ],
+    [
+      150,
+      160,
+      "candidate",
+      "We now run big migrations online in small batches with a lock timeout, and the review checklist asks for that explicitly.",
+      3
+    ],
+    [
+      162,
+      167,
+      "interviewer",
+      "What would you like to know about the role?",
+      4
+    ],
+    [
+      169,
+      175,
+      "candidate",
+      "How does on-call work for this team, and how are incidents reviewed?",
+      4
+    ]
+  ],
+  "expect": {
+    "passed": [
+      1,
+      1
+    ]
+  },
+  "pair": "phrasing"
+}

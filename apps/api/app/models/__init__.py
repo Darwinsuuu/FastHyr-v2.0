@@ -2,6 +2,7 @@
 
 from app.models.ai import AICall, AIDecision
 from app.models.applications import Application, Candidate, ReviewLink
+from app.models.assessments import Assessment
 from app.models.audit import AuditLog
 from app.models.base import Base
 from app.models.credits import CreditBatch, CreditLedgerEntry
@@ -31,6 +32,7 @@ __all__ = [
     "AICall",
     "AIDecision",
     "Application",
+    "Assessment",
     "AuditLog",
     "Base",
     "Candidate",

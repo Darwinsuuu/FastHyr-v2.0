@@ -4,7 +4,7 @@
 |---|---|
 | Epic | DASH — Dashboard |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [PIPE-001](../PIPE/PIPE-001-pipeline-model-and-state-machine.md), [APPLY-003](../APPLY/APPLY-003-application-submission-and-credit-use.md), [INTV-007](../INTV/INTV-007-interview-lifecycle-resume-expiry-reminders-re-inv.md), [ASMT-001](../ASMT/ASMT-001-interview-scoring.md) |
 | Requirements | FR-DASH-02, FR-DASH-04, FR-PIPE-11, FR-CAND-03 |

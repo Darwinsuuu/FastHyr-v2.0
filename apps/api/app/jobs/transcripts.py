@@ -3,7 +3,7 @@
 `transcribe_interview` is queued by `finalize_recording` once the recording is ready, and again
 by `requeue_stuck_work` if Redis lost it (`services/transcripts.transcribe()`). Model and network
 errors are retried with backoff; after the last try the interview's `transcript_status` is
-`failed`.
+`failed`. A ready transcript queues `score_interview` (ASMT-001).
 """
 
 import uuid
@@ -17,7 +17,7 @@ from app.core.config import get_settings
 from app.integrations.storage import Storage
 from app.interview.recording import ffmpeg_path
 from app.jobs.framework import JobRun, RetryPolicy, job
-from app.services import transcripts
+from app.services import scoring, transcripts
 
 # Three 10-minute pieces, each taking up to a few minutes, plus the ffmpeg work.
 TRANSCRIBE_TIMEOUT = timedelta(minutes=20)
@@ -41,4 +41,6 @@ async def transcribe_interview(
         interview_id,
         ffmpeg=ffmpeg_path(get_settings().ffmpeg_path),
     )
+    if outcome is transcripts.Transcribed.READY:
+        await run.queue.enqueue(scoring.SCORE_JOB, workspace_id, interview_id, key=interview_id)
     return outcome.value

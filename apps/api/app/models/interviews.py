@@ -77,6 +77,13 @@ class Interview(Base):
             ),
         ),
         Index(
+            "interviews_assessment_pending_idx",
+            "transcribed_at",
+            postgresql_where=text(
+                "transcript_status = 'ready'::text AND assessment_status = 'none'::text"
+            ),
+        ),
+        Index(
             "interviews_recording_pending_idx",
             "completed_at",
             postgresql_where=text(
@@ -107,6 +114,7 @@ class Interview(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
     transcript_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
     transcribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    assessment_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
     feedback_rating: Mapped[int | None] = mapped_column(Integer)
     feedback_comment: Mapped[str | None] = mapped_column(Text)
     # Checked at commit: a re-invite points the old interview at the new one first (INTV-007).

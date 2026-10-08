@@ -6,3 +6,7 @@ so the app runs end to end without OpenAI (local development, CI, e2e).
 
 A prompt whose answer must mirror its input (one result per pipeline criterion, quotes taken from
 the résumé, as `resume_assessment@v1`) registers a builder in `app/ai/fakes.py` instead.
+
+`transcription@v1.json` is the fake transcript `FakeTranscriber` returns for every piece of
+interview audio (INTV-008): the lines of the web's scripted interview with diariser-style
+speaker labels, spread evenly over the piece's length.

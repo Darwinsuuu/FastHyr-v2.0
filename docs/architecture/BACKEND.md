@@ -67,8 +67,8 @@ apps/api/
 | `screen_resume(application_id)` | apply | extract → redact → score → decide; a pass queues `plan_interview`, a fail moves to `resume_not_match` and schedules the rejection (`services/post_screen.act()`, SCREEN-003) |
 | `plan_interview(application_id)` | screen pass | creates `interview_plans` (INTV-001; after the last failed try the failure hook stores the plain skills plan), then `services/post_screen.act()`: stage `invited`, an `interviews` row with its link token, invitation email (SCREEN-003; the failure hook invites too, and its email goes with the next `dispatch_scheduled_emails` tick) |
 | `run_realtime_session(workspace_id, attempt_id)` | `POST …/session` | holds the sideband to the attempt's Realtime call until it ends (INTV-004, `app/interview/sideband.py`): applies and guards the instructions, answers tool calls, wrap-up at 25 min, hangs up at the cap, logs the call's cost; timeout 35 min, a retry re-attaches without greeting again |
-| `finalize_recording(interview_id)` | interview complete | remux chunks → single file, extract audio/frames |
-| `transcribe_interview(interview_id)` | after finalize | authoritative transcript |
+| `finalize_recording(interview_id)` | interview complete | remux chunks → single file, extract audio/frames; records each attempt's place in the recording and, once `ready`, queues `transcribe_interview` (INTV-008) |
+| `transcribe_interview(workspace_id, interview_id)` | after finalize | authoritative transcript (INTV-008, `services/transcripts.py`): `audio.m4a` cut at silences into ≤ 10-minute pieces, diarised by `OPENAI_TRANSCRIBE_MODEL`, mapped to interviewer/candidate/other and topics from `interview_events`, stored in `transcript_segments`; 4 tries, then `transcript_status = failed`; timeout 20 min; `requeue_stuck_work` re-queues ready recordings still without one |
 | `score_interview(interview_id)` | after transcribe | assessment + stage |
 | `check_integrity(interview_id)` | after transcribe (if enabled) | flags |
 | `send_email(message_id)` | scheduled time | sends the already-rendered row through Resend (Mailpit locally); FND-010 |
@@ -82,7 +82,7 @@ apps/api/
 | cron `retention_purge` | daily | `compliance/PRIVACY.md` |
 | cron `remove_storage_orphans` | daily 03:25 UTC | deletes temp uploads (`tmp/`) and demo files older than 24 h (FND-011); later tasks add files whose rows are gone |
 | cron `purge_demo_sessions` | hourly | |
-| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); résumé screens and interview plans (SCREEN-001, INTV-001); screened applications still `processing_resume` 10 min after the screen (SCREEN-003: a fail re-runs `screen_resume`, a pass with its plan re-runs `plan_interview`; both skip finished steps); applications/interviews in processing states (their tasks) |
+| cron `requeue_stuck_work` | every 10 min | re-enqueue work stuck in a waiting state: report jobs still queued after 10 min (FND-008); résumé screens and interview plans (SCREEN-001, INTV-001); screened applications still `processing_resume` 10 min after the screen (SCREEN-003: a fail re-runs `screen_resume`, a pass with its plan re-runs `plan_interview`; both skip finished steps); ready recordings whose transcript is still `none`/`processing` 10 min after the interview completed (INTV-008); applications/interviews in processing states (their tasks) |
 
 ### How jobs work (FND-008)
 - **Worker:** `app/worker.py` `WorkerSettings` lists every function and cron; run it with `python -m app.worker` (`make worker` locally). Crons run at different minutes of the hour (`expire_credit_batches` :05, `expire_invites` :15; daily `remove_storage_orphans` 03:25 UTC) and are `unique`, so several workers run each tick once.

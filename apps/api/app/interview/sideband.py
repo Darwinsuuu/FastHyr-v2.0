@@ -17,6 +17,9 @@ call's events and to the clock:
   goodbye, and at the cap the call is hung up (`time_cap`).
 - A closed socket that can't be re-attached means the call is over: the attempt ends as
   `disconnect` (or `error` if the browser never reported a connection).
+- The call's timeline goes to `interview_events` for the transcript (INTV-008): each
+  interviewer response (when its audio started and stopped, and its own transcript of what it
+  said) and each accepted `set_topic`. Nothing the candidate says is stored.
 
 One `ai_calls` row per run records the tokens the call used, its audio seconds and its cost.
 Nothing here logs what was said.
@@ -40,6 +43,7 @@ from app.ai.realtime import RealtimeProvider, RealtimeUnavailableError, Sideband
 from app.models import AICall, Interview, InterviewAttempt
 from app.repositories import ai_calls
 from app.repositories.interviews import InterviewAttemptRepository
+from app.repositories.transcripts import InterviewEventRepository
 from app.services import interview_sessions as sessions
 
 logger = logging.getLogger("app.interview")
@@ -96,7 +100,18 @@ class Usage:
 
 
 @dataclass
+class _Speech:
+    """One interviewer response as the call reports it."""
+
+    at: datetime
+    ended_at: datetime | None = None
+    text: str | None = None
+    saved: bool = False
+
+
+@dataclass
 class _State:
+    interview_id: Any
     instructions: interviewer.Instructions
     topic_count: int
     deadline: datetime
@@ -115,6 +130,7 @@ class _State:
     tampers: int = 0
     continue_after_response: bool = False
     usage: Usage = field(default_factory=Usage)
+    speech: dict[str, _Speech] = field(default_factory=dict)
 
 
 def _now() -> datetime:
@@ -136,6 +152,7 @@ class SessionController:
         self.session = session
         self.realtime = realtime
         self.attempts = InterviewAttemptRepository(session, workspace_id)
+        self.events = InterviewEventRepository(session, workspace_id)
         self.attempt_id = attempt_id
         self.prices = prices or {}
         self.timing = timing or Timing()
@@ -158,6 +175,7 @@ class SessionController:
         )
         call_id = attempt.realtime_session_id
         state = _State(
+            interview_id=attempt.interview_id,
             instructions=prepared.instructions,
             topic_count=len(prepared.topics),
             deadline=sessions.deadline(attempt),
@@ -178,6 +196,7 @@ class SessionController:
             reason = await self._loop(sideband, state, call_id)
         finally:
             await sideband.close()
+            await self._save_unfinished_speech(state)
             await self._log_usage(state, started, ok=reason != "error")
         return reason
 
@@ -263,6 +282,8 @@ class SessionController:
 
     async def _handle(self, sideband: Sideband, state: _State, event: dict[str, Any]) -> str | None:
         kind = event.get("type")
+        if isinstance(kind, str) and kind in _SPEECH_EVENTS:
+            await self._speech(state, kind, event)
         if kind == "response.function_call_arguments.done":
             return await self._tool_call(sideband, state, event)
         if kind == "response.done":
@@ -308,7 +329,7 @@ class SessionController:
         if name == "set_topic":
             number = arguments.get("number")
             if isinstance(number, int) and 1 <= number <= state.topic_count:
-                await self._reach_topic(number - 1)
+                await self._reach_topic(state, number - 1)
                 state.continue_after_response = True
             else:
                 output = {"ok": False, "error": f"number must be 1 to {state.topic_count}"}
@@ -394,11 +415,54 @@ class SessionController:
         await self.session.rollback()
         return ended
 
-    async def _reach_topic(self, index: int) -> None:
+    async def _reach_topic(self, state: _State, index: int) -> None:
         attempt = await self._attempt(lock=True)
         if attempt is not None and (attempt.topic_index is None or index > attempt.topic_index):
             attempt.topic_index = index
+        self.events.add_topic(state.interview_id, self.attempt_id, index, self.clock())
         await self.session.commit()
+
+    async def _speech(self, state: _State, kind: str, event: dict[str, Any]) -> None:
+        """Follows one interviewer response: its audio starting (or, if the call doesn't say,
+        its first words), its words, and its audio stopping. Stored once it stopped, and again
+        if its words arrive after that."""
+        ref = event.get("response_id")
+        if not isinstance(ref, str) or not ref:
+            return
+        now = self.clock()
+        speech = state.speech.get(ref)
+        if speech is None:
+            if kind in ("output_audio_buffer.stopped", "response.output_audio_transcript.done"):
+                return  # an end with no start: nothing to place in time
+            speech = state.speech[ref] = _Speech(at=now)
+        if kind == "output_audio_buffer.started" and not speech.saved:
+            speech.at = now  # the audio itself, rather than its words, if both arrive
+        elif kind == "response.output_audio_transcript.done":
+            transcript = event.get("transcript")
+            speech.text = transcript.strip() if isinstance(transcript, str) else speech.text
+            if speech.saved:
+                await self._save_speech(state, ref, speech)
+        elif kind == "output_audio_buffer.stopped" and speech.ended_at is None:
+            speech.ended_at = now
+            await self._save_speech(state, ref, speech)
+
+    async def _save_speech(self, state: _State, ref: str, speech: _Speech) -> None:
+        await self.events.save_speech(
+            state.interview_id,
+            self.attempt_id,
+            ref,
+            at=speech.at,
+            ended_at=speech.ended_at,
+            text=speech.text or None,
+        )
+        await self.session.commit()
+        speech.saved = True
+
+    async def _save_unfinished_speech(self, state: _State) -> None:
+        """Responses still playing when the call ended are kept without an end."""
+        for ref, speech in state.speech.items():
+            if not speech.saved:
+                await self._save_speech(state, ref, speech)
 
     async def _mark_wrap_up(self, now: datetime) -> None:
         attempt = await self._attempt(lock=True)
@@ -456,6 +520,16 @@ class SessionController:
             status="ok" if ok else "error",
         )
         await ai_calls.add(self.session, call)
+
+
+_SPEECH_EVENTS = frozenset(
+    {
+        "output_audio_buffer.started",
+        "response.output_audio_transcript.delta",
+        "response.output_audio_transcript.done",
+        "output_audio_buffer.stopped",
+    }
+)
 
 
 def _foreign(item: dict[str, Any]) -> bool:

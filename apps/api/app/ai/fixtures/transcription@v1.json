@@ -1,0 +1,11 @@
+{
+  "segments": [
+    {"speaker": "A", "text": "Hi, I'm the AI interviewer. Thanks for making time today. This is a relaxed conversation about your experience, and you can ask me about the role along the way. Ready to start?"},
+    {"speaker": "B", "text": "Yes, ready. Thanks for having me."},
+    {"speaker": "A", "text": "Great. To warm up, tell me a bit about what you're working on right now."},
+    {"speaker": "B", "text": "I lead a small platform team. We run the services behind payments, mostly Go and PostgreSQL."},
+    {"speaker": "A", "text": "Your résumé says you migrated 40 services to Kubernetes. How did you decide what to move first?"},
+    {"speaker": "B", "text": "We started with the stateless services that had the best test coverage."},
+    {"speaker": "A", "text": "That makes sense. Looking back, what would you do differently next time?"}
+  ]
+}

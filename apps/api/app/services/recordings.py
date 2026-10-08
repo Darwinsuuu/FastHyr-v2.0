@@ -12,6 +12,8 @@ the chunks. The last chunk's registration queues it; the every-minute `finalize_
 queues the rest (`due()`).
 
 `recording_status`: `none` → `uploading` (first chunk) → `finalizing` → `ready` or `failed`.
+A ready recording also records where each attempt sits in it (`recording_offset_ms`,
+`recording_ms`), and the job then queues the transcript (INTV-008).
 """
 
 import logging
@@ -248,7 +250,9 @@ async def finalize(
     order = {attempt.id: index for index, attempt in enumerate(history)}
     with tempfile.TemporaryDirectory(prefix="recording-") as folder:
         workdir = Path(folder)
-        parts = await _download_parts(storage, workspace_id, interview_id, order, workdir)
+        attempt_ids, parts = await _download_parts(
+            storage, workspace_id, interview_id, order, workdir
+        )
         built = await recording.build(ffmpeg, parts, workdir, video=video) if parts else None
         if built is None:
             await _mark_failed(session, attempts, interview_id)
@@ -283,6 +287,11 @@ async def finalize(
     interview.recording_path = recording_path
     interview.recording_status = "ready"
     interview.duration_seconds = built.duration_seconds
+    placed = {attempt_ids[place.part]: place for place in built.placed}
+    for attempt in await attempts.of_interview(interview_id):
+        place = placed.get(attempt.id)
+        attempt.recording_offset_ms = place.offset_ms if place else None
+        attempt.recording_ms = place.length_ms if place else None
     await RecordingChunkRepository(session, workspace_id).delete_of_interview(interview_id)
     await session.commit()
     await _delete_chunks(storage, workspace_id, interview_id)
@@ -312,10 +321,10 @@ async def _download_parts(
     interview_id: uuid.UUID,
     order: dict[uuid.UUID, int],
     workdir: Path,
-) -> list[recording.Part]:
+) -> tuple[list[uuid.UUID], list[recording.Part]]:
     """Each attempt's chunks from Storage, joined byte for byte in order into one file per
-    attempt. Storage is the source, not the registrations: a chunk that uploaded but whose tab
-    closed before registering it still counts."""
+    attempt, with the attempt each file is. Storage is the source, not the registrations: a
+    chunk that uploaded but whose tab closed before registering it still counts."""
     folder = recording_chunks_folder(workspace_id, interview_id)
     found: dict[uuid.UUID, list[tuple[int, str, recording.Kind]]] = {}
     for stored in await storage.list(Bucket.RECORDINGS, folder):
@@ -325,6 +334,7 @@ async def _download_parts(
         attempt_id, seq, kind = chunk
         found.setdefault(attempt_id, []).append((seq, stored.path, kind))
 
+    attempt_ids: list[uuid.UUID] = []
     parts: list[recording.Part] = []
     for attempt_id in sorted(found, key=order.__getitem__):
         chunks = sorted(found[attempt_id])
@@ -337,7 +347,8 @@ async def _download_parts(
             for _, path, _ in chunks:
                 joined.write(await storage.download(Bucket.RECORDINGS, path))
         parts.append(recording.Part(path=target, kind=kinds.pop()))
-    return parts
+        attempt_ids.append(attempt_id)
+    return attempt_ids, parts
 
 
 def _parse_chunk(path: str, folder: str) -> tuple[uuid.UUID, int, recording.Kind] | None:

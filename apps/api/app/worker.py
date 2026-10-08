@@ -14,6 +14,7 @@ from arq.worker import Function, func
 
 from app.ai.client import ai_client_from_settings
 from app.ai.realtime import realtime_from_settings
+from app.ai.transcription import transcriber_from_settings
 from app.core.config import get_settings
 from app.core.db import create_engine, create_sessionmaker
 from app.core.logging import configure_logging
@@ -37,6 +38,7 @@ from app.jobs.system import (
     remove_storage_orphans,
     requeue_stuck_work,
 )
+from app.jobs.transcripts import TRANSCRIBE_TIMEOUT, transcribe_interview
 
 EVERY_10_MINUTES = {0, 10, 20, 30, 40, 50}
 
@@ -59,6 +61,8 @@ FUNCTIONS: list[Function] = [
     register(run_realtime_session, timeout=SIDEBAND_TIMEOUT),
     # Joins an interview's recording chunks with ffmpeg (INTV-006).
     register(finalize_recording, timeout=FINALIZE_TIMEOUT),
+    # The authoritative transcript from the recording's audio (INTV-008).
+    register(transcribe_interview, timeout=TRANSCRIBE_TIMEOUT),
 ]
 
 CRON_JOBS: list[CronJob] = [
@@ -88,12 +92,14 @@ async def startup(ctx: dict[str, Any]) -> None:
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests pass a fake email sender, storage, AI client or Realtime provider, and their own
+    # Tests pass a fake email sender, storage, AI client, Realtime provider or transcriber, and
+    # their own
     # queue's name in `ctx`.
     ctx.setdefault("email_sender", sender_from_settings(settings))
     ctx.setdefault("storage", storage_from_settings(settings))
     ctx.setdefault("ai", ai_client_from_settings(settings, ctx["sessionmaker"]))
     ctx.setdefault("realtime", realtime_from_settings(settings))
+    ctx.setdefault("transcriber", transcriber_from_settings(settings, ctx["sessionmaker"]))
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 

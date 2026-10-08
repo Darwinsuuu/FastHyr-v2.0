@@ -14,6 +14,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    literal_column,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -68,6 +69,14 @@ class Interview(Base):
         ),
         Index("interviews_status_expires_at_idx", "status", "expires_at"),
         Index(
+            "interviews_transcript_pending_idx",
+            "completed_at",
+            postgresql_where=text(
+                "recording_status = 'ready'::text AND transcript_status = ANY "
+                "(ARRAY['none'::text, 'processing'::text])"
+            ),
+        ),
+        Index(
             "interviews_recording_pending_idx",
             "completed_at",
             postgresql_where=text(
@@ -96,6 +105,8 @@ class Interview(Base):
     recording_path: Mapped[str | None] = mapped_column(Text)
     recording_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    transcript_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
+    transcribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     feedback_rating: Mapped[int | None] = mapped_column(Integer)
     feedback_comment: Mapped[str | None] = mapped_column(Text)
     # Checked at commit: a re-invite points the old interview at the new one first (INTV-007).
@@ -140,6 +151,9 @@ class InterviewAttempt(Base):
     wrap_up_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     recording_type: Mapped[str | None] = mapped_column(Text)
     recording_stopped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Where the attempt sits in the final recording (INTV-008); null = left out of it.
+    recording_offset_ms: Mapped[int | None] = mapped_column(Integer)
+    recording_ms: Mapped[int | None] = mapped_column(Integer)
 
 
 class RecordingChunk(Base):
@@ -170,3 +184,73 @@ class RecordingChunk(Base):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class InterviewEvent(Base):
+    """What the sideband saw during an attempt, on the server clock (INTV-008): the interviewer
+    speaking (`ai_speech`, with its own words) and topic changes (`topic`). The transcript job
+    uses them to tell the interviewer's voice apart and to place segments in topics."""
+
+    __tablename__ = "interview_events"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "interview_id"],
+            ["interviews.workspace_id", "interviews.id"],
+            name="interview_events_interview_fkey",
+            ondelete="CASCADE",
+        ),
+        Index("interview_events_interview_id_at_idx", "interview_id", "at"),
+        Index(
+            "interview_events_attempt_id_ref_key",
+            "attempt_id",
+            "ref",
+            unique=True,
+            postgresql_where=text("ref IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    interview_id: Mapped[uuid.UUID] = mapped_column()
+    attempt_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("interview_attempts.id", ondelete="CASCADE")
+    )
+    kind: Mapped[str] = mapped_column(Text)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ref: Mapped[str | None] = mapped_column(Text)
+    text: Mapped[str | None] = mapped_column(Text)
+    topic_index: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = created_at_column()
+
+
+class TranscriptSegment(Base):
+    """One line of the authoritative transcript (INTV-008, FR-ASMT-01), timed against the final
+    recording. The transcribe_interview job replaces an interview's segments whole."""
+
+    __tablename__ = "transcript_segments"
+    __table_args__ = (
+        UniqueConstraint("interview_id", "seq", name="transcript_segments_interview_id_seq_key"),
+        ForeignKeyConstraint(
+            ["workspace_id", "interview_id"],
+            ["interviews.workspace_id", "interviews.id"],
+            name="transcript_segments_interview_fkey",
+            ondelete="CASCADE",
+        ),
+        Index("transcript_segments_interview_id_start_ms_idx", "interview_id", "start_ms"),
+        Index(
+            "transcript_segments_text_search_idx",
+            func.to_tsvector(literal_column("'english'::regconfig"), text("text")),
+            postgresql_using="gin",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    interview_id: Mapped[uuid.UUID] = mapped_column()
+    seq: Mapped[int] = mapped_column(Integer)
+    start_ms: Mapped[int] = mapped_column(Integer)
+    end_ms: Mapped[int] = mapped_column(Integer)
+    speaker: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text)
+    topic_index: Mapped[int | None] = mapped_column(Integer)

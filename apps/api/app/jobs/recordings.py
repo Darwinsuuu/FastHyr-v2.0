@@ -1,7 +1,8 @@
 """Interview recording jobs (INTV-006, MEDIA.md §3).
 
 `finalize_recording` joins a completed interview's chunks into its recording, audio track and
-poster, then deletes the chunks (`services/recordings.finalize()`). The registration of an
+poster, then deletes the chunks (`services/recordings.finalize()`), and queues the transcript
+(`transcribe_interview`, INTV-008) once the recording is ready. The registration of an
 interview's last chunk queues it at once; `finalize_recordings` runs every minute and queues
 every recording that is due, including those whose browser closed before saying it was done and
 those whose enqueue Redis lost. A run before the recording is due does nothing.
@@ -17,7 +18,7 @@ from app.core.config import get_settings
 from app.integrations.storage import Storage
 from app.interview.recording import FFMPEG_TIMEOUT_SECONDS, ffmpeg_path
 from app.jobs.framework import NO_RETRY, JobRun, RetryPolicy, job
-from app.services import recordings
+from app.services import recordings, transcripts
 
 # Room for downloading the chunks, a re-encode in the worst case, and the uploads.
 FINALIZE_TIMEOUT = timedelta(seconds=FFMPEG_TIMEOUT_SECONDS + 10 * 60)
@@ -37,6 +38,10 @@ async def finalize_recording(run: JobRun, workspace_id: uuid.UUID, interview_id:
         interview_id,
         ffmpeg=ffmpeg_path(get_settings().ffmpeg_path),
     )
+    if outcome is recordings.Finalized.READY:
+        await run.queue.enqueue(
+            transcripts.TRANSCRIBE_JOB, workspace_id, interview_id, key=interview_id
+        )
     return outcome.value
 
 

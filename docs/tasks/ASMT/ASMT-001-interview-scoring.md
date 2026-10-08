@@ -4,7 +4,7 @@
 |---|---|
 | Epic | ASMT — Assessment & review |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [INTV-008](../INTV/INTV-008-authoritative-transcription.md), [FND-013](../FND/FND-013-openai-integration-layer.md) |
 | Requirements | FR-ASMT-02, FR-ASMT-03, FR-ASMT-04, FR-ASMT-05, FR-ASMT-09 |

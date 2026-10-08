@@ -111,6 +111,9 @@ services:
         fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_TEXT_MODEL }
       - key: OPENAI_REALTIME_MODEL
         fromService: { type: web, name: fasthyr-api-dev, envVarKey: OPENAI_REALTIME_MODEL }
+      # The interview transcript (INTV-008) runs only in the worker: gpt-4o-transcribe-diarize.
+      - key: OPENAI_TRANSCRIBE_MODEL
+        sync: false
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -217,6 +220,9 @@ services:
         fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_TEXT_MODEL }
       - key: OPENAI_REALTIME_MODEL
         fromService: { type: web, name: fasthyr-api-qa, envVarKey: OPENAI_REALTIME_MODEL }
+      # The interview transcript (INTV-008) runs only in the worker: gpt-4o-transcribe-diarize.
+      - key: OPENAI_TRANSCRIBE_MODEL
+        sync: false
       - key: REDIS_URL
         fromService:
           type: keyvalue

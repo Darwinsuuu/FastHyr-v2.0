@@ -115,6 +115,7 @@ One-time steps in the owner's accounts for development (`develop`) and QA (`rele
 | `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` | step 6 |
 | `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL` | OpenAI project key with a spend limit, and the text model name (FND-013) |
 | `OPENAI_REALTIME_MODEL`, `OPENAI_CAPTION_MODEL` | the Realtime model for live interviews and the transcription model for live captions (INTV-004; the worker copies the Realtime model at creation, so set it there by hand if it changes) |
+| `OPENAI_TRANSCRIBE_MODEL` | worker only: the diarising transcription model for the authoritative interview transcript (`gpt-4o-transcribe-diarize`, INTV-008); add `{"per_minute": …}` or token prices for it to `OPENAI_PRICES` to log its cost. Empty = transcripts wait (the job retries, then marks them failed) |
 | `SENTRY_DSN` | the api Sentry project on `fasthyr-api-*`, the worker project on `fasthyr-worker-*` (§5) |
 
 `FFMPEG_PATH` (optional) points the worker at a system ffmpeg for joining interview recordings (INTV-006); left unset, it uses the static binary that comes with the `imageio-ffmpeg` package, so nothing extra is installed on Render.

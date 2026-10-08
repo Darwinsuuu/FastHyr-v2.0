@@ -4,7 +4,7 @@
 |---|---|
 | Epic | ASMT — Assessment & review |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [INTV-008](../INTV/INTV-008-authoritative-transcription.md) |
 | Requirements | FR-ASMT-06 |

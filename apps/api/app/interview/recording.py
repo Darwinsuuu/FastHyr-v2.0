@@ -53,6 +53,15 @@ class Probe:
 
 
 @dataclass(frozen=True)
+class Placed:
+    """Where one attempt landed in the recording (INTV-008 maps call times onto it)."""
+
+    part: int  # its index in the parts `build()` was given
+    offset_ms: int
+    length_ms: int
+
+
+@dataclass(frozen=True)
 class Built:
     recording: Path
     kind: Kind
@@ -60,6 +69,7 @@ class Built:
     audio: Path | None
     poster: Path | None
     duration_seconds: int
+    placed: tuple[Placed, ...] = ()
 
 
 def content_type(kind: Kind, video: bool) -> str:
@@ -231,17 +241,25 @@ async def build(ffmpeg: str, parts: list[Part], workdir: Path, *, video: bool) -
     left out; None when none can be read. `video` is the interview's format (voice-only
     interviews record audio only)."""
     usable: list[tuple[Path, Kind]] = []
+    kept: list[int] = []
     for index, part in enumerate(parts):
         remuxed = await remux(ffmpeg, part, workdir / f"attempt-{index}")
         if remuxed is None:
             logger.warning("recording attempt %d could not be read; left out", index)
             continue
         usable.append((remuxed, part.kind))
+        kept.append(index)
     if not usable:
         return None
 
     files = [path for path, _ in usable]
     probes = [await probe(ffmpeg, path) for path in files]
+    placed: list[Placed] = []
+    offset_ms = 0
+    for index, found in zip(kept, probes, strict=True):
+        length_ms = round((found.duration or 0) * 1000)
+        placed.append(Placed(part=index, offset_ms=offset_ms, length_ms=length_ms))
+        offset_ms += length_ms
     with_video = video and all(found.video for found in probes)
     recording, kind = await _join(ffmpeg, usable, probes, workdir / "recording", video=with_video)
     final = await probe(ffmpeg, recording)
@@ -299,6 +317,7 @@ async def build(ffmpeg: str, parts: list[Part], workdir: Path, *, video: bool) -
         audio=audio,
         poster=poster,
         duration_seconds=round(duration),
+        placed=tuple(placed),
     )
 
 
@@ -317,6 +336,62 @@ async def _join(
         except FfmpegError:
             logger.info("recording attempts could not be joined as they are; re-encoding")
     return await concat_encode(ffmpeg, files, probes, out, video=video), "mp4"
+
+
+_SILENCE_START = re.compile(r"silence_start: (-?\d+(?:\.\d+)?)")
+_SILENCE_END = re.compile(r"silence_end: (-?\d+(?:\.\d+)?)")
+
+
+async def silences(
+    ffmpeg: str, path: Path, *, noise_db: int = -35, min_seconds: float = 0.5
+) -> list[tuple[float, float]]:
+    """The quiet stretches of an audio file, as (start, end) seconds (INTV-008 cuts long audio
+    for transcription in them)."""
+    stderr = await run_ffmpeg(
+        ffmpeg,
+        "-i",
+        str(path),
+        "-af",
+        f"silencedetect=noise={noise_db}dB:d={min_seconds}",
+        "-f",
+        "null",
+        "-",
+    )
+    found: list[tuple[float, float]] = []
+    start: float | None = None
+    for line in stderr.splitlines():
+        if match := _SILENCE_START.search(line):
+            start = max(0.0, float(match.group(1)))
+        elif (match := _SILENCE_END.search(line)) and start is not None:
+            found.append((start, float(match.group(1))))
+            start = None
+    return found
+
+
+async def cut(ffmpeg: str, path: Path, start: float, end: float, out: Path) -> Path:
+    """`start` … `end` seconds of an audio file as mono AAC (re-encoded, so the piece starts
+    exactly where asked and its timestamps line up with the recording's)."""
+    await run_ffmpeg(
+        ffmpeg,
+        "-y",
+        "-v",
+        "error",
+        "-i",
+        str(path),
+        "-ss",
+        f"{start:.3f}",
+        "-t",
+        f"{end - start:.3f}",
+        "-vn",
+        "-ac",
+        "1",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "64k",
+        str(out),
+    )
+    return out
 
 
 def ffmpeg_path(configured: str) -> str:

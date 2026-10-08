@@ -5,7 +5,8 @@ pieces of checked evidence, and counterfactual pairs score within ±5 on communi
 answers with different personal details (name, gender, age, family, origin), and the same
 answers in native and non-native phrasing.
 
-    AI_EVAL=1 OPENAI_API_KEY=… OPENAI_TEXT_MODEL=… uv run pytest tests/ai_eval -k interview
+    AI_EVAL=1 OPENAI_API_KEY=… OPENAI_TEXT_MODEL=… \
+        uv run pytest tests/ai_eval/test_interview_assessment.py
 
 Each case gives the context (`app.interview.assessment.Context`), the candidate's name for
 masking, and the transcript as `[start s, end s, speaker, text, topic]` lines.

@@ -15,7 +15,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
-| M5 Review | 18 | 1 |
+| M5 Review | 18 | 2 |
 | M6 Billing & analytics | 7 | 0 |
 | M7 Public site & demo | 6 | 0 |
 | M8 Launch readiness | 6 | 0 |
@@ -109,7 +109,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [PIPE-010](PIPE/PIPE-010-pipelines-report-pdf.md) | Pipelines report PDF | M | DASH-003, FND-008 | Backlog | |
 | [SCREEN-004](SCREEN/SCREEN-004-unreadable-resumes-and-manual-invite.md) | Unreadable résumés and manual invite | S | SCREEN-003, PIPE-008 | Backlog | |
 | [ASMT-001](ASMT/ASMT-001-interview-scoring.md) | Interview scoring | L | INTV-008, FND-013 | Done | #49 |
-| [ASMT-002](ASMT/ASMT-002-integrity-checks-worker.md) | Integrity checks (worker) | L | INTV-008 | Ready | |
+| [ASMT-002](ASMT/ASMT-002-integrity-checks-worker.md) | Integrity checks (worker) | L | INTV-008 | Done | #50 |
 | [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Backlog | |
 | [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Backlog | |
 | [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Backlog | |
@@ -148,7 +148,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 
 | ID | Task | Size | Depends on | Status | PR |
 |---|---|---|---|---|---|
-| [COMP-001](COMP/COMP-001-ai-decision-log-and-audit-log-coverage.md) | AI decision log and audit log coverage | M | SCREEN-002, ASMT-001, ASMT-002 | Backlog | |
+| [COMP-001](COMP/COMP-001-ai-decision-log-and-audit-log-coverage.md) | AI decision log and audit log coverage | M | SCREEN-002, ASMT-001, ASMT-002 | Ready | |
 | [COMP-003](COMP/COMP-003-candidate-data-deletion-and-retention.md) | Candidate data deletion and retention | M | CAND-001, FND-011 | Backlog | |
 | [COMP-004](COMP/COMP-004-bias-evaluation-suite.md) | Bias evaluation suite | M | SCREEN-002, ASMT-001, AVA-001 | Backlog | |
 | [REL-001](REL/REL-001-end-to-end-test-suite.md) | End-to-end test suite | M | ASMT-007, BILL-005 | Backlog | |

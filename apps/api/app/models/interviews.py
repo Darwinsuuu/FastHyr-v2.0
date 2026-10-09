@@ -84,6 +84,13 @@ class Interview(Base):
             ),
         ),
         Index(
+            "interviews_integrity_pending_idx",
+            "transcribed_at",
+            postgresql_where=text(
+                "transcript_status = 'ready'::text AND integrity_status = 'none'::text"
+            ),
+        ),
+        Index(
             "interviews_recording_pending_idx",
             "completed_at",
             postgresql_where=text(
@@ -115,6 +122,10 @@ class Interview(Base):
     transcript_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
     transcribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     assessment_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
+    # ASMT-002: none | ready | off | failed, and which checks ran (services/integrity.py).
+    integrity_status: Mapped[str] = mapped_column(Text, server_default=text("'none'::text"))
+    integrity_checks: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    integrity_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     feedback_rating: Mapped[int | None] = mapped_column(Integer)
     feedback_comment: Mapped[str | None] = mapped_column(Text)
     # Checked at commit: a re-invite points the old interview at the new one first (INTV-007).

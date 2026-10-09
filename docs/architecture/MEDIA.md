@@ -57,12 +57,14 @@ Browser                                  FastAPI (+ worker)                     
 - Segments are stored whole in `transcript_segments` (`seq` order, times in ms of the recording) in one transaction with `ready`; a rerun replaces them. Scoring (ASMT-001) queues after it.
 
 ## 5. Integrity checks (worker, ADR-016)
-- **Frames:** ffmpeg samples one frame every 2 s (video format).
-- **Faces:** local face-detection + embedding model; reference = embedding cluster from the first 60 s; flag `different_face` when a frame's embedding distance exceeds the threshold for ≥ 3 consecutive samples; flag `no_face` for ≥ 20 s without a face.
-- **Voices:** third-speaker segments from diarisation ≥ 3 s → `second_voice`.
+`check_integrity` (ASMT-002, `services/integrity.py`) runs once the transcript is ready, next to scoring, when the pipeline's "Flag possible impersonation" (`integrity_enabled`) is on; with it off nothing runs (`interviews.integrity_status = off`).
+- **Frames:** the recording is streamed to a temporary folder; ffmpeg decodes one frame every 2 s, scaled to at most 640 px wide, and pipes the raw frames straight into the worker's memory (`app/integrity/faces.py`). No frame is written anywhere.
+- **Faces:** OpenCV's YuNet detector and SFace recogniser (OpenCV Model Zoo, MIT / Apache-2.0, weights committed in `apps/api/app/integrity/weights/`) run locally on the CPU and give the embedding of the largest clear face in each frame. Reference = the medoid of the first 60 s of faces averaged with the faces that match it; flag `different_face` when the face's cosine similarity to it stays under SFace's 0.363 for ≥ 3 consecutive samples; flag `no_face` for ≥ 20 s without a face.
+- **Voices:** transcript speech the diariser gave to a third voice (`other`), joined across gaps up to 2 s, ≥ 3 s → `second_voice`.
 - **Read-aloud / timing:** see `AI_PIPELINE.md` §5.
-- Embeddings and frames are kept in memory/temp only and deleted after the job. Only flag rows persist.
-- Candidates who did not give biometric consent (where required) → face checks skipped; noted on the profile ("Face check not run").
+- Thresholds: `app/integrity/config.py` (`integrity_rules@v1`).
+- Embeddings live only in the job's memory and the recording copy in a temp folder deleted when the face check ends. Only flag rows persist (numbers and times; never an embedding).
+- Video interviews without biometric consent → face checks skipped; `interviews.integrity_checks.face = no_consent` so the profile can say "Face check not run" (also `voice_only`, `no_video`).
 
 ## 6. Demo differences
 - Uses the same client code with `mode = demo`: no recording upload, no transcription job, no scoring; 10-minute cap; session data hard-deleted.

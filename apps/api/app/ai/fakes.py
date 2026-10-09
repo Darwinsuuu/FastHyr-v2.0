@@ -214,8 +214,27 @@ def interview_assessment(variables: dict[str, str]) -> dict[str, Any]:
     }
 
 
+_WINDOW = re.compile(r"^Window (\d+) ", re.MULTILINE)
+
+
+def integrity_read_aloud(variables: dict[str, str]) -> dict[str, Any]:
+    """Nothing sounded read aloud: local runs and e2e raise no read-aloud flags."""
+    return {
+        "windows": [
+            {
+                "window": int(number),
+                "read_aloud": False,
+                "confidence": 0.3,
+                "rationale": "The answer sounds spoken freely, with personal specifics.",
+            }
+            for number in _WINDOW.findall(variables["windows"])
+        ]
+    }
+
+
 BUILDERS: dict[str, Callable[[dict[str, str]], dict[str, Any]]] = {
     "resume_assessment@v1": resume_assessment,
     "interview_plan@v1": interview_plan,
     "interview_assessment@v1": interview_assessment,
+    "integrity_read_aloud@v1": integrity_read_aloud,
 }

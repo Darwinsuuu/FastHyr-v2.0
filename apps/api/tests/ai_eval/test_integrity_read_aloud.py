@@ -50,7 +50,10 @@ async def judge_all(cases: list[tuple[str, dict[str, Any]]]) -> dict[str, int]:
             known = [case["candidate_name"]]
             try:
                 found = await read_aloud.judge(
-                    client, windows, base, mask=lambda text: redact_rules(text, known).text
+                    client,
+                    windows,
+                    base,
+                    mask=lambda text, known=known: redact_rules(text, known).text,
                 )
             except AIOutputError as error:
                 raise AssertionError(f"{name}: answer unusable twice") from error

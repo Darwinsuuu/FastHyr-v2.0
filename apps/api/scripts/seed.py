@@ -235,6 +235,16 @@ def pipeline_setup(sample: SamplePipeline, index: int, now: datetime) -> dict[st
     }
 
 
+def ended_at(sample: SamplePipeline, pipeline: Pipeline, now: datetime) -> datetime:
+    """When a sample pipeline closed or was cancelled: on its date when it closed on schedule,
+    some weeks before its date when closed by hand, and a few weeks ago when cancelled."""
+    if sample.status == "cancelled" or pipeline.closes_at is None:
+        return now - timedelta(days=21)
+    if sample.title in CLOSED_ON_SCHEDULE:
+        return pipeline.closes_at
+    return pipeline.closes_at - timedelta(days=12)
+
+
 PLAN_CREDITS = 300
 # Frame CreditUsage: 1,640 available, 110 of them left in the plan, the rest in a credit pack.
 EXTRA_LEFT = 1530
@@ -462,6 +472,8 @@ async def seed_credits(
         if sample.status == "closed":
             closed_on_schedule = sample.title in CLOSED_ON_SCHEDULE
             pipelines[sample.title].closed_reason = "schedule" if closed_on_schedule else "manual"
+        if sample.status in {"closed", "cancelled"}:
+            pipelines[sample.title].ended_at = ended_at(sample, pipelines[sample.title], now)
     await session.commit()
 
 

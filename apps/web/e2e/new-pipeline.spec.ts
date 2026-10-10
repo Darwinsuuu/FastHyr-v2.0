@@ -109,6 +109,22 @@ test("the wizard needs 3 must-haves and 3 skills, and a saved draft reloads ever
   }
   await expect(page.getByRole("switch", { name: /Remind candidates/ })).not.toBeChecked();
   await expect(page.getByRole("switch", { name: /Flag possible impersonation/ })).toBeChecked();
+
+  // The Pipelines list keeps the draft under Drafts, and Continue setup reopens it (PIPE-004).
+  const editUrl = page.url();
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "Pipelines" })
+    .click();
+  await expect(page.getByRole("heading", { name: "Your pipelines" })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /^Live/ })).toContainText("0");
+  await page.getByRole("radio", { name: /^Drafts/ }).click();
+  const row = page.getByRole("row", { name: /Senior Backend Engineer/ });
+  await expect(row).toContainText("Draft");
+  await expect(row).toContainText("Not published");
+  await row.getByRole("button", { name: "Actions for Senior Backend Engineer" }).click();
+  await page.getByRole("menuitem", { name: "Continue setup" }).click();
+  await expect(page).toHaveURL(editUrl);
 });
 
 test("a pipeline is published with its weights adding up to 100 and a reserve within the free credits", async ({

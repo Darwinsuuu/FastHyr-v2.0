@@ -1235,6 +1235,99 @@
           "hint": "Use this for emails, referrals or any place not listed. It shows up as “Other” in analytics."
         }
       }
+    },
+    "list": {
+      "eyebrow": "Pipelines · {date}",
+      "greeting": {
+        "morning": "Good morning, {name}.",
+        "afternoon": "Good afternoon, {name}.",
+        "evening": "Good evening, {name}."
+      },
+      "readyForYou": {
+        "one": "{count} candidate is ready for you.",
+        "other": "{count} candidates are ready for you."
+      },
+      "nothingWaiting": "Nothing is waiting on you right now.",
+      "intro": "Here's where everyone is right now.",
+      "reports": "Reports",
+      "flowTitle": "How candidates are moving",
+      "flowScope": "All live pipelines",
+      "timeRange": "Time range",
+      "thisWeek": "This week",
+      "last30Days": "Last 30 days",
+      "flowApplied": "Applied",
+      "flowInvited": "Invited to interview",
+      "flowInterviewed": "Interviewed",
+      "flowReady": "Ready for review",
+      "flowSoon": "Live numbers for this summary are on their way. Until then it shows zeros.",
+      "fairnessNote": "Résumé screen ignores name, address and graduation year",
+      "listTitle": "Your pipelines",
+      "listHint": "Sorted so the ones that need you come first",
+      "tabsLabel": "Filter pipelines by status",
+      "tabs": {
+        "live": "Live",
+        "scheduled": "Scheduled",
+        "closed": "Closed",
+        "drafts": "Drafts",
+        "all": "All"
+      },
+      "searchLabel": "Search pipelines",
+      "search": "Search pipelines",
+      "columns": {
+        "pipeline": "Pipeline",
+        "candidates": "Candidates",
+        "credits": "Credits used",
+        "remaining": "Days remaining"
+      },
+      "noDepartment": "No department",
+      "untitled": "Untitled pipeline",
+      "ownedBy": "Owned by {name}",
+      "notOpenYet": "Not open yet",
+      "toReview": "{count} to review",
+      "creditsOf": "{used} / {total}",
+      "creditsLabel": "{used} of {total} credits used",
+      "daysLeft": {
+        "one": "{count} day left",
+        "other": "{count} days left"
+      },
+      "closesToday": "Closes today",
+      "opensToday": "Opens today",
+      "opensTomorrow": "Opens tomorrow",
+      "opensIn": "Opens in {count} days",
+      "notPublished": "Not published",
+      "closedOn": "Closed {date}",
+      "cancelledOn": "Cancelled {date}",
+      "actionsFor": "Actions for {title}",
+      "actions": {
+        "open": "Open pipeline",
+        "copyLink": "Copy apply link",
+        "viewSetup": "View setup",
+        "editSetup": "Edit setup",
+        "continueSetup": "Continue setup",
+        "startNow": "Start now",
+        "pause": "Pause pipeline",
+        "resume": "Resume pipeline",
+        "close": "Close pipeline",
+        "cancel": "Cancel pipeline",
+        "topUp": "Top up credits",
+        "viewResults": "View results",
+        "archive": "Archive"
+      },
+      "noun": {
+        "one": "pipeline",
+        "other": "pipelines"
+      },
+      "loadFailed": "We couldn't load your pipelines. Refresh the page to try again.",
+      "noMatches": "No pipelines match “{query}”.",
+      "emptyTitle": "No pipelines yet",
+      "emptyBody": "Create a pipeline for a role, share its apply link, and FastHyr screens and interviews every applicant.",
+      "emptyTab": {
+        "live": "No live pipelines right now.",
+        "scheduled": "Nothing scheduled.",
+        "closed": "No closed pipelines yet.",
+        "drafts": "No drafts. Save as draft in the New pipeline wizard to come back to one later.",
+        "all": "No pipelines yet."
+      }
     }
   },
   "interview": {

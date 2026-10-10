@@ -14,7 +14,7 @@ export function NewPipelineButton() {
   return (
     <Link
       href="/pipelines/new"
-      className="inline-flex min-h-11 items-center gap-2 self-start rounded-md bg-evergreen px-5 text-[15px] leading-5 font-semibold text-on-evergreen hover:brightness-110"
+      className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-md whitespace-nowrap bg-evergreen px-5 text-[15px] leading-5 font-semibold text-on-evergreen hover:brightness-110"
     >
       <PlusIcon aria-hidden="true" className="size-5" />
       {t("pipelines.newPipeline")}

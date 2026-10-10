@@ -1,0 +1,91 @@
+{
+  "note": "A long pause to think, then a specific personal story told in the same style as the other answers.",
+  "candidate_name": "Bea Garcia",
+  "lines": [
+    [
+      0,
+      3,
+      "interviewer",
+      "Hi, thanks for joining. Tell me a little about your current role."
+    ],
+    [
+      4,
+      12,
+      "candidate",
+      "Um, I'm Bea Garcia, I'm a backend engineer on the payments team, been there about four years."
+    ],
+    [
+      13,
+      16,
+      "interviewer",
+      "What does your team own day to day?"
+    ],
+    [
+      17,
+      24,
+      "candidate",
+      "Uh, mostly the ledger and the payouts service, plus the, um, the reconciliation jobs."
+    ],
+    [
+      25,
+      28,
+      "interviewer",
+      "How do you usually ship changes?"
+    ],
+    [
+      29,
+      35,
+      "candidate",
+      "Small pull requests behind flags, and we roll out over a day or so."
+    ],
+    [
+      36,
+      39,
+      "interviewer",
+      "Who reviews your code?"
+    ],
+    [
+      40,
+      45,
+      "candidate",
+      "Usually two people, one of them from the owning team."
+    ],
+    [
+      46,
+      50,
+      "interviewer",
+      "Tell me about a time a cache caused you trouble, and what you did."
+    ],
+    [
+      59,
+      73,
+      "candidate",
+      "Oh, yeah, so last year our payouts page started showing old balances, because we cached the balance for five minutes and nobody remembered that when we added instant transfers."
+    ],
+    [
+      73,
+      87,
+      "candidate",
+      "I found it from a support ticket, honestly, and the fix was to evict the balance key on every ledger write. Then I added a test so it couldn't come back, and we dropped the time to live too."
+    ],
+    [
+      88,
+      91,
+      "interviewer",
+      "Thanks. What would you like to ask me?"
+    ],
+    [
+      92,
+      96,
+      "candidate",
+      "How does the team share on-call?"
+    ]
+  ],
+  "expect": {
+    "flags": [
+      0,
+      0
+    ]
+  },
+  "pair": "spoken"
+}

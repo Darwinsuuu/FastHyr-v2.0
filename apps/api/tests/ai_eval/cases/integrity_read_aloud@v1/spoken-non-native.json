@@ -1,0 +1,91 @@
+{
+  "note": "The same story in non-native phrasing: phrasing is never a reason to flag.",
+  "candidate_name": "Bea Garcia",
+  "lines": [
+    [
+      0,
+      3,
+      "interviewer",
+      "Hi, thanks for joining. Tell me a little about your current role."
+    ],
+    [
+      4,
+      12,
+      "candidate",
+      "Um, I am Bea Garcia, I am working as backend engineer in payments team since four years."
+    ],
+    [
+      13,
+      16,
+      "interviewer",
+      "What does your team own day to day?"
+    ],
+    [
+      17,
+      24,
+      "candidate",
+      "Uh, mostly we are handling the ledger and payouts service, also the, um, reconciliation jobs."
+    ],
+    [
+      25,
+      28,
+      "interviewer",
+      "How do you usually ship changes?"
+    ],
+    [
+      29,
+      35,
+      "candidate",
+      "We are doing small pull requests with flags, and rollout is taking one day more or less."
+    ],
+    [
+      36,
+      39,
+      "interviewer",
+      "Who reviews your code?"
+    ],
+    [
+      40,
+      45,
+      "candidate",
+      "Normally two persons, one of them is from the team who is owning it."
+    ],
+    [
+      46,
+      50,
+      "interviewer",
+      "Tell me about a time a cache caused you trouble, and what you did."
+    ],
+    [
+      59,
+      73,
+      "candidate",
+      "Yes, so last year our payouts page was showing old balance, because we are caching the balance five minutes and nobody is remembering this when we add the instant transfers."
+    ],
+    [
+      73,
+      87,
+      "candidate",
+      "I find it from a support ticket, honestly, and the fix is to evict the balance key in every ledger write. After I add one test so it cannot come back, and we make the time to live shorter."
+    ],
+    [
+      88,
+      91,
+      "interviewer",
+      "Thanks. What would you like to ask me?"
+    ],
+    [
+      92,
+      96,
+      "candidate",
+      "How does the team share on-call?"
+    ]
+  ],
+  "expect": {
+    "flags": [
+      0,
+      0
+    ]
+  },
+  "pair": "spoken"
+}

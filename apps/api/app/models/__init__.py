@@ -16,6 +16,7 @@ from app.models.identity import (
     Workspace,
     WorkspaceMember,
 )
+from app.models.integrity import IntegrityFlag
 from app.models.interviews import (
     Interview,
     InterviewAttempt,
@@ -43,6 +44,7 @@ __all__ = [
     "EmailMessage",
     "EmailTemplate",
     "EmailTemplateVersion",
+    "IntegrityFlag",
     "Interview",
     "InterviewAttempt",
     "InterviewEvent",

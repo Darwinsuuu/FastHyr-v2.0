@@ -143,6 +143,8 @@ class Storage(Protocol):
 
     async def download(self, bucket: Bucket, path: str) -> bytes: ...
 
+    async def download_file(self, bucket: Bucket, path: str, file: Path) -> None: ...
+
     async def upload(
         self, bucket: Bucket, path: str, data: bytes, *, content_type: str, upsert: bool = False
     ) -> None: ...
@@ -251,6 +253,32 @@ class SupabaseStorage:
     async def download(self, bucket: Bucket, path: str) -> bytes:
         response = await self._request("GET", f"/object/{bucket}/{_quote(path)}")
         return response.content
+
+    async def download_file(self, bucket: Bucket, path: str, file: Path) -> None:
+        """Writes the object to `file` without holding it all in memory (a recording can be
+        hundreds of megabytes)."""
+        headers = {"apikey": self.service_key, "Authorization": f"Bearer {self.service_key}"}
+        url = f"{self.public_url}/object/{bucket}/{_quote(path)}"
+        try:
+            async with (
+                httpx2.AsyncClient(timeout=self.timeout) as client,
+                client.stream("GET", url, headers=headers) as response,
+            ):
+                if response.status_code >= 400:
+                    await response.aread()
+                status = _status_of(response)
+                if status == 404:
+                    raise StorageObjectMissingError()
+                if status >= 500 or status == 429:
+                    raise StorageUnavailableError()
+                if status >= 400:
+                    logger.warning("storage GET refused (%d)", status)
+                    raise StorageRejectedError()
+                with file.open("wb") as handle:
+                    async for block in response.aiter_bytes(UPLOAD_BLOCK):
+                        handle.write(block)
+        except httpx2.HTTPError as error:
+            raise StorageUnavailableError() from error
 
     async def upload(
         self, bucket: Bucket, path: str, data: bytes, *, content_type: str, upsert: bool = False

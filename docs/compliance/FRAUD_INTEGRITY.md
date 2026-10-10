@@ -33,4 +33,4 @@ Scope decided in ADR-016. Technical detail in `architecture/MEDIA.md` §5 and `A
 - Pipelines can switch integrity checks off ("Flag possible impersonation" toggle).
 
 ## 5. Tuning
-Thresholds live in config. Target false-positive rate < 5% of interviews; review "No concern" rates monthly and adjust.
+Thresholds live in config (`apps/api/app/integrity/config.py`; a change bumps `RULES_VERSION`, recorded with every rule-based flag). Target false-positive rate < 5% of interviews; review "No concern" rates monthly and adjust.

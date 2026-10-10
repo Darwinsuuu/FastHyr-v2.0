@@ -47,7 +47,7 @@
 3. `POST …/session` → API builds instructions from the interview plan and creates an OpenAI Realtime client secret; returns it plus signed upload URLs for recording chunks.
 4. Browser opens a WebRTC connection to OpenAI; the API attaches a sideband connection to control the session (time cap, wrap-up, end) and receive events.
 5. Browser records and uploads chunks; heartbeat `POST …/heartbeat` every 15 s.
-6. On end → `POST …/complete` → worker: finalise recording → transcribe → score → integrity checks → stage update → emails.
+6. On end → `POST …/complete` → worker: finalise recording → transcribe → score (stage update, emails) and integrity checks (flags), side by side.
 
 ### Review
 TA opens a candidate profile → API returns application, résumé assessment, assessment, transcript, flags and signed playback URL.

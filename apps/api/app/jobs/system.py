@@ -18,6 +18,7 @@ from app.services import (
     credits,
     emails,
     files,
+    integrity,
     interview_lifecycle,
     invites,
     pipelines,
@@ -78,7 +79,7 @@ async def requeue_stuck_work(run: JobRun) -> int:
     """Every 10 minutes: queues again work that Postgres says is waiting but Redis lost
     (ADR-009): report jobs, résumé screens (SCREEN-001), interview plans (INTV-001) and the
     invitation or rejection after a screen (SCREEN-003), interview transcripts (INTV-008) and
-    interview scores (ASMT-001);
+    interview scores (ASMT-001) and integrity checks (ASMT-002);
     the other interview tasks add theirs.
     Due emails are `dispatch_scheduled_emails`' job. Re-enqueueing is safe: enqueue is keyed by the
     row ID and job bodies skip finished work."""
@@ -116,6 +117,13 @@ async def requeue_stuck_work(run: JobRun) -> int:
         run.session, datetime.now(UTC) - STUCK_AFTER
     ):
         if await run.queue.enqueue(scoring.SCORE_JOB, workspace_id, interview_id, key=interview_id):
+            requeued += 1
+    for workspace_id, interview_id in await integrity.pending_before(
+        run.session, datetime.now(UTC) - STUCK_AFTER
+    ):
+        if await run.queue.enqueue(
+            integrity.INTEGRITY_JOB, workspace_id, interview_id, key=interview_id
+        ):
             requeued += 1
     logger.info("requeue_stuck_work: %d jobs requeued", requeued)
     return requeued

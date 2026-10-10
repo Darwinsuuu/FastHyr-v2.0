@@ -52,3 +52,26 @@ def chunks(data: bytes, count: int) -> list[bytes]:
     """`data` cut into `count` pieces that join back byte for byte."""
     size = -(-len(data) // count)
     return [data[start : start + size] for start in range(0, len(data), size)]
+
+
+@functools.cache
+def scenes(parts: tuple[tuple[str, float], ...], *, size: str = "320x240") -> bytes:
+    """A WebM of solid-colour scenes, e.g. (("red", 40), ("black", 24)), with a quiet audio
+    track: stand-ins for faces that tests' colour face model tells apart (ASMT-002)."""
+    sources: list[str] = []
+    for colour, seconds in parts:
+        sources += ["-f", "lavfi", "-i", f"color=c={colour}:s={size}:r=5:d={seconds}"]
+    total = sum(seconds for _, seconds in parts)
+    sources += ["-f", "lavfi", "-i", f"anullsrc=r=48000:cl=mono:d={total}"]
+    joined = "".join(f"[{index}:v]" for index in range(len(parts)))
+    return _make(
+        [
+            *sources,
+            "-filter_complex", f"{joined}concat=n={len(parts)}:v=1:a=0[v]",
+            "-map", "[v]", "-map", f"{len(parts)}:a",
+            "-c:v", "libvpx", "-deadline", "realtime", "-b:v", "100k",
+            "-c:a", "libopus",
+            "-f", "webm",
+        ],
+        ".webm",
+    )  # fmt: skip

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | COMP — Compliance |
 | Milestone | M8 Launch readiness |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [SCREEN-002](../SCREEN/SCREEN-002-resume-assessment-and-decision.md), [ASMT-001](../ASMT/ASMT-001-interview-scoring.md), [ASMT-002](../ASMT/ASMT-002-integrity-checks-worker.md) |
 | Requirements | FR-COMP-02, FR-COMP-04 |

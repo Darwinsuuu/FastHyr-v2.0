@@ -1,0 +1,90 @@
+{
+  "note": "A long pause, then a generic, essay-like answer to a question about the candidate's own experience, unlike their other answers: read aloud.",
+  "candidate_name": "Bea Garcia",
+  "lines": [
+    [
+      0,
+      3,
+      "interviewer",
+      "Hi, thanks for joining. Tell me a little about your current role."
+    ],
+    [
+      4,
+      12,
+      "candidate",
+      "Um, I'm Bea Garcia, I'm a backend engineer on the payments team, been there about four years."
+    ],
+    [
+      13,
+      16,
+      "interviewer",
+      "What does your team own day to day?"
+    ],
+    [
+      17,
+      24,
+      "candidate",
+      "Uh, mostly the ledger and the payouts service, plus the, um, the reconciliation jobs."
+    ],
+    [
+      25,
+      28,
+      "interviewer",
+      "How do you usually ship changes?"
+    ],
+    [
+      29,
+      35,
+      "candidate",
+      "Small pull requests behind flags, and we roll out over a day or so."
+    ],
+    [
+      36,
+      39,
+      "interviewer",
+      "Who reviews your code?"
+    ],
+    [
+      40,
+      45,
+      "candidate",
+      "Usually two people, one of them from the owning team."
+    ],
+    [
+      46,
+      50,
+      "interviewer",
+      "Tell me about a time a cache caused you trouble, and what you did."
+    ],
+    [
+      59,
+      73,
+      "candidate",
+      "Caching is a technique that stores frequently accessed data in a fast storage layer in order to reduce latency and improve overall system performance."
+    ],
+    [
+      73,
+      87,
+      "candidate",
+      "However, caching introduces challenges such as cache invalidation, stale data and consistency issues. In conclusion, a well-designed caching strategy balances freshness, performance and complexity."
+    ],
+    [
+      88,
+      91,
+      "interviewer",
+      "Thanks. What would you like to ask me?"
+    ],
+    [
+      92,
+      96,
+      "candidate",
+      "How does the team share on-call?"
+    ]
+  ],
+  "expect": {
+    "flags": [
+      1,
+      1
+    ]
+  }
+}

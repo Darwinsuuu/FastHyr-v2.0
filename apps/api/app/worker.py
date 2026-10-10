@@ -21,8 +21,10 @@ from app.core.logging import configure_logging
 from app.core.observability import init_sentry
 from app.integrations.email import sender_from_settings
 from app.integrations.storage import storage_from_settings
+from app.integrity.faces import OpenCVFaces
 from app.jobs.emails import send_email
 from app.jobs.framework import WorkerFunction, retry_policy_of
+from app.jobs.integrity import INTEGRITY_TIMEOUT, check_integrity
 from app.jobs.interviews import plan_interview
 from app.jobs.queue import DEFAULT_QUEUE, JobQueue
 from app.jobs.realtime import SIDEBAND_TIMEOUT, end_overdue_attempts, run_realtime_session
@@ -66,6 +68,8 @@ FUNCTIONS: list[Function] = [
     register(transcribe_interview, timeout=TRANSCRIBE_TIMEOUT),
     # The interview assessment from the transcript (ASMT-001).
     register(score_interview, timeout=SCORE_TIMEOUT),
+    # Integrity flags from the recording and transcript (ASMT-002).
+    register(check_integrity, timeout=INTEGRITY_TIMEOUT),
 ]
 
 CRON_JOBS: list[CronJob] = [
@@ -95,14 +99,15 @@ async def startup(ctx: dict[str, Any]) -> None:
     engine = create_engine(settings)
     ctx["engine"] = engine
     ctx["sessionmaker"] = create_sessionmaker(engine)
-    # Tests pass a fake email sender, storage, AI client, Realtime provider or transcriber, and
-    # their own
-    # queue's name in `ctx`.
+    # Tests pass a fake email sender, storage, AI client, Realtime provider, transcriber or face
+    # model, and their own queue's name in `ctx`.
     ctx.setdefault("email_sender", sender_from_settings(settings))
     ctx.setdefault("storage", storage_from_settings(settings))
     ctx.setdefault("ai", ai_client_from_settings(settings, ctx["sessionmaker"]))
     ctx.setdefault("realtime", realtime_from_settings(settings))
     ctx.setdefault("transcriber", transcriber_from_settings(settings, ctx["sessionmaker"]))
+    # A new face model per integrity job: OpenCV's models aren't shared across threads.
+    ctx.setdefault("faces", OpenCVFaces)
     ctx["queue"] = JobQueue.from_pool(ctx["redis"], ctx.get("queue_name", DEFAULT_QUEUE))
 
 

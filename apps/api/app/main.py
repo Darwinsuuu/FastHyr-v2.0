@@ -9,8 +9,10 @@ from pydantic import BaseModel
 
 from app.ai.realtime import RealtimeProvider, realtime_from_settings
 from app.api.routers import (
+    analytics,
     applications,
     candidate,
+    candidates,
     company_profile,
     credits,
     departments,
@@ -100,8 +102,10 @@ def create_app(
     v1.include_router(departments.router)
     v1.include_router(company_profile.router)
     v1.include_router(company_profile.public_router)
+    v1.include_router(analytics.router)
     v1.include_router(pipelines.router)
     v1.include_router(applications.router)
+    v1.include_router(candidates.router)
     v1.include_router(public_pipelines.router)
     v1.include_router(public_notices.router)
     v1.include_router(candidate.router)

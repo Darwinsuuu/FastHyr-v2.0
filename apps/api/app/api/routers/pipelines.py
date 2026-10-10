@@ -11,6 +11,7 @@ from app.api.deps import JobQueueDep, Session, SettingsDep, require
 from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
+from app.schemas.analytics import PipelineDashboard
 from app.schemas.pipelines import (
     Pipeline,
     PipelineList,
@@ -20,7 +21,7 @@ from app.schemas.pipelines import (
     TopUpRequest,
 )
 from app.schemas.reinvites import ReinviteAllRequest, ReinviteResult
-from app.services import interview_lifecycle
+from app.services import analytics, interview_lifecycle
 from app.services import pipelines as pipeline_service
 
 router = APIRouter(prefix="/pipelines", tags=["pipelines"], responses=PROBLEM_RESPONSES)
@@ -62,6 +63,16 @@ async def create_pipeline(body: PipelineSetup, ctx: Editor, session: Session) ->
 @router.get("/{pipeline_id}", response_model=Pipeline)
 async def get_pipeline(pipeline_id: uuid.UUID, ctx: Viewer, session: Session) -> Pipeline:
     return await pipeline_service.get_pipeline(session, ctx, pipeline_id)
+
+
+@router.get("/{pipeline_id}/dashboard", response_model=PipelineDashboard)
+async def pipeline_dashboard(
+    pipeline_id: uuid.UUID, ctx: Viewer, session: Session
+) -> PipelineDashboard:
+    """The Dashboard tab (FR-PIPE-11): KPIs, funnel, new applicants per local day (14 days),
+    interview scores in tens with the pass mark, sources with the résumé pass rate, and
+    didn't-finish reasons with how many "Re-invite all" would reach (DASH-003)."""
+    return await analytics.pipeline_dashboard(session, ctx, pipeline_id)
 
 
 @router.patch("/{pipeline_id}", response_model=Pipeline, responses=CONFLICT)

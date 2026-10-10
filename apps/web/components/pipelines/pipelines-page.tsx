@@ -1,6 +1,6 @@
 "use client";
 
-import { DotsThreeVerticalIcon, ShieldCheckIcon } from "@phosphor-icons/react";
+import { ClockIcon, DotsThreeVerticalIcon, ShieldCheckIcon } from "@phosphor-icons/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,8 +43,7 @@ import {
   type PipelineTab,
   remaining,
 } from "@/lib/pipelines/list";
-
-type Range = "week" | "month";
+import { emptyStages, type FlowRange, flowStages, medianLabel } from "@/lib/pipelines/flow";
 
 const EMPHASIS: Record<Emphasis, string> = {
   normal: "text-ink",
@@ -76,7 +75,7 @@ export function PipelinesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(10);
-  const [range, setRange] = useState<Range>("week");
+  const [range, setRange] = useState<FlowRange>("week");
   // Fixed per mount so every row compares against the same moment.
   const [now] = useState(() => new Date());
   const q = useDebouncedValue(search.trim());
@@ -246,18 +245,28 @@ export function PipelinesPage() {
   );
 }
 
-/** How candidates are moving. Zeros until the analytics endpoint arrives (DASH-003). */
+/** How candidates are moving through the member's open pipelines (DASH-003). */
 function FlowSummary({
   range,
   onRangeChange,
 }: {
-  range: Range;
-  onRangeChange: (range: Range) => void;
+  range: FlowRange;
+  onRangeChange: (range: FlowRange) => void;
 }) {
+  const { workspace } = useShell();
   const title = t("pipelines.list.flowTitle");
+  const query = useQuery({
+    queryKey: keys.pipelinesFlow(workspace.id, range),
+    queryFn: async () =>
+      unwrap(await api.GET("/v1/analytics/pipelines-flow", { params: { query: { range } } })),
+    placeholderData: keepPreviousData,
+  });
+  const flow = query.data;
+  const median = flow ? medianLabel(flow.median_hours_to_assessment) : null;
   return (
     <section
       aria-labelledby="pipelines-flow-heading"
+      aria-busy={!flow && !query.isError}
       className="flex flex-col gap-5 rounded-lg border border-line bg-surface-raised p-4 md:p-6"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -274,21 +283,29 @@ function FlowSummary({
           onValueChange={onRangeChange}
           options={[
             { value: "week", label: t("pipelines.list.thisWeek") },
-            { value: "month", label: t("pipelines.list.last30Days") },
+            { value: "30d", label: t("pipelines.list.last30Days") },
           ]}
         />
       </div>
-      <FlowBand
-        title={title}
-        stages={[
-          { label: t("pipelines.list.flowApplied"), value: 0 },
-          { label: t("pipelines.list.flowInvited"), value: 0 },
-          { label: t("pipelines.list.flowInterviewed"), value: 0 },
-          { label: t("pipelines.list.flowReady"), value: 0 },
-        ]}
-      />
+      {query.isError ? (
+        <p className="text-[14px] text-ink-muted">{t("pipelines.list.flowLoadFailed")}</p>
+      ) : (
+        <FlowBand
+          title={title}
+          stages={flow ? flowStages(flow) : emptyStages()}
+          className={cn((!flow || query.isPlaceholderData) && "opacity-70 transition-opacity")}
+        />
+      )}
       <div className="flex flex-col gap-2 border-t border-line pt-4 text-[14px] text-ink-muted md:flex-row md:items-center md:justify-between">
-        <p>{t("pipelines.list.flowSoon")}</p>
+        <p className="flex items-center gap-2">
+          <ClockIcon aria-hidden="true" className="size-4 shrink-0" />
+          <span>
+            {t("pipelines.list.flowMedian")}{" "}
+            <strong className="font-[650] text-ink">
+              {flow ? (median ?? t("pipelines.list.flowMedianNone")) : "…"}
+            </strong>
+          </span>
+        </p>
         <p className="flex items-center gap-2">
           <ShieldCheckIcon aria-hidden="true" className="size-4 shrink-0 text-evergreen" />
           {t("pipelines.list.fairnessNote")}

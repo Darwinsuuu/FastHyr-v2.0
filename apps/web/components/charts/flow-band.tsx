@@ -8,6 +8,10 @@ export interface FlowStage {
   value: number;
   /** e.g. "60% of applicants". */
   note?: string;
+  /** A muted line under the number, e.g. "35 résumés not a match". */
+  detail?: string;
+  /** Draws the label and number in persimmon, for the stage that waits on the reader. */
+  attention?: boolean;
 }
 
 // Stage colours from the frames: evergreen → lighter greens → persimmon for "Ready".
@@ -47,11 +51,26 @@ export function FlowBand({
       <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
         {stages.map((stage, index) => (
           <li key={stage.label} className={cn("border-l-2 pl-3", RULES[index % RULES.length])}>
-            <p className="type-label text-ink-muted">{stage.label}</p>
-            <p className="font-display text-[36px] leading-[42px] font-[560] text-ink tabular-nums md:text-[44px] md:leading-[50px]">
+            <p
+              className={cn(
+                "type-label",
+                stage.attention ? "text-persimmon-ink" : "text-ink-muted",
+              )}
+            >
+              {stage.label}
+            </p>
+            <p
+              className={cn(
+                "font-display text-[36px] leading-[42px] font-[560] tabular-nums md:text-[44px] md:leading-[50px]",
+                stage.attention ? "text-persimmon-ink" : "text-ink",
+              )}
+            >
               {formatNumber(stage.value)}
             </p>
             {stage.note && <p className="text-[13px] font-semibold text-ink-muted">{stage.note}</p>}
+            {stage.detail && (
+              <p className="mt-0.5 text-[13px] leading-[18px] text-ink-muted">{stage.detail}</p>
+            )}
           </li>
         ))}
       </ul>

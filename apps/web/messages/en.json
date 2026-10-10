@@ -1259,7 +1259,43 @@
       "flowInvited": "Invited to interview",
       "flowInterviewed": "Interviewed",
       "flowReady": "Ready for review",
-      "flowSoon": "Live numbers for this summary are on their way. Until then it shows zeros.",
+      "flowVsWeek": "vs last week",
+      "flowVs30": "vs previous 30 days",
+      "flowProcessing": {
+        "one": "{count} still processing résumé",
+        "other": "{count} still processing résumé"
+      },
+      "flowNotMatch": {
+        "one": "{count} résumé not a match",
+        "other": "{count} résumés not a match"
+      },
+      "flowInProgress": {
+        "one": "{count} interview in progress",
+        "other": "{count} interviews in progress"
+      },
+      "flowNotStarted": {
+        "one": "{count} not started yet",
+        "other": "{count} not started yet"
+      },
+      "flowFlagged": {
+        "one": "Plus {count} flagged",
+        "other": "Plus {count} flagged"
+      },
+      "flowDidNotPass": {
+        "one": "{count} didn't pass interview",
+        "other": "{count} didn't pass interview"
+      },
+      "flowMedian": "Median time from application to assessment:",
+      "flowMedianNone": "no assessments yet",
+      "flowLoadFailed": "These numbers didn't load. Refresh the page to try again.",
+      "hours": {
+        "one": "{count} hour",
+        "other": "{count} hours"
+      },
+      "days": {
+        "one": "{count} day",
+        "other": "{count} days"
+      },
       "fairnessNote": "Résumé screen ignores name, address and graduation year",
       "listTitle": "Your pipelines",
       "listHint": "Sorted so the ones that need you come first",

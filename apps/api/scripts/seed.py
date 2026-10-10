@@ -12,7 +12,8 @@ email + password; the local password is printed at the end. Against any other da
 Credits go through `app.services.credits`, so batches, reserves and the ledger add up exactly as
 they would in the product. Each epic extends this file as its tables arrive: pipelines have their
 full setup, slugs and dates since PIPE-001; the nine default email templates since MSG-001 (the
-interview invitation edited by Maria, as in the design); candidates and assessments come later.
+interview invitation edited by Maria, as in the design); since DASH-003 every credit a pipeline used
+is a sample applicant with a screen, an interview and a score (scripts/seed_applications.py).
 """
 
 import asyncio
@@ -23,6 +24,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -43,6 +45,7 @@ from app.models import (
 )
 from app.services import credits, email_templates
 from app.services.invites import new_code, new_token_hash
+from scripts.seed_applications import ApplicantMaker, SampleApplication
 
 LOCAL_OWNER_DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 LOCAL_PASSWORD = "acme-talent-local"
@@ -129,7 +132,8 @@ PIPELINES = (
     SamplePipeline("Brand Designer", "Design", "draft", 0, 0),
     SamplePipeline("QA Automation Engineer", "Engineering", "closed", 80, 64),
     SamplePipeline("Mobile Engineer (iOS)", "Engineering", "closed", 60, 47),
-    SamplePipeline("Account Executive", "Sales", "cancelled", 150, 76),
+    # Cancelled before it opened, so nobody applied and its reserve came back.
+    SamplePipeline("Account Executive", "Sales", "cancelled", 150, 0),
     SamplePipeline("Office Administrator", None, "closed", 150, 118),
 )
 
@@ -427,7 +431,10 @@ async def seed_credits(
 ) -> None:
     """Replays the workspace's history through the credit service: the trial (long expired), a
     credit pack, every pipeline's reserve and applicants, then this month's plan and the
-    applicants it paid for, so the plan has 110 left and the pack 1,530 (frame CreditUsage)."""
+    applicants it paid for, so the plan has 110 left and the pack 1,530 (frame CreditUsage).
+    Each used credit is a sample application (DASH-003); this month's are the newest ones."""
+    maker = ApplicantMaker(workspace_id, NAMESPACE, EMAIL_DOMAIN)
+    zone = ZoneInfo("Asia/Manila")
     await credits.grant_trial(session, workspace_id, granted_at=created)
     from_pack = sum(p.used - p.used_this_month for p in PIPELINES)
     await credits.grant_extra(
@@ -436,6 +443,7 @@ async def seed_credits(
     await session.commit()
 
     pipelines: dict[str, Pipeline] = {}
+    applicants: dict[str, list[SampleApplication]] = {}
     for index, sample in enumerate(PIPELINES):
         owner = members[PIPELINE_OWNERS.get(sample.department or "", USERS[0].key)]
         pipeline = Pipeline(
@@ -448,13 +456,18 @@ async def seed_credits(
         )
         session.add(pipeline)
         await session.flush()
+        pipelines[sample.title] = pipeline
+        until = ended_at(sample, pipeline, now) if sample.status in {"closed", "cancelled"} else now
+        applicants[sample.title] = maker.plan(pipeline, sample.used, until)
+
+    for sample in PIPELINES:
+        pipeline = pipelines[sample.title]
         if sample.reserve:
             await credits.reserve(session, workspace_id, pipeline.id, credits=sample.reserve)
-        for _ in range(sample.used - sample.used_this_month):
-            await credits.consume(session, workspace_id, pipeline.id)
+        earlier = applicants[sample.title][: sample.used - sample.used_this_month]
+        await maker.add(session, pipeline, earlier, now=now, zone=zone)
         if sample.status in {"closed", "cancelled"}:
             await credits.release(session, workspace_id, pipeline.id)
-        pipelines[sample.title] = pipeline
         await session.commit()
 
     await credits.grant_plan(
@@ -465,8 +478,8 @@ async def seed_credits(
         now=now - timedelta(days=20),
     )
     for sample in PIPELINES:
-        for _ in range(sample.used_this_month):
-            await credits.consume(session, workspace_id, pipelines[sample.title].id)
+        latest = applicants[sample.title][sample.used - sample.used_this_month :]
+        await maker.add(session, pipelines[sample.title], latest, now=now, zone=zone)
     for sample in PIPELINES:
         pipelines[sample.title].status = sample.status
         if sample.status == "closed":

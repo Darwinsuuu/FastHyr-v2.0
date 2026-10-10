@@ -15,6 +15,8 @@ export const keys = {
     workspaceId: string,
     params: { tab: string; q: string; page: number; pageSize: number },
   ) => ["ws", workspaceId, "pipelines", "list", params] as const,
+  pipelinesFlow: (workspaceId: string, range: string) =>
+    ["ws", workspaceId, "analytics", "pipelines-flow", range] as const,
   pipeline: (workspaceId: string, pipelineId: string) =>
     ["ws", workspaceId, "pipelines", pipelineId] as const,
   creditSummary: (workspaceId: string) => ["ws", workspaceId, "credits", "summary"] as const,

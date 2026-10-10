@@ -238,6 +238,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description KPIs, needs your attention, funnel, top waiting candidates, pipelines closing soonest,
+         *     applicants per week, sources, drop-offs and credits (FR-DASH-02..04). "week" is the last 7
+         *     days and "30d" the last 30, compared with the period before. Hiring managers get shortlist
+         *     numbers only: the sections about every applicant are null.
+         */
+        get: operations["overview_v1_analytics_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/analytics/pipelines-flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pipelines Flow
+         * @description The Pipelines page's "How candidates are moving": applications to open pipelines that
+         *     applied in the range, and where they are now.
+         */
+        get: operations["pipelines_flow_v1_analytics_pipelines_flow_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pipelines": {
         parameters: {
             query?: never;
@@ -285,6 +329,28 @@ export interface paths {
          *     opened its setup is locked (`409 pipeline_locked`).
          */
         patch: operations["update_pipeline_v1_pipelines__pipeline_id__patch"];
+        trace?: never;
+    };
+    "/v1/pipelines/{pipeline_id}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pipeline Dashboard
+         * @description The Dashboard tab (FR-PIPE-11): KPIs, funnel, new applicants per local day (14 days),
+         *     interview scores in tens with the pass mark, sources with the résumé pass rate, and
+         *     didn't-finish reasons with how many "Re-invite all" would reach (DASH-003).
+         */
+        get: operations["pipeline_dashboard_v1_pipelines__pipeline_id__dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/pipelines/{pipeline_id}/publish": {
@@ -496,6 +562,27 @@ export interface paths {
          *     or a cancelled pipeline, is `409 reinvite_not_allowed`.
          */
         post: operations["reinvite_application_v1_applications__application_id__reinvite_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/candidates/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Candidates Dashboard
+         * @description KPIs, new candidates per month, applications per candidate, where applications ended
+         *     up and the best sources (FR-CAND-03). Hiring managers count shortlisted applications only.
+         */
+        get: operations["candidates_dashboard_v1_candidates_dashboard_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -991,6 +1078,20 @@ export interface components {
             token?: string | null;
         };
         /**
+         * Attention
+         * @description FR-DASH-03, without human-review requests (ASMT-008 adds them).
+         */
+        Attention: {
+            ready_for_review: components["schemas"]["ReviewQueue"];
+            flagged: components["schemas"]["FlaggedQueue"];
+            /** Paused For Credits */
+            paused_for_credits: components["schemas"]["CreditAttention"][];
+            /** Running Low */
+            running_low: components["schemas"]["CreditAttention"][];
+            plan_credits_expiring: components["schemas"]["PlanExpiry"] | null;
+            invites_expiring: components["schemas"]["InviteExpiry"] | null;
+        };
+        /**
          * BrandingKind
          * @enum {string}
          */
@@ -1021,6 +1122,40 @@ export interface components {
         /** BrandingUploadRequest */
         BrandingUploadRequest: {
             kind: components["schemas"]["BrandingKind"];
+        };
+        /** CandidateKpis */
+        CandidateKpis: {
+            /** Candidates */
+            candidates: number;
+            /** New This Month */
+            new_this_month: number;
+            /** Applied More Than Once */
+            applied_more_than_once: number;
+            /** Interviewed */
+            interviewed: number;
+            /** Interviewed Pipelines */
+            interviewed_pipelines: number;
+            /** Passed Interview */
+            passed_interview: number;
+            /** Median Days To Assessment */
+            median_days_to_assessment: number | null;
+        };
+        /** CandidatesDashboard */
+        CandidatesDashboard: {
+            /** Timezone */
+            timezone: string;
+            /** Shortlist Only */
+            shortlist_only: boolean;
+            kpis: components["schemas"]["CandidateKpis"];
+            /** New Per Month */
+            new_per_month: components["schemas"]["MonthPoint"][];
+            repeats: components["schemas"]["Repeats"];
+            /** Stages */
+            stages: {
+                [key: string]: number;
+            };
+            /** Sources */
+            sources: components["schemas"]["PeopleSource"][];
         };
         /** CompanyProfile */
         CompanyProfile: {
@@ -1074,6 +1209,24 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** CreditAttention */
+        CreditAttention: {
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Title */
+            title: string | null;
+            /** Credits Left */
+            credits_left: number;
+            /** Credits Reserved */
+            credits_reserved: number;
+            /** Closes At */
+            closes_at: string | null;
+            /** Days Of Credits */
+            days_of_credits: number | null;
+        };
         /**
          * CreditSummary
          * @description `balance` = credits not yet used or expired; `reserved` = held by pipelines' reserves;
@@ -1087,6 +1240,19 @@ export interface components {
             /** Free */
             free: number;
         };
+        /** CreditsCard */
+        CreditsCard: {
+            /** Available */
+            available: number;
+            /** Reserved */
+            reserved: number;
+            /** Free */
+            free: number;
+            /** Plan Credits */
+            plan_credits: number | null;
+            /** Plan Credits Used */
+            plan_credits_used: number | null;
+        };
         /**
          * CurrentNotices
          * @description The current version of every notice.
@@ -1095,6 +1261,16 @@ export interface components {
             apply: components["schemas"]["Notice"];
             interview: components["schemas"]["Notice"];
             biometric: components["schemas"]["Notice"];
+        };
+        /** DayPoint */
+        DayPoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Applicants */
+            applicants: number;
         };
         /** Department */
         Department: {
@@ -1155,6 +1331,63 @@ export interface components {
             candidate_count: number;
             /** Members */
             members: components["schemas"]["DepartmentMember"][];
+        };
+        /** DropoffCounts */
+        DropoffCounts: {
+            /** Link Expired */
+            link_expired: number;
+            /** Left Unfinished */
+            left_unfinished: number;
+            /** Technical Issue */
+            technical_issue: number;
+        };
+        /** FlaggedItem */
+        FlaggedItem: {
+            /** Name */
+            name: string;
+            /** Pipeline Title */
+            pipeline_title: string | null;
+        };
+        /** FlaggedQueue */
+        FlaggedQueue: {
+            /** Count */
+            count: number;
+            /** First */
+            first: components["schemas"]["FlaggedItem"][];
+        };
+        /**
+         * FlowSummary
+         * @description The Pipelines page band (FR-PIPE-08): applications to open pipelines that applied in the
+         *     range, and where they are now.
+         */
+        FlowSummary: {
+            period: components["schemas"]["Period"];
+            /** Applied */
+            applied: number;
+            /** Applied Change Pct */
+            applied_change_pct: number | null;
+            /** Processing */
+            processing: number;
+            /** Invited */
+            invited: number;
+            /** Not A Match */
+            not_a_match: number;
+            /** Interviewed */
+            interviewed: number;
+            /** In Progress */
+            in_progress: number;
+            /** Not Started */
+            not_started: number;
+            /** Scoring */
+            scoring: number;
+            /** Ready For Review */
+            ready_for_review: number;
+            /** Flagged */
+            flagged: number;
+            /** Did Not Pass */
+            did_not_pass: number;
+            /** Median Hours To Assessment */
+            median_hours_to_assessment: number | null;
         };
         /** HealthResponse */
         HealthResponse: {
@@ -1391,6 +1624,18 @@ export interface components {
              */
             expires_at: string;
         };
+        /** InviteExpiry */
+        InviteExpiry: {
+            /** Pending */
+            pending: number;
+            /** Expiring */
+            expiring: number;
+            /**
+             * First Expires At
+             * Format: date-time
+             */
+            first_expires_at: string;
+        };
         /** InviteList */
         InviteList: {
             /** Invites */
@@ -1541,6 +1786,16 @@ export interface components {
             /** Members */
             members: components["schemas"]["Member"][];
         };
+        /** MonthPoint */
+        MonthPoint: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Candidates */
+            candidates: number;
+        };
         /**
          * MyApplication
          * @description The apply page's "Applied on {date}" state (FR-APPLY-05, FR-APPLY-07): when the candidate
@@ -1600,6 +1855,96 @@ export interface components {
                     [key: string]: string;
                 };
             };
+        };
+        /** Overview */
+        Overview: {
+            period: components["schemas"]["Period"];
+            /** Timezone */
+            timezone: string;
+            /** Shortlist Only */
+            shortlist_only: boolean;
+            kpis: components["schemas"]["OverviewKpis"];
+            attention: components["schemas"]["Attention"];
+            funnel: components["schemas"]["OverviewFunnel"] | null;
+            /** Top Candidates */
+            top_candidates: components["schemas"]["WaitingCandidate"][];
+            /** Closing Soon */
+            closing_soon: components["schemas"]["PipelineSoon"][];
+            /** Weekly */
+            weekly: components["schemas"]["WeekPoint"][] | null;
+            /** Sources */
+            sources: components["schemas"]["SourceRow"][] | null;
+            dropoffs: components["schemas"]["DropoffCounts"] | null;
+            credits: components["schemas"]["CreditsCard"] | null;
+        };
+        /** OverviewFunnel */
+        OverviewFunnel: {
+            /** Applied */
+            applied: number;
+            /** Resume Matched */
+            resume_matched: number;
+            /** Finished Interview */
+            finished_interview: number;
+            /** Passed Interview */
+            passed_interview: number;
+            /** Interview Completion Pct */
+            interview_completion_pct: number | null;
+        };
+        /**
+         * OverviewKpis
+         * @description Applicants and time to screen follow the range (null for Hiring managers); the rest is
+         *     the state right now.
+         */
+        OverviewKpis: {
+            /** Applicants */
+            applicants: number | null;
+            /** Applicants Change Pct */
+            applicants_change_pct: number | null;
+            /** Applicants Processing */
+            applicants_processing: number | null;
+            /** Ready For Review */
+            ready_for_review: number;
+            /** Flagged */
+            flagged: number;
+            /** Advanced */
+            advanced: number;
+            /** Live Pipelines */
+            live_pipelines: number;
+            /** Paused Pipelines */
+            paused_pipelines: number;
+            /** Scheduled Pipelines */
+            scheduled_pipelines: number;
+            /** Median Days To Screen */
+            median_days_to_screen: number | null;
+            /** Median Days To Screen Change */
+            median_days_to_screen_change: number | null;
+        };
+        /** PeopleSource */
+        PeopleSource: {
+            /** Source */
+            source: string;
+            /** People */
+            people: number;
+            /** Pass Rate */
+            pass_rate: number | null;
+        };
+        /** Period */
+        Period: {
+            /**
+             * Range
+             * @enum {string}
+             */
+            range: "week" | "30d";
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
         };
         /** Pipeline */
         Pipeline: {
@@ -1727,6 +2072,76 @@ export interface components {
              * @default 0
              */
             draft: number;
+        };
+        /** PipelineDashboard */
+        PipelineDashboard: {
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Timezone */
+            timezone: string;
+            kpis: components["schemas"]["PipelineKpis"];
+            funnel: components["schemas"]["PipelineFunnel"];
+            /** Daily */
+            daily: components["schemas"]["DayPoint"][];
+            /** Scores */
+            scores: components["schemas"]["ScoreBin"][];
+            /** Pass Mark */
+            pass_mark: number;
+            /** Interviewed */
+            interviewed: number;
+            /** Passed */
+            passed: number;
+            /** Sources */
+            sources: components["schemas"]["PipelineSourceRow"][];
+            dropoffs: components["schemas"]["PipelineDropoffs"];
+        };
+        /** PipelineDropoffs */
+        PipelineDropoffs: {
+            /** Link Expired */
+            link_expired: number;
+            /** Left Unfinished */
+            left_unfinished: number;
+            /** Technical Issue */
+            technical_issue: number;
+            /** Invited */
+            invited: number;
+            /** Reinvitable */
+            reinvitable: number;
+        };
+        /** PipelineFunnel */
+        PipelineFunnel: {
+            /** Applied */
+            applied: number;
+            /** Invited */
+            invited: number;
+            /** Interviewed */
+            interviewed: number;
+            /** Ready For Review */
+            ready_for_review: number;
+            /** Flagged */
+            flagged: number;
+        };
+        /** PipelineKpis */
+        PipelineKpis: {
+            /** Candidates */
+            candidates: number;
+            /** New This Week */
+            new_this_week: number;
+            /** Ready For Review */
+            ready_for_review: number;
+            /** Median Days To Assessment */
+            median_days_to_assessment: number | null;
+            /** Credits Used */
+            credits_used: number;
+            /** Credits Reserved */
+            credits_reserved: number;
+            /** Days Remaining */
+            days_remaining: number | null;
+            /** Closes At */
+            closes_at: string | null;
         };
         /** PipelineList */
         PipelineList: {
@@ -1872,6 +2287,33 @@ export interface components {
             /** Credits To Reserve */
             credits_to_reserve?: number | null;
         };
+        /** PipelineSoon */
+        PipelineSoon: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Status */
+            status: string;
+            /** Closes At */
+            closes_at: string | null;
+            /** Applicants */
+            applicants: number;
+            /** To Review */
+            to_review: number;
+        };
+        /** PipelineSourceRow */
+        PipelineSourceRow: {
+            /** Source */
+            source: string;
+            /** Applicants */
+            applicants: number;
+            /** Resume Pass Rate */
+            resume_pass_rate: number | null;
+        };
         /** PipelineTabCounts */
         PipelineTabCounts: {
             /** Live */
@@ -1884,6 +2326,16 @@ export interface components {
             drafts: number;
             /** All */
             all: number;
+        };
+        /** PlanExpiry */
+        PlanExpiry: {
+            /** Credits */
+            credits: number;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
         };
         /**
          * Problem
@@ -2058,6 +2510,21 @@ export interface components {
             /** Reinvited */
             reinvited: number;
         };
+        /** Repeats */
+        Repeats: {
+            /** Once */
+            once: number;
+            /** Twice */
+            twice: number;
+            /** Three Times */
+            three_times: number;
+            /** Four Or More */
+            four_or_more: number;
+            /** Returning Pass Rate */
+            returning_pass_rate: number | null;
+            /** First Time Pass Rate */
+            first_time_pass_rate: number | null;
+        };
         /**
          * ResumeUpload
          * @description PUT the PDF to `url` (or `uploadToSignedUrl(path, token, file)` in supabase-js) within
@@ -2081,11 +2548,36 @@ export interface components {
              */
             max_bytes: number;
         };
+        /** ReviewQueue */
+        ReviewQueue: {
+            /** Count */
+            count: number;
+            /** Pipelines */
+            pipelines: number;
+            /** Oldest Waiting Since */
+            oldest_waiting_since: string | null;
+        };
         /**
          * Role
          * @enum {string}
          */
         Role: "admin" | "recruiter" | "hiring_manager";
+        /** ScoreBin */
+        ScoreBin: {
+            /** Start */
+            start: number;
+            /** Count */
+            count: number;
+        };
+        /** SourceRow */
+        SourceRow: {
+            /** Source */
+            source: string;
+            /** Applicants */
+            applicants: number;
+            /** Pass Rate */
+            pass_rate: number | null;
+        };
         /**
          * SubmitApplicationRequest
          * @description The application form (FR-APPLY-03). The email is the signed-in account's, never sent.
@@ -2209,6 +2701,44 @@ export interface components {
             role?: components["schemas"]["Role"] | null;
             /** Department Ids */
             department_ids?: string[] | null;
+        };
+        /** WaitingCandidate */
+        WaitingCandidate: {
+            /**
+             * Application Id
+             * Format: uuid
+             */
+            application_id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Name */
+            name: string;
+            /** Pipeline Title */
+            pipeline_title: string | null;
+            /** Score */
+            score: number;
+            /** Fit */
+            fit: ("strong" | "good") | null;
+            /**
+             * Waiting Since
+             * Format: date-time
+             */
+            waiting_since: string;
+        };
+        /** WeekPoint */
+        WeekPoint: {
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+            /** Applied */
+            applied: number;
+            /** Passed */
+            passed: number;
         };
     };
     responses: never;
@@ -3157,6 +3687,134 @@ export interface operations {
             };
         };
     };
+    overview_v1_analytics_overview_get: {
+        parameters: {
+            query?: {
+                range?: "week" | "30d";
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pipelines_flow_v1_analytics_pipelines_flow_get: {
+        parameters: {
+            query?: {
+                range?: "week" | "30d";
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlowSummary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     list_pipelines_v1_pipelines_get: {
         parameters: {
             query?: {
@@ -3412,6 +4070,70 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pipeline_dashboard_v1_pipelines__pipeline_id__dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDashboard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4228,6 +4950,68 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    candidates_dashboard_v1_candidates_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidatesDashboard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

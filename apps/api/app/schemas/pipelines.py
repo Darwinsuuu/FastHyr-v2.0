@@ -178,9 +178,69 @@ class Pipeline(BaseModel):
     # Lifecycle
     closed_reason: ClosedReason | None
     archived_at: datetime | None
+    ended_at: datetime | None
     published_at: datetime | None
     published_by: uuid.UUID | None
     locked_at: datetime | None
     duplicated_from_id: uuid.UUID | None
     created_at: datetime
     updated_at: datetime
+
+
+# -- The Pipelines list (PIPE-004, FR-PIPE-08) ------------------------------------------------
+PipelineTab = Literal["live", "scheduled", "closed", "drafts", "all"]
+
+
+class PipelineOwner(BaseModel):
+    """Who owns the pipeline, for the avatar. Null when the owner has left the workspace."""
+
+    user_id: uuid.UUID
+    name: str | None
+    email: str | None
+    avatar_url: str | None
+
+
+class PipelineListDepartment(BaseModel):
+    id: uuid.UUID
+    name: str
+
+
+class PipelineListItem(BaseModel):
+    id: uuid.UUID
+    status: PipelineStatus
+    closed_reason: ClosedReason | None
+    title: str | None
+    slug: str | None
+    department: PipelineListDepartment | None
+    owner: PipelineOwner | None
+    candidates: int
+    # Ready for review and not flagged.
+    to_review: int
+    credits_used: int
+    # Reserved credits; a draft shows the reserve it will ask for.
+    credits_reserved: int
+    opens_at: datetime | None
+    closes_at: datetime | None
+    ended_at: datetime | None
+    updated_at: datetime
+
+
+class PipelineTabCounts(BaseModel):
+    live: int
+    scheduled: int
+    closed: int
+    drafts: int
+    all: int
+
+
+class PipelineList(BaseModel):
+    items: list[PipelineListItem]
+    # Pipelines matching the tab and search; `counts` ignore the search.
+    total: int
+    page: int
+    page_size: int
+    counts: PipelineTabCounts
+    # Candidates ready for review across the caller's open pipelines.
+    to_review: int
+    # The workspace's time zone, for "Closes today", "Opens tomorrow" and "Closed 2 Sep".
+    timezone: str

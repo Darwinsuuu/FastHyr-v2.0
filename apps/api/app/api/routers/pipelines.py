@@ -1,17 +1,24 @@
-"""Pipelines (API.md "Pipelines"): draft setup and lifecycle actions. The list (PIPE-004) and
-share links (PIPE-006) come with their tasks. Recruiters and Hiring managers reach only
+"""Pipelines (API.md "Pipelines"): the list (PIPE-004), draft setup and lifecycle actions. Share
+links (PIPE-006) come with their task. Recruiters and Hiring managers reach only
 pipelines in their departments; anything else is 404."""
 
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import JobQueueDep, Session, SettingsDep, require
 from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
-from app.schemas.pipelines import Pipeline, PipelineSetup, PublishRequest, TopUpRequest
+from app.schemas.pipelines import (
+    Pipeline,
+    PipelineList,
+    PipelineSetup,
+    PipelineTab,
+    PublishRequest,
+    TopUpRequest,
+)
 from app.schemas.reinvites import ReinviteAllRequest, ReinviteResult
 from app.services import interview_lifecycle
 from app.services import pipelines as pipeline_service
@@ -25,6 +32,25 @@ Editor = Annotated[RequestContext, require(Action.EDIT_PIPELINES)]
 StatusChanger = Annotated[RequestContext, require(Action.CHANGE_PIPELINE_STATUS)]
 TopUpper = Annotated[RequestContext, require(Action.TOP_UP_PIPELINE)]
 Decider = Annotated[RequestContext, require(Action.DECIDE_CANDIDATES)]
+
+
+@router.get("", response_model=PipelineList)
+async def list_pipelines(
+    ctx: Viewer,
+    session: Session,
+    tab: PipelineTab = "live",
+    q: Annotated[str, Query(max_length=120)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    # The page offers 5, 10 or 25 rows.
+    page_size: Annotated[int, Query(ge=1, le=25)] = 10,
+) -> PipelineList:
+    """The Pipelines page (FR-PIPE-08): one tab's pipelines, needing attention first, searched
+    by title or department name. Live holds live and paused pipelines, Closed holds closed and
+    cancelled ones, Scheduled and Drafts one status each; archived pipelines never show.
+    `counts` are per tab before the search."""
+    return await pipeline_service.list_pipelines(
+        session, ctx, tab=tab, query=q, page=page, page_size=page_size
+    )
 
 
 @router.post("", response_model=Pipeline, status_code=status.HTTP_201_CREATED)

@@ -3,10 +3,13 @@
 import { type KeyboardEvent, useRef } from "react";
 
 import { cn } from "@/lib/cn";
+import { formatNumber } from "@/lib/format";
 
 export interface SegmentedOption<T extends string> {
   value: T;
   label: string;
+  /** Optional count after the label, e.g. pipelines in a tab. */
+  count?: number;
 }
 
 export interface SegmentedControlProps<T extends string> {
@@ -79,6 +82,18 @@ export function SegmentedControl<T extends string>({
             )}
           >
             {option.label}
+            {option.count !== undefined && (
+              <span
+                className={cn(
+                  "ml-1.5 inline-flex min-w-5 items-center justify-center rounded-pill px-1.5 text-[12px] leading-[18px] tabular-nums",
+                  selected
+                    ? "bg-evergreen-soft text-evergreen"
+                    : "bg-surface-raised/70 text-ink-muted",
+                )}
+              >
+                {formatNumber(option.count)}
+              </span>
+            )}
           </button>
         );
       })}

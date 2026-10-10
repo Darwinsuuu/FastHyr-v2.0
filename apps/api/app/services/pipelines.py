@@ -32,13 +32,24 @@ from app.core.errors import (
 from app.core.slugs import slugify, unique_slug
 from app.models import Pipeline as PipelineRow
 from app.repositories.audit import AuditRepository
+from app.repositories.company_profiles import workspace_timezone
 from app.repositories.pipelines import (
+    PipelineListRow,
     PipelineRepository,
     due_to_close,
     due_to_open,
     out_of_credit_pipeline_ids,
 )
-from app.schemas.pipelines import Pipeline, PipelineSetup
+from app.schemas.pipelines import (
+    Pipeline,
+    PipelineList,
+    PipelineListDepartment,
+    PipelineListItem,
+    PipelineOwner,
+    PipelineSetup,
+    PipelineTab,
+    PipelineTabCounts,
+)
 from app.services import credits
 
 # Action → the statuses it can start from (WORKFLOW.md §2). `open` is the cron at `opens_at`.
@@ -127,6 +138,88 @@ async def _done(session: AsyncSession, pipeline: PipelineRow) -> Pipeline:
     await session.commit()
     await session.refresh(pipeline)  # updated_at comes from the database trigger
     return Pipeline.model_validate(pipeline)
+
+
+# ---------------------------------------------------------------------------
+# The Pipelines list (PIPE-004, FR-PIPE-08)
+# ---------------------------------------------------------------------------
+# Which statuses each tab shows. Drafts have their own tab: the list is the way back into a
+# saved draft.
+TAB_STATUSES: dict[str, tuple[str, ...]] = {
+    "live": ("live", "paused", "paused_no_credits"),
+    "scheduled": ("scheduled",),
+    "closed": ("closed", "cancelled"),
+    "drafts": ("draft",),
+}
+TAB_STATUSES["all"] = tuple(status for group in TAB_STATUSES.values() for status in group)
+
+
+async def list_pipelines(
+    session: AsyncSession,
+    ctx: RequestContext,
+    *,
+    tab: PipelineTab,
+    query: str,
+    page: int,
+    page_size: int,
+) -> PipelineList:
+    """One page of the caller's pipelines (their departments only, unless an Admin), needing
+    attention first, with the count of each tab. Archived pipelines never show."""
+    repo = _repo(session, ctx)
+    by_status = await repo.count_by_status()
+    counts = {name: sum(by_status.get(s, 0) for s in group) for name, group in TAB_STATUSES.items()}
+    rows, total = await repo.list_page(
+        statuses=TAB_STATUSES[tab],
+        query=query.strip(),
+        offset=(page - 1) * page_size,
+        limit=page_size,
+    )
+    return PipelineList(
+        items=[_list_item(row) for row in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+        counts=PipelineTabCounts(**counts),
+        to_review=await repo.to_review(),
+        timezone=await workspace_timezone(session, ctx.workspace_id) or "UTC",
+    )
+
+
+def _list_item(row: PipelineListRow) -> PipelineListItem:
+    pipeline = row.pipeline
+    reserved = pipeline.credits_reserved
+    if pipeline.status == "draft":
+        reserved = pipeline.credits_to_reserve or 0
+    return PipelineListItem(
+        id=pipeline.id,
+        status=pipeline.status,
+        closed_reason=pipeline.closed_reason,
+        title=pipeline.title,
+        slug=pipeline.slug,
+        department=(
+            PipelineListDepartment(id=pipeline.department_id, name=row.department_name)
+            if pipeline.department_id and row.department_name
+            else None
+        ),
+        owner=(
+            PipelineOwner(
+                user_id=row.owner_user_id,
+                name=row.owner_name,
+                email=row.owner_email,
+                avatar_url=row.owner_avatar_url,
+            )
+            if row.owner_user_id
+            else None
+        ),
+        candidates=row.candidates,
+        to_review=row.to_review,
+        credits_used=pipeline.credits_used,
+        credits_reserved=reserved,
+        opens_at=pipeline.opens_at,
+        closes_at=pipeline.closes_at,
+        ended_at=pipeline.ended_at,
+        updated_at=pipeline.updated_at,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -410,6 +503,9 @@ async def _close(
     )
     pipeline.status = "closed"
     pipeline.closed_reason = reason
+    # On schedule it ended on its date, even when the cron runs late.
+    scheduled_end = pipeline.closes_at if reason == "schedule" else None
+    pipeline.ended_at = min(now, scheduled_end) if scheduled_end else now
     _audit(session, pipeline, "closed", actor_id, reason=reason, credits_released=released)
 
 
@@ -428,6 +524,7 @@ async def cancel(
         session, ctx.workspace_id, pipeline.id, now=now, actor_id=ctx.user_id
     )
     pipeline.status = "cancelled"
+    pipeline.ended_at = now
     _audit(session, pipeline, "cancelled", ctx.user_id, credits_released=released)
     return await _done(session, pipeline)
 

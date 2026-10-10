@@ -56,7 +56,7 @@ demo_sessions · contact_requests · stripe_events (no tenant)
 | `weight_technical`, `weight_communication`, `weight_culture` (sum = 100, check), `pass_mark` (0–100, default 70), `email_resume_reject`, `email_post_interview` | Scoring |
 | `open_mode` (`now|scheduled`), `opens_at`, `duration_days` (30/60/90/120), `closes_at` (= when it opens + duration), `credits_to_reserve` (the wizard's reserve, min 10, steps of 10; publish reserves it) | Schedule |
 | `credits_reserved int`, `credits_used int` | Reserve (see BILLING.md); check `credits_used between 0 and credits_reserved` |
-| `status` (`draft|scheduled|live|paused|paused_no_credits|closed|cancelled`), `closed_reason` (`schedule|manual`, only on closed), `archived_at` (closed/cancelled only), `published_at`, `published_by` (member), `locked_at`, `duplicated_from_id` | Lifecycle (WORKFLOW.md §2) |
+| `status` (`draft|scheduled|live|paused|paused_no_credits|closed|cancelled`), `closed_reason` (`schedule|manual`, only on closed), `archived_at` (closed/cancelled only), `ended_at` (when it closed or was cancelled, closed/cancelled only; PIPE-004 shows "Closed 2 Sep" and sorts the Closed tab by it), `published_at`, `published_by` (member), `locked_at`, `duplicated_from_id` | Lifecycle (WORKFLOW.md §2) |
 The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Scoring and Schedule columns once `locked_at` is set (`department_id` may still become null, for department deletion), and any slug change after publish. Checks: enums and ranges, weights total 100 when set, `published_at`/`slug` set exactly when past draft.
 
 ### Candidates and applications

@@ -245,7 +245,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Pipelines
+         * @description The Pipelines page (FR-PIPE-08): one tab's pipelines, needing attention first, searched
+         *     by title or department name. Live holds live and paused pipelines, Closed holds closed and
+         *     cancelled ones, Scheduled and Drafts one status each; archived pipelines never show.
+         *     `counts` are per tab before the search.
+         */
+        get: operations["list_pipelines_v1_pipelines_get"];
         put?: never;
         /**
          * Create Pipeline
@@ -1674,6 +1681,8 @@ export interface components {
             closed_reason: ("schedule" | "manual") | null;
             /** Archived At */
             archived_at: string | null;
+            /** Ended At */
+            ended_at: string | null;
             /** Published At */
             published_at: string | null;
             /** Published By */
@@ -1718,6 +1727,89 @@ export interface components {
              * @default 0
              */
             draft: number;
+        };
+        /** PipelineList */
+        PipelineList: {
+            /** Items */
+            items: components["schemas"]["PipelineListItem"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            counts: components["schemas"]["PipelineTabCounts"];
+            /** To Review */
+            to_review: number;
+            /** Timezone */
+            timezone: string;
+        };
+        /** PipelineListDepartment */
+        PipelineListDepartment: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** PipelineListItem */
+        PipelineListItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "scheduled" | "live" | "paused" | "paused_no_credits" | "closed" | "cancelled";
+            /** Closed Reason */
+            closed_reason: ("schedule" | "manual") | null;
+            /** Title */
+            title: string | null;
+            /** Slug */
+            slug: string | null;
+            department: components["schemas"]["PipelineListDepartment"] | null;
+            owner: components["schemas"]["PipelineOwner"] | null;
+            /** Candidates */
+            candidates: number;
+            /** To Review */
+            to_review: number;
+            /** Credits Used */
+            credits_used: number;
+            /** Credits Reserved */
+            credits_reserved: number;
+            /** Opens At */
+            opens_at: string | null;
+            /** Closes At */
+            closes_at: string | null;
+            /** Ended At */
+            ended_at: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * PipelineOwner
+         * @description Who owns the pipeline, for the avatar. Null when the owner has left the workspace.
+         */
+        PipelineOwner: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Email */
+            email: string | null;
+            /** Avatar Url */
+            avatar_url: string | null;
         };
         /**
          * PipelineSetup
@@ -1779,6 +1871,19 @@ export interface components {
             duration_days?: (30 | 60 | 90 | 120) | null;
             /** Credits To Reserve */
             credits_to_reserve?: number | null;
+        };
+        /** PipelineTabCounts */
+        PipelineTabCounts: {
+            /** Live */
+            live: number;
+            /** Scheduled */
+            scheduled: number;
+            /** Closed */
+            closed: number;
+            /** Drafts */
+            drafts: number;
+            /** All */
+            all: number;
         };
         /**
          * Problem
@@ -3008,6 +3113,73 @@ export interface operations {
                 content: {
                     "image/png": unknown;
                     "image/jpeg": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    list_pipelines_v1_pipelines_get: {
+        parameters: {
+            query?: {
+                tab?: "live" | "scheduled" | "closed" | "drafts" | "all";
+                q?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineList"];
                 };
             };
             /** @description Unauthorized */

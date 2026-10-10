@@ -10,6 +10,11 @@ export const keys = {
   companyProfile: (workspaceId: string) => ["ws", workspaceId, "company-profile"] as const,
   members: (workspaceId: string) => ["ws", workspaceId, "members"] as const,
   invites: (workspaceId: string) => ["ws", workspaceId, "invites"] as const,
+  pipelines: (workspaceId: string) => ["ws", workspaceId, "pipelines"] as const,
+  pipelineList: (
+    workspaceId: string,
+    params: { tab: string; q: string; page: number; pageSize: number },
+  ) => ["ws", workspaceId, "pipelines", "list", params] as const,
   pipeline: (workspaceId: string, pipelineId: string) =>
     ["ws", workspaceId, "pipelines", pipelineId] as const,
   creditSummary: (workspaceId: string) => ["ws", workspaceId, "credits", "summary"] as const,

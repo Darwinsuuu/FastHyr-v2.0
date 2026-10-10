@@ -9,6 +9,7 @@ from typing import Any
 
 import asyncpg
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.context import Role
@@ -356,3 +357,116 @@ def test_out_of_credit_pipelines_resume_when_credits_are_added(tenancy: Tenancy)
     assert db_run(tenancy, top_up_workspace) == 0
     topped = ok(admin(tenancy).post(f"/v1/pipelines/{pipeline_id}/top-up", json={"credits": 25}))
     assert topped["status"] == "live"
+
+
+# -- The Pipelines list (PIPE-004) -------------------------------------------------------------
+def applicant(tenancy: Tenancy, pipeline_id: str, stage: str, *, flagged: bool = False) -> None:
+    """An application in `stage` that used one of the pipeline's credits, as APPLY-003 makes."""
+    workspace_id = tenancy.workspace("a").id
+
+    async def work(session: AsyncSession) -> None:
+        entry = await credits.consume(session, workspace_id, uuid.UUID(pipeline_id))
+        candidate_id = uuid.uuid4()
+        await session.execute(
+            text(
+                "insert into candidates (id, workspace_id, auth_user_id, email, full_name, "
+                "phone_country_code, phone) values (:id, :ws, :user, :email, 'Sample', '+63', "
+                "'9171234567')"
+            ),
+            {"id": candidate_id, "ws": workspace_id, "user": uuid.uuid4(), "email": "a@b.test"},
+        )
+        await session.execute(
+            text(
+                "insert into applications (workspace_id, pipeline_id, candidate_id, resume_path, "
+                "resume_filename, resume_pages, resume_bytes, consent_version, consent_at, stage, "
+                "has_open_flags, credit_ledger_id) values (:ws, :pipeline, :candidate, 'r.pdf', "
+                "'r.pdf', 1, 100, 'apply@v1', now(), :stage, :flagged, :entry)"
+            ),
+            {
+                "ws": workspace_id,
+                "pipeline": uuid.UUID(pipeline_id),
+                "candidate": candidate_id,
+                "stage": stage,
+                "flagged": flagged,
+                "entry": entry.id,
+            },
+        )
+        await session.commit()
+
+    db_run(tenancy, work)
+
+
+def listed(client: Any, **params: Any) -> dict[str, Any]:
+    return ok(client.get("/v1/pipelines", params=params))
+
+
+def test_list_tabs_count_and_hide_archived_pipelines(tenancy: Tenancy) -> None:
+    grant(tenancy)
+    made = {status: pipeline_in(tenancy, status) for status in STATUSES}
+    archived = pipeline_in(tenancy, "closed")
+    ok(admin(tenancy).post(f"/v1/pipelines/{archived['id']}/archive"))
+
+    every = listed(admin(tenancy), tab="all", page_size=25)
+    assert every["counts"] == {"live": 3, "scheduled": 1, "closed": 2, "drafts": 1, "all": 7}
+    assert {item["id"] for item in every["items"]} == {p["id"] for p in made.values()}
+    tabs = {
+        tab: {item["status"] for item in listed(admin(tenancy), tab=tab)["items"]}
+        for tab in ("live", "scheduled", "closed", "drafts")
+    }
+    assert tabs == {
+        "live": {"live", "paused", "paused_no_credits"},
+        "scheduled": {"scheduled"},
+        "closed": {"closed", "cancelled"},
+        "drafts": {"draft"},
+    }
+    closed = next(item for item in every["items"] if item["status"] == "closed")
+    assert closed["ended_at"] is not None and closed["closed_reason"] == "manual"
+
+
+def test_list_puts_pipelines_that_need_attention_first(tenancy: Tenancy) -> None:
+    grant(tenancy)
+    quiet = draft(tenancy, title="Quiet", duration_days=60, credits_to_reserve=20)
+    ok(admin(tenancy).post(f"/v1/pipelines/{quiet['id']}/publish", json=CONFIRM))
+    busy = pipeline_in(tenancy, "live")
+    out = pipeline_in(tenancy, "paused_no_credits")
+    for stage in ("ready_for_review", "ready_for_review", "did_not_pass"):
+        applicant(tenancy, busy["id"], stage)
+    # Flagged candidates wait under the Flagged filter, not "to review".
+    applicant(tenancy, quiet["id"], "ready_for_review", flagged=True)
+
+    page = listed(admin(tenancy), tab="live")
+    assert [item["id"] for item in page["items"]] == [out["id"], busy["id"], quiet["id"]]
+    counts = {item["id"]: (item["candidates"], item["to_review"]) for item in page["items"]}
+    assert counts[busy["id"]] == (3, 2) and counts[quiet["id"]] == (1, 0)
+    assert page["to_review"] == 2
+    assert page["items"][1]["owner"]["email"] == tenancy.member("a", Role.ADMIN).email
+
+
+def test_list_searches_and_pages(tenancy: Tenancy) -> None:
+    for title in ("Data Analyst", "Data Engineer", "Designer 100%"):
+        draft(tenancy, title=title)
+    client = admin(tenancy)
+    found = listed(client, tab="all", q="data", page_size=1, page=2)
+    assert (found["total"], len(found["items"]), found["counts"]["all"]) == (2, 1, 3)
+    # Search text is literal: % matches only a percent sign.
+    assert [i["title"] for i in listed(client, tab="all", q="100%")["items"]] == ["Designer 100%"]
+    assert listed(client, tab="all", q="%")["total"] == 1
+    assert client.get("/v1/pipelines", params={"page_size": 26}).status_code == 422
+
+
+def test_list_is_limited_to_the_members_departments(tenancy: Tenancy) -> None:
+    engineering = str(tenancy.workspace("a").department_id)
+    own = draft(tenancy, department_id=engineering)
+    draft(tenancy)  # No department: Admins only
+    for role in (Role.RECRUITER, Role.HIRING_MANAGER):
+        page = listed(tenancy.client("a", role), tab="all")
+        assert [item["id"] for item in page["items"]] == [own["id"]]
+        assert page["counts"]["all"] == 1
+    assert listed(admin(tenancy), tab="all")["counts"]["all"] == 2
+    assert listed(tenancy.client("b", Role.ADMIN), tab="all")["counts"]["all"] == 0
+    # A member of another workspace is refused this workspace's list.
+    for role in Role:
+        response = tenancy.anonymous().get(
+            "/v1/pipelines", headers=tenancy.headers("b", role, as_workspace="a")
+        )
+        assert response.status_code == 403, role

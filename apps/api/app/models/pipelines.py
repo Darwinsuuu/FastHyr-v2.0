@@ -113,6 +113,8 @@ class Pipeline(Base):
     status: Mapped[str] = mapped_column(Text, server_default=text("'draft'"))
     closed_reason: Mapped[str | None] = mapped_column(Text)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # When it closed or was cancelled (PIPE-004); closes_at is only the planned date.
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     duplicated_from_id: Mapped[uuid.UUID | None] = mapped_column()

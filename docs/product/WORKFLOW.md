@@ -28,7 +28,7 @@ TA side                                   FastHyr                               
 
 | State | Apply link | Setup editable | Shown as |
 |---|---|---|---|
-| `draft` | Not reachable (404) | Yes | (not in list; "Save as draft" in wizard) |
+| `draft` | Not reachable (404) | Yes | Draft (Drafts and All tabs of the Pipelines list, "Continue setup" reopens the wizard; PIPE-004) |
 | `scheduled` | Shows "Opens on {date}" | Yes, until `opens_at` | Scheduled |
 | `live` | Accepts applications | No (locked) | Live |
 | `paused` | "Not taking applications right now" | No | Paused |

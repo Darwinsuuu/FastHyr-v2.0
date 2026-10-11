@@ -1364,6 +1364,120 @@
         "drafts": "No drafts. Save as draft in the New pipeline wizard to come back to one later.",
         "all": "No pipelines yet."
       }
+    },
+    "detail": {
+      "back": "All pipelines",
+      "loadFailed": "This pipeline didn't load. Refresh the page to try again.",
+      "notFoundTitle": "We couldn't find this pipeline",
+      "notFoundBody": "It may have been archived, or it belongs to a department you don't have access to.",
+      "opened": "Opened {date}",
+      "opens": "Opens {date}",
+      "ownedBy": "Owned by {name}",
+      "formats": {
+        "video_voice": "Video + voice interview",
+        "voice_only": "Voice-only interview"
+      },
+      "share": "Share apply link",
+      "shareSoon": "Sharing from this page is coming soon.",
+      "tabsLabel": "Pipeline sections",
+      "tabs": {
+        "dashboard": "Dashboard",
+        "candidates": "Candidates",
+        "ava": "Ask Ava",
+        "setup": "Setup"
+      },
+      "comingSoon": {
+        "candidates": "Every candidate in this pipeline, filtered by stage, will appear here.",
+        "ava": "Ask Ava to compare candidates or explain a score, using only this pipeline.",
+        "setup": "The locked setup of this pipeline, with a way to start a new one from it, will appear here."
+      },
+      "comingSoonTitle": "This tab is on its way",
+      "kpisLabel": "Key numbers",
+      "kpis": {
+        "candidates": "Candidates",
+        "newThisWeek": "this week",
+        "ready": "Ready for you",
+        "reviewThem": "Review them",
+        "timeToAssessment": "Time to assessment",
+        "days": "days",
+        "timeToAssessmentHint": "Median, apply to report",
+        "noAssessments": "No assessments yet",
+        "creditsUsed": "Credits used",
+        "creditsLabel": "{used} of {total} credits used",
+        "daysRemaining": "Days remaining",
+        "closes": "Closes {date}",
+        "noCloseDate": "No closing date",
+        "ended": "Status",
+        "closedOn": "Closed {date}",
+        "cancelledOn": "Cancelled {date}",
+        "notOpenYet": "Not open yet"
+      },
+      "underADay": "under 0.1",
+      "funnelTitle": "Where candidates are",
+      "funnelHint": "Same stages as the Candidates tab, each as a share of the step before",
+      "funnel": {
+        "applied": "Applied",
+        "invited": "Invited to interview",
+        "interviewed": "Interviewed",
+        "ready": "Ready for review + flagged"
+      },
+      "dailyTitle": "New applicants per day",
+      "dailyHint": "Last 14 days · {total} total",
+      "dailySeries": "Applicants",
+      "scoresTitle": "Interview scores",
+      "scoresHint": "{interviewed} interviewed",
+      "scoresPassed": "{passed} at or above the pass mark ({mark})",
+      "scoresSeries": "Candidates",
+      "passMark": "Pass mark",
+      "scoresEmpty": "Scores show here once candidates finish their interviews.",
+      "sourcesTitle": "Where applicants came from",
+      "sourcesHint": "From the tag on each apply link",
+      "sourcesSource": "Source",
+      "sourcesApplicants": "Applicants",
+      "sourcesPassRate": "Pass rate",
+      "sourcesNote": "Pass rate = share whose résumé met the must-haves.",
+      "sourcesEmpty": "Sources show here once people apply.",
+      "sources": {
+        "direct": "Direct link"
+      },
+      "dropsTitle": "Didn't finish the interview",
+      "dropsHint": {
+        "one": "{count} candidate · {percent} of those invited",
+        "other": "{count} candidates · {percent} of those invited"
+      },
+      "dropsNone": "Everyone invited has finished or still has time.",
+      "drops": {
+        "link_expired": {
+          "label": "Link expired",
+          "description": "Didn't start within {days} days"
+        },
+        "left_unfinished": {
+          "label": "Left mid-interview",
+          "description": "Started, then closed the page"
+        },
+        "technical_issue": {
+          "label": "Technical issue",
+          "description": "Camera, mic or connection kept failing"
+        }
+      },
+      "reinvite": {
+        "one": "Re-invite {count} candidate",
+        "other": "Re-invite all {count}"
+      },
+      "reinviteNone": "Nobody to re-invite",
+      "reinviteTitle": "Re-invite candidates who didn't finish?",
+      "reinviteBody": {
+        "one": "{count} candidate gets a new interview link and invitation email. Their old link stops working.",
+        "other": "{count} candidates each get a new interview link and invitation email. Their old links stop working."
+      },
+      "reinviteConfirm": "Send new invitations",
+      "reinvited": {
+        "one": "Invite sent to {count} candidate",
+        "other": "Invites sent to {count} candidates"
+      },
+      "reinviteFailed": "We couldn't send the invitations. Try again in a moment.",
+      "reinviteNotAllowed": "This pipeline can't send new invitations.",
+      "dashboardLoadFailed": "The dashboard didn't load. Refresh the page to try again."
     }
   },
   "interview": {

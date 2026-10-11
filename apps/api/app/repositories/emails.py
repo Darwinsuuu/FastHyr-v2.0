@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import and_, exists, or_, select, update
+from sqlalchemy import and_, exists, or_, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,9 +50,10 @@ async def add_unless_duplicate(session: AsyncSession, message: EmailMessage) -> 
         .values(**columns)
         .on_conflict_do_nothing(
             index_elements=[EmailMessage.dedupe_key],
-            index_where=and_(
-                EmailMessage.dedupe_key.is_not(None), EmailMessage.status != CANCELLED
-            ),
+            # The predicate must be literal SQL: as a bound parameter Postgres can't match it to
+            # the partial index once asyncpg's prepared statement switches to a generic plan
+            # (from the sixth insert on one connection, e.g. "Re-invite all").
+            index_where=text(f"dedupe_key IS NOT NULL AND status <> '{CANCELLED}'"),
         )
         .returning(EmailMessage.id)
     )

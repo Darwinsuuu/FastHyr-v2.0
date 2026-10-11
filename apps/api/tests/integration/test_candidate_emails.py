@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import Settings
 from app.emails.candidate import MissingParameterError
 from app.emails.defaults import TemplateKey
+from app.emails.render import RenderedEmail
 from app.integrations.storage import SupabaseStorage
 from app.jobs.queue import JobQueue
 from app.jobs.system import dispatch_scheduled_emails
@@ -278,3 +279,41 @@ def test_a_hard_bounce_marks_the_candidate_undeliverable(
     assert rows(tenancy, soft_id)[0]["status"] == "bounced"
     assert undeliverable(soft_id) is None
     assert undeliverable(hard_id) is not None
+
+
+def test_many_unique_emails_on_one_connection(tenancy: Tenancy) -> None:
+    """Re-invite all queues one unique email per candidate on one connection. Past five inserts
+    asyncpg's prepared statement takes a generic plan, and the dedupe insert must still find its
+    partial index (PIPE-007 found it failing there)."""
+    workspace_id = tenancy.workspace("a").id
+    keys = [f"pipe-007-test:{uuid.uuid4()}" for _ in range(8)]
+
+    async def work(session: AsyncSession) -> list[bool]:
+        created = []
+        for key in keys:
+            _, added = await emails.queue_unique_email(
+                session,
+                dedupe_key=key,
+                application_stage=None,
+                workspace_id=workspace_id,
+                template_key="interview_invitation",
+                to_email="candidate@example.test",
+                from_name="Acme",
+                email=RenderedEmail(subject="Hello", html="<p>Hi</p>", text="Hi"),
+            )
+            created.append(added)
+        # A repeat of the last one is still caught.
+        _, again = await emails.queue_unique_email(
+            session,
+            dedupe_key=keys[-1],
+            application_stage=None,
+            workspace_id=workspace_id,
+            template_key="interview_invitation",
+            to_email="candidate@example.test",
+            from_name="Acme",
+            email=RenderedEmail(subject="Hello", html="<p>Hi</p>", text="Hi"),
+        )
+        await session.rollback()
+        return [*created, again]
+
+    assert db_run(tenancy, work) == [True] * 8 + [False]

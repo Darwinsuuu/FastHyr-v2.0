@@ -205,6 +205,14 @@ class PipelineListDepartment(BaseModel):
     name: str
 
 
+class PipelineDetail(Pipeline):
+    """`GET /pipelines/{id}`: the pipeline with its department and owner for the details
+    header (PIPE-007). Department is null for No department; owner is null when they left."""
+
+    department: PipelineListDepartment | None
+    owner: PipelineOwner | None
+
+
 class PipelineListItem(BaseModel):
     id: uuid.UUID
     status: PipelineStatus

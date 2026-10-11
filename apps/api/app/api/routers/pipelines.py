@@ -14,6 +14,7 @@ from app.core.permissions import Action
 from app.schemas.analytics import PipelineDashboard
 from app.schemas.pipelines import (
     Pipeline,
+    PipelineDetail,
     PipelineList,
     PipelineSetup,
     PipelineTab,
@@ -60,8 +61,9 @@ async def create_pipeline(body: PipelineSetup, ctx: Editor, session: Session) ->
     return await pipeline_service.create_draft(session, ctx, body)
 
 
-@router.get("/{pipeline_id}", response_model=Pipeline)
-async def get_pipeline(pipeline_id: uuid.UUID, ctx: Viewer, session: Session) -> Pipeline:
+@router.get("/{pipeline_id}", response_model=PipelineDetail)
+async def get_pipeline(pipeline_id: uuid.UUID, ctx: Viewer, session: Session) -> PipelineDetail:
+    """The pipeline with its department and owner (the wizard and the details header)."""
     return await pipeline_service.get_pipeline(session, ctx, pipeline_id)
 
 

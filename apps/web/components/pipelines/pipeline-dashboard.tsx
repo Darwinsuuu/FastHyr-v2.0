@@ -31,9 +31,9 @@ import {
   type PipelineDetail,
   scoreHistogram,
   sourceLabel,
-  tabHref,
   weekdayDate,
 } from "@/lib/pipelines/detail";
+import { candidatesHref } from "@/lib/pipelines/candidates";
 import { creditPercent, creditTone, hasEnded } from "@/lib/pipelines/list";
 
 const CREDIT_BAR = {
@@ -190,7 +190,7 @@ function Kpis({ pipeline, data }: { pipeline: PipelineDetail; data: PipelineDash
         </span>
         {kpis.ready_for_review > 0 && (
           <Link
-            href={tabHref(pipeline.id, "candidates")}
+            href={candidatesHref(pipeline.id, "ready")}
             className="self-start text-[13px] leading-[18px] font-semibold text-persimmon-ink hover:underline"
           >
             {t("pipelines.detail.kpis.reviewThem")}

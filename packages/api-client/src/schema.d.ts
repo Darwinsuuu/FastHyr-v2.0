@@ -356,6 +356,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pipelines/{pipeline_id}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pipeline Applications
+         * @description The Candidates tab (FR-PIPE-12): one stage filter's applications, needing attention
+         *     first, searched by the candidate's name or email, with every filter's count before the
+         *     search. Hiring managers get shortlisted applications only (ready for review, flagged,
+         *     advanced).
+         */
+        get: operations["pipeline_applications_v1_pipelines__pipeline_id__applications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pipelines/{pipeline_id}/publish": {
         parameters: {
             query?: never;
@@ -1126,6 +1149,31 @@ export interface components {
         BrandingUploadRequest: {
             kind: components["schemas"]["BrandingKind"];
         };
+        /** CandidateFilterCounts */
+        CandidateFilterCounts: {
+            /** All */
+            all: number;
+            /** Processing */
+            processing: number;
+            /** Not A Match */
+            not_a_match: number;
+            /** Invited */
+            invited: number;
+            /** In Progress */
+            in_progress: number;
+            /** Ready */
+            ready: number;
+            /** Did Not Pass */
+            did_not_pass: number;
+            /** Flagged */
+            flagged: number;
+            /** Review Requested */
+            review_requested: number;
+            /** Advanced */
+            advanced: number;
+            /** Rejected */
+            rejected: number;
+        };
         /** CandidateKpis */
         CandidateKpis: {
             /** Candidates */
@@ -1714,6 +1762,18 @@ export interface components {
              */
             workspace_id: string;
         };
+        /** ListedCandidate */
+        ListedCandidate: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Email */
+            email: string;
+        };
         /** MeResponse */
         MeResponse: {
             /**
@@ -1798,6 +1858,16 @@ export interface components {
             month: string;
             /** Candidates */
             candidates: number;
+        };
+        /**
+         * MustHaves
+         * @description Must-haves the résumé screen found met, of all the pipeline's must-haves.
+         */
+        MustHaves: {
+            /** Met */
+            met: number;
+            /** Total */
+            total: number;
         };
         /**
          * MyApplication
@@ -2049,6 +2119,61 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** PipelineCandidate */
+        PipelineCandidate: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            candidate: components["schemas"]["ListedCandidate"];
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "processing_resume" | "resume_not_match" | "invited" | "interview_in_progress" | "scoring" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected";
+            /** Flagged */
+            flagged: boolean;
+            /** Review Requested */
+            review_requested: boolean;
+            /** Fit */
+            fit: ("strong" | "good") | null;
+            /** Overall Score */
+            overall_score: number | null;
+            must_haves: components["schemas"]["MustHaves"] | null;
+            /** Strongest */
+            strongest: ("technical" | "communication" | "culture") | null;
+            /** Flag Types */
+            flag_types: ("different_face" | "no_face" | "second_voice" | "read_aloud" | "unusual_timing")[];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "linkedin" | "jobstreet" | "indeed" | "kalibrr" | "glassdoor" | "facebook" | "careers" | "other" | "direct";
+            /**
+             * Applied At
+             * Format: date-time
+             */
+            applied_at: string;
+        };
+        /** PipelineCandidates */
+        PipelineCandidates: {
+            /** Items */
+            items: components["schemas"]["PipelineCandidate"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            counts: components["schemas"]["CandidateFilterCounts"];
+            /** Shortlist Only */
+            shortlist_only: boolean;
+            /** Pass Mark */
+            pass_mark: number | null;
+            /** Timezone */
+            timezone: string;
         };
         /**
          * PipelineCounts
@@ -4220,6 +4345,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PipelineDashboard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pipeline_applications_v1_pipelines__pipeline_id__applications_get: {
+        parameters: {
+            query?: {
+                stage?: "all" | "processing" | "not_a_match" | "invited" | "in_progress" | "ready" | "did_not_pass" | "flagged" | "review_requested" | "advanced" | "rejected";
+                q?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineCandidates"];
                 };
             };
             /** @description Unauthorized */

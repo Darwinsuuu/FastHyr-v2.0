@@ -266,8 +266,15 @@ def test_flags_mark_the_moments_with_times_and_confidence(
         "timing": "ran",
         "read_aloud": "ran",
     }
-    # Flags never move the application: a person resolves them.
+    # Flags never move the application: a person resolves them. It shows under Flagged.
     assert row["stage"] == "ready_for_review"
+    [application] = sql(
+        tenancy,
+        "select has_open_flags from applications where id = "
+        "(select application_id from interviews where id = $1)",
+        interview_id,
+    )
+    assert application["has_open_flags"] is True
 
     logged = decisions(tenancy, interview_id)
     assert sorted(entry["outcome"] for entry in logged) == sorted(by_type)

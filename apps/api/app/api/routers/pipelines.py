@@ -12,6 +12,7 @@ from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
 from app.schemas.analytics import PipelineDashboard
+from app.schemas.pipeline_candidates import CandidateFilter, PipelineCandidates
 from app.schemas.pipelines import (
     Pipeline,
     PipelineDetail,
@@ -22,7 +23,7 @@ from app.schemas.pipelines import (
     TopUpRequest,
 )
 from app.schemas.reinvites import ReinviteAllRequest, ReinviteResult
-from app.services import analytics, interview_lifecycle
+from app.services import analytics, interview_lifecycle, pipeline_candidates
 from app.services import pipelines as pipeline_service
 
 router = APIRouter(prefix="/pipelines", tags=["pipelines"], responses=PROBLEM_RESPONSES)
@@ -34,6 +35,7 @@ Editor = Annotated[RequestContext, require(Action.EDIT_PIPELINES)]
 StatusChanger = Annotated[RequestContext, require(Action.CHANGE_PIPELINE_STATUS)]
 TopUpper = Annotated[RequestContext, require(Action.TOP_UP_PIPELINE)]
 Decider = Annotated[RequestContext, require(Action.DECIDE_CANDIDATES)]
+CandidateViewer = Annotated[RequestContext, require(Action.VIEW_CANDIDATES)]
 
 
 @router.get("", response_model=PipelineList)
@@ -75,6 +77,26 @@ async def pipeline_dashboard(
     interview scores in tens with the pass mark, sources with the résumé pass rate, and
     didn't-finish reasons with how many "Re-invite all" would reach (DASH-003)."""
     return await analytics.pipeline_dashboard(session, ctx, pipeline_id)
+
+
+@router.get("/{pipeline_id}/applications", response_model=PipelineCandidates)
+async def pipeline_applications(
+    pipeline_id: uuid.UUID,
+    ctx: CandidateViewer,
+    session: Session,
+    stage: CandidateFilter = "all",
+    q: Annotated[str, Query(max_length=120)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    # The tab offers 10, 25 or 50 rows.
+    page_size: Annotated[int, Query(ge=1, le=50)] = 10,
+) -> PipelineCandidates:
+    """The Candidates tab (FR-PIPE-12): one stage filter's applications, needing attention
+    first, searched by the candidate's name or email, with every filter's count before the
+    search. Hiring managers get shortlisted applications only (ready for review, flagged,
+    advanced)."""
+    return await pipeline_candidates.list_candidates(
+        session, ctx, pipeline_id, filter_name=stage, query=q, page=page, page_size=page_size
+    )
 
 
 @router.patch("/{pipeline_id}", response_model=Pipeline, responses=CONFLICT)

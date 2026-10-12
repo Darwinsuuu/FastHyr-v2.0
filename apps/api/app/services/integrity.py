@@ -199,7 +199,10 @@ async def check(
         )
         flags.append(flag)
         decisions.append(_decision(flag, item, ai.model))
-    IntegrityFlagRepository(session, workspace_id).add(flags, decisions)
+    flag_repo = IntegrityFlagRepository(session, workspace_id)
+    flag_repo.add(flags, decisions)
+    if flags:
+        await flag_repo.mark_flagged(application_id)
     interview.integrity_status = "ready"
     interview.integrity_checks = checks
     interview.integrity_checked_at = now or datetime.now(UTC)

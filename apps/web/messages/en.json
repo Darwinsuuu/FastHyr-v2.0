@@ -1387,7 +1387,6 @@
         "setup": "Setup"
       },
       "comingSoon": {
-        "candidates": "Every candidate in this pipeline, filtered by stage, will appear here.",
         "ava": "Ask Ava to compare candidates or explain a score, using only this pipeline.",
         "setup": "The locked setup of this pipeline, with a way to start a new one from it, will appear here."
       },
@@ -1478,6 +1477,83 @@
       "reinviteFailed": "We couldn't send the invitations. Try again in a moment.",
       "reinviteNotAllowed": "This pipeline can't send new invitations.",
       "dashboardLoadFailed": "The dashboard didn't load. Refresh the page to try again."
+    },
+    "candidates": {
+      "filtersLabel": "Filter by stage",
+      "filters": {
+        "all": "All",
+        "processing": "Processing résumé",
+        "not_a_match": "Résumé not a match",
+        "invited": "Invited to interview",
+        "in_progress": "Interview in progress",
+        "ready": "Ready for review",
+        "did_not_pass": "Didn't pass interview",
+        "flagged": "Flagged",
+        "review_requested": "Review requested",
+        "advanced": "Advanced",
+        "rejected": "Rejected"
+      },
+      "searchLabel": "Search candidates",
+      "search": "Search by name or email",
+      "caption": "Candidates",
+      "columns": {
+        "candidate": "Candidate",
+        "stage": "Stage",
+        "status": "Status",
+        "source": "Source",
+        "applied": "Applied"
+      },
+      "noun": {
+        "one": "candidate",
+        "other": "candidates"
+      },
+      "flagged": "Flagged",
+      "reviewRequested": "Review requested",
+      "noStatus": "—",
+      "noStatusHint": "Status appears once the candidate passes the AI interview.",
+      "fit": {
+        "strong": {
+          "label": "Strong fit",
+          "description": "Passed the AI interview with 80 or higher and meets every must-have. A good one to look at first."
+        },
+        "good": {
+          "label": "Good fit",
+          "description": "Passed the AI interview at or above your pass mark of {mark}, with room to probe in the next round."
+        },
+        "mustHaves": "Résumé {met} of {total} must-haves",
+        "interview": "Interview {score}/100",
+        "strongest": "Strongest area: {area}.",
+        "whyFlagged": "Interview {score}/100, but flagged: {flags}. Review the recording before deciding."
+      },
+      "criteria": {
+        "technical": "technical fit",
+        "communication": "communication",
+        "culture": "culture alignment"
+      },
+      "flagPhrases": {
+        "different_face": "a different face appeared",
+        "no_face": "they left the camera frame",
+        "second_voice": "a second voice was heard",
+        "read_aloud": "answers sounded read aloud",
+        "unusual_timing": "response timing was unusual"
+      },
+      "actionsFor": "Actions for {name}",
+      "actions": {
+        "profile": "View candidate profile",
+        "resume": "Download résumé",
+        "report": "Download candidate report",
+        "reviewFlag": "Review flag",
+        "email": "Email candidate",
+        "advance": "Advance to next round",
+        "reject": "Reject candidate"
+      },
+      "soon": "Coming soon",
+      "loadFailed": "The candidates didn't load. Refresh the page to try again.",
+      "emptyTitle": "No candidates yet",
+      "emptyBody": "People who apply through this pipeline's link show here, with where they are in the process.",
+      "emptyFilter": "No candidates in this stage right now.",
+      "noMatches": "No candidates match “{query}”.",
+      "shortlistNote": "You see candidates who are ready for review, flagged or advanced."
     }
   },
   "interview": {

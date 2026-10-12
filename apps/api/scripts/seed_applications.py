@@ -18,6 +18,7 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -103,6 +104,9 @@ class ApplicantMaker:
         self.namespace = namespace
         self.email_domain = email_domain
         self.rng = random.Random(20261010)
+        # Must-have results and criterion scores (PIPE-008's fit explanation) draw from their own
+        # generator, so the applications and stages above stay as they were.
+        self.detail_rng = random.Random(20261012)
         self.people: list[SampleCandidate] = []
         self.added: set[uuid.UUID] = set()
         # Rows written after the applications they refer to (see `add`).
@@ -216,6 +220,31 @@ class ApplicantMaker:
         session.add_all(self.results)
         await session.flush()
 
+    def _must_haves(self, must_haves: list[str], passed: bool) -> list[dict[str, Any]]:
+        """Every must-have met for a passed screen; one or two missing otherwise."""
+        missing = set()
+        if not passed and must_haves:
+            count = min(len(must_haves), self.detail_rng.randint(1, 2))
+            missing = set(self.detail_rng.sample(range(len(must_haves)), count))
+        return [
+            {
+                "criterion": name,
+                "met": index not in missing,
+                "evidence": "",
+                "strength": 0 if index in missing else self.detail_rng.randint(2, 3),
+                "waived": False,
+                "note": "",
+            }
+            for index, name in enumerate(must_haves)
+        ]
+
+    def _criteria(self, score: int) -> dict[str, Any]:
+        """Criterion scores around the overall score, so the strongest area varies."""
+        return {
+            name: {"score": max(0, min(100, score + self.detail_rng.randint(-9, 9)))}
+            for name in ("technical", "communication", "culture")
+        }
+
     def _progress(
         self,
         pipeline: Pipeline,
@@ -241,6 +270,7 @@ class ApplicantMaker:
                 workspace_id=self.workspace_id,
                 score=fit,
                 breakdown={},
+                must_have_results=self._must_haves(pipeline.must_haves, passed),
                 pass_bar=pipeline.resume_pass_bar,
                 passed=passed,
                 model="sample",
@@ -345,7 +375,7 @@ class ApplicantMaker:
                 application_id=row.id,
                 interview_id=interview.id,
                 overall_score=score,
-                criteria={},
+                criteria=self._criteria(score),
                 summary={"text": "", "refs": []},
                 answer_stats={},
                 rubric_snapshot={

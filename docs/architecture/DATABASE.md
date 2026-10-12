@@ -71,8 +71,8 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 | `consent_version`, `consent_at`, `consent_ip_hash` | FR-COMP-01; the notice id (`apply@v1`); the IP only as an HMAC-SHA256 keyed from the service key (`services/applications.consent_ip_hash()`) |
 | `stage` (WORKFLOW.md §3), `stage_changed_at` | |
 | `resume_status` (`pending|done|unreadable|error`) | |
-| `fit` (`strong|good|null`), `overall_score` (denormalised for lists) | |
-| `has_open_flags bool`, `review_requested bool` | overlays |
+| `fit` (`strong|good|null`), `overall_score` (denormalised for lists) | written with the interview assessment (`services/scoring.py`, PIPE-008) |
+| `has_open_flags bool`, `review_requested bool` | overlays; `has_open_flags` set when the integrity checks store an open flag (`services/integrity.py`), cleared by ASMT-003; `review_requested` by ASMT-008 |
 | `rejected_reason`, `rejected_by`, `rejected_at`, `advanced_note`, `advanced_by`, `advanced_at` | ADR-017 |
 | `credit_ledger_id` | the consumption entry |
 | `applied_at` | |

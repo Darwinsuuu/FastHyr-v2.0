@@ -4,10 +4,10 @@ import uuid
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import AIDecision, IntegrityFlag, Interview
+from app.models import AIDecision, Application, IntegrityFlag, Interview
 from app.repositories.base import WorkspaceRepository
 
 
@@ -29,6 +29,15 @@ class IntegrityFlagRepository(WorkspaceRepository[IntegrityFlag]):
         if any(scope != self.workspace_id for scope in scopes):
             raise ValueError("integrity flag belongs to another workspace")
         self.session.add_all([*flags, *decisions])
+
+    async def mark_flagged(self, application_id: uuid.UUID) -> None:
+        """Sets the application's Flagged overlay (WORKFLOW.md §3) until ASMT-003 resolves
+        its flags; the Candidates tab and dashboards read it."""
+        await self.session.execute(
+            update(Application)
+            .where(Application.workspace_id == self.workspace_id, Application.id == application_id)
+            .values(has_open_flags=True)
+        )
 
 
 async def integrity_pending_before(

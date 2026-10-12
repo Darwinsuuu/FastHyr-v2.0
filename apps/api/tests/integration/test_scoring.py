@@ -190,6 +190,16 @@ def test_a_passing_interview_is_ready_for_review_with_its_evidence(
         interview_id,
     )
     assert result["fit"] in ("strong_fit", "good_fit")
+    # The Candidates tab reads the score and badge from the application (PIPE-008).
+    [application] = sql(
+        tenancy,
+        "select overall_score, fit from applications where id = $1",
+        result["application_id"],
+    )
+    assert (application["overall_score"], application["fit"]) == (
+        expected,
+        result["fit"].removesuffix("_fit"),
+    )
     assert result["rubric_snapshot"]["pass_mark"] == pipeline["pass_mark"]
     technical = result["criteria"]["technical"]
     assert technical["evidence"][0] == {

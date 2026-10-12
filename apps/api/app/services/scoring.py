@@ -38,6 +38,9 @@ from app.screening.redact import redact_rules
 from app.services import candidate_emails, post_screen
 from app.services.applications import move_stage
 
+# The assessment's fit badge as the applications column stores it.
+APPLICATION_FIT = {"strong_fit": "strong", "good_fit": "good"}
+
 logger = logging.getLogger("app.interview")
 
 SCORE_JOB = "score_interview"
@@ -206,6 +209,9 @@ async def score(
         ),
     )
     interview.assessment_status = "ready"
+    # Denormalised for the Candidates tab and other lists (DATABASE.md): ADR-011's badge.
+    application.overall_score = decision.overall_score
+    application.fit = APPLICATION_FIT.get(decision.fit or "")
     emails: list[EmailMessage] = []
     if application.stage == SCORING:
         stage = READY_FOR_REVIEW if decision.passed else DID_NOT_PASS

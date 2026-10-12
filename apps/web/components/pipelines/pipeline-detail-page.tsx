@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { type ReactNode, useEffect } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { PipelineCandidatesTab } from "@/components/pipelines/pipeline-candidates";
 import { PipelineDashboardTab } from "@/components/pipelines/pipeline-dashboard";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import {
 } from "@/lib/pipelines/detail";
 
 /** Pipeline details (frame PipelineView, FR-PIPE-11): the header and the tabs. The Dashboard
- * tab is PIPE-007; Candidates (PIPE-008), Ask Ava (AVA-002) and Setup (PIPE-009) fill in later. */
+ * tab is PIPE-007 and Candidates PIPE-008; Ask Ava (AVA-002) and Setup (PIPE-009) fill in later. */
 export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
   const { workspace } = useShell();
   const router = useRouter();
@@ -99,6 +100,8 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
           content:
             value === "dashboard" ? (
               <PipelineDashboardTab pipeline={pipeline} query={dashboard} />
+            ) : value === "candidates" ? (
+              <PipelineCandidatesTab pipelineId={pipeline.id} />
             ) : (
               <ComingSoon tab={value} />
             ),
@@ -189,7 +192,7 @@ function Header({ pipeline, timeZone }: { pipeline: PipelineDetail; timeZone?: s
   );
 }
 
-function ComingSoon({ tab }: { tab: Exclude<DetailTab, "dashboard"> }) {
+function ComingSoon({ tab }: { tab: Exclude<DetailTab, "dashboard" | "candidates"> }) {
   return (
     <div className="rounded-lg border border-line bg-surface-raised">
       <EmptyState

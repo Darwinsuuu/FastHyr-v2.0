@@ -4,7 +4,7 @@
 |---|---|
 | Epic | ASMT — Assessment & review |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [ASMT-002](../ASMT/ASMT-002-integrity-checks-worker.md), [ASMT-004](../ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) |
 | Requirements | FR-ASMT-06 |

@@ -26,5 +26,9 @@ export const keys = {
     pipelineId: string,
     params: { stage: string; q: string; page: number; pageSize: number },
   ) => ["ws", workspaceId, "pipelines", pipelineId, "candidates", params] as const,
+  application: (workspaceId: string, applicationId: string) =>
+    ["ws", workspaceId, "applications", applicationId] as const,
+  recordingUrl: (workspaceId: string, applicationId: string) =>
+    ["ws", workspaceId, "applications", applicationId, "recording-url"] as const,
   creditSummary: (workspaceId: string) => ["ws", workspaceId, "credits", "summary"] as const,
 };

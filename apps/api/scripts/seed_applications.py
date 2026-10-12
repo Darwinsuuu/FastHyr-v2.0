@@ -18,12 +18,14 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.business_days import end_of_day_after
+from app.integrations.storage import recording_file_path
 from app.models import (
     Application,
     Assessment,
@@ -36,6 +38,7 @@ from app.models import (
     ResumeAssessment,
 )
 from app.services import credits
+from scripts.seed_assessments import bea_garcia, sample_interview
 
 # The design's sample people (frames PipelineView and CandidatePool).
 FIRST_NAMES = (
@@ -107,6 +110,8 @@ class ApplicantMaker:
         # Must-have results and criterion scores (PIPE-008's fit explanation) draw from their own
         # generator, so the applications and stages above stay as they were.
         self.detail_rng = random.Random(20261012)
+        # The assessments' content (ASMT-004) draws from a third, for the same reason.
+        self.content_rng = random.Random(20261013)
         self.people: list[SampleCandidate] = []
         self.added: set[uuid.UUID] = set()
         # Rows written after the applications they refer to (see `add`).
@@ -282,17 +287,16 @@ class ApplicantMaker:
         if not passed:
             self._move(row, "resume_not_match", screened)
             return
-        self.screens.append(
-            InterviewPlan(
-                application_id=row.id,
-                workspace_id=self.workspace_id,
-                topics=[],
-                source="fallback",
-                model="none",
-                prompt_version="interview_plan_fallback@v1",
-                created_at=screened,
-            )
+        plan = InterviewPlan(
+            application_id=row.id,
+            workspace_id=self.workspace_id,
+            topics=[],
+            source="fallback",
+            model="none",
+            prompt_version="interview_plan_fallback@v1",
+            created_at=screened,
         )
+        self.screens.append(plan)
         invited = screened + timedelta(minutes=1)
         expires = end_of_day_after(invited, pipeline.link_expiry_days, zone)
         interview = Interview(
@@ -316,13 +320,17 @@ class ApplicantMaker:
             interview.consent_version = "interview@v1"
             self._move(row, "interview_in_progress", started)
         if outcome < FINISH:
-            finished = started + timedelta(minutes=rng.randint(16, 30))
+            minutes = rng.randint(16, 30)
+            # Bea Garcia's sample interview (frame CandidateProfile) runs the full 30 minutes.
+            if showcase is not None and showcase[0] == "Bea Garcia":
+                minutes = 30
+            finished = started + timedelta(minutes=minutes)
             if started >= min(expires, now):
                 self._expire(interview, "link_expired", expires, now)
             elif finished > now:
                 interview.status = "in_progress"
             else:
-                self._finish(pipeline, row, interview, finished, showcase, now)
+                self._finish(pipeline, row, interview, plan, finished, showcase, now)
         elif outcome < LEAVE:
             if interview.started_at is None:
                 self._expire(interview, "link_expired", expires, now)
@@ -344,6 +352,7 @@ class ApplicantMaker:
         pipeline: Pipeline,
         row: Application,
         interview: Interview,
+        plan: InterviewPlan,
         finished: datetime,
         showcase: tuple[str, int, str | None] | None,
         now: datetime,
@@ -355,7 +364,9 @@ class ApplicantMaker:
             (finished - (interview.started_at or finished)).total_seconds()
         )
         interview.recording_status = "ready"
-        interview.recording_path = f"recordings/{self.workspace_id}/{interview.id}/recording.webm"
+        interview.recording_path = recording_file_path(
+            self.workspace_id, interview.id, "recording.webm"
+        )
         self._move(row, "scoring", finished)
         if now - finished < timedelta(minutes=10):
             interview.transcript_status = "processing"
@@ -369,19 +380,60 @@ class ApplicantMaker:
         score = showcase[1] if showcase else max(30, min(89, round(rng.gauss(60, 12))))
         passed = score >= pipeline.pass_mark
         fit = ("strong_fit" if score >= 80 else "good_fit") if passed else None
+        criteria = self._criteria(score)
+        weights = {
+            "technical": pipeline.weight_technical,
+            "communication": pipeline.weight_communication,
+            "culture": pipeline.weight_culture,
+        }
+        # Shift the criteria so their weighted sum rounds to the overall score, as scoring does.
+        weighted = sum(criteria[name]["score"] * weights[name] for name in weights) / 100
+        shift = round(score - weighted)
+        for name in criteria:
+            criteria[name]["score"] = max(0, min(100, criteria[name]["score"] + shift))
+        heaviest = max(weights, key=lambda name: weights[name])
+        for _ in range(10):
+            total = sum(criteria[name]["score"] * weights[name] for name in weights) / 100
+            gap = score - int(Decimal(str(total)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            if gap == 0:
+                break
+            value = criteria[heaviest]["score"] + (1 if gap > 0 else -1)
+            criteria[heaviest]["score"] = max(0, min(100, value))
+        if showcase is not None and showcase[0] == "Bea Garcia":
+            content = bea_garcia(weights, list(pipeline.skills_to_probe))
+        else:
+            content = sample_interview(
+                self.content_rng,
+                score=score,
+                scores={name: row["score"] for name, row in criteria.items()},
+                weights=weights,
+                skills=list(pipeline.skills_to_probe),
+                seconds=interview.duration_seconds or 0,
+                video=interview.format == "video_voice",
+                consent=self.content_rng.random() < 0.9,
+                integrity=pipeline.integrity_enabled,
+            )
+        plan.topics = content.plan_topics
+        if content.integrity_checks and pipeline.integrity_enabled:
+            interview.integrity_checks = content.integrity_checks
+            if interview.integrity_checks.get("face") == "ran":
+                interview.biometric_consent_version = "biometric@v1"
         self.results.append(
             Assessment(
                 workspace_id=self.workspace_id,
                 application_id=row.id,
                 interview_id=interview.id,
                 overall_score=score,
-                criteria=self._criteria(score),
-                summary={"text": "", "refs": []},
-                answer_stats={},
+                criteria=content.criteria,
+                topics=content.topics,
+                summary=content.summary,
+                strengths=content.strengths,
+                probes=content.probes,
+                answer_stats=content.answer_stats,
                 rubric_snapshot={
-                    "technical": pipeline.weight_technical,
-                    "communication": pipeline.weight_communication,
-                    "culture": pipeline.weight_culture,
+                    "weight_technical": pipeline.weight_technical,
+                    "weight_communication": pipeline.weight_communication,
+                    "weight_culture": pipeline.weight_culture,
                     "pass_mark": pipeline.pass_mark,
                 },
                 passed=passed,

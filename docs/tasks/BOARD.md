@@ -15,7 +15,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
-| M5 Review | 18 | 4 |
+| M5 Review | 18 | 5 |
 | M6 Billing & analytics | 7 | 0 |
 | M7 Public site & demo | 6 | 0 |
 | M8 Launch readiness | 6 | 0 |
@@ -110,10 +110,10 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [SCREEN-004](SCREEN/SCREEN-004-unreadable-resumes-and-manual-invite.md) | Unreadable résumés and manual invite | S | SCREEN-003, PIPE-008 | Ready | |
 | [ASMT-001](ASMT/ASMT-001-interview-scoring.md) | Interview scoring | L | INTV-008, FND-013 | Done | #49 |
 | [ASMT-002](ASMT/ASMT-002-integrity-checks-worker.md) | Integrity checks (worker) | L | INTV-008 | Done | #50 |
-| [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Backlog | |
-| [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Ready | |
-| [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Backlog | |
-| [ASMT-006](ASMT/ASMT-006-candidate-profile-ai-interview-tab.md) | Candidate profile — AI interview tab | M | ASMT-004, INTV-008 | Backlog | |
+| [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Ready | |
+| [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Done | #55 |
+| [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Ready | |
+| [ASMT-006](ASMT/ASMT-006-candidate-profile-ai-interview-tab.md) | Candidate profile — AI interview tab | M | ASMT-004, INTV-008 | Ready | |
 | [ASMT-007](ASMT/ASMT-007-advance-and-reject-actions.md) | Advance and reject actions | M | PIPE-008, MSG-003 | Ready | |
 | [ASMT-008](ASMT/ASMT-008-human-review-requests.md) | Human review requests | M | ASMT-007, SCREEN-003 | Backlog | |
 | [ASMT-009](ASMT/ASMT-009-candidate-report-pdf-and-resume-download.md) | Candidate report PDF and résumé download | M | ASMT-004, PIPE-010 | Backlog | |

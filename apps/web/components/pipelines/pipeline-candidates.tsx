@@ -11,6 +11,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type ReactNode, useState } from "react";
 
@@ -40,6 +41,7 @@ import {
   type CandidateAction,
   candidateActionHref,
   type CandidateFilter,
+  candidateProfileHref,
   candidateMenu,
   type CandidatePageSize,
   filtersFor,
@@ -325,14 +327,16 @@ function LoadingRows() {
 
 function CandidateCell({ item }: { item: PipelineCandidate }) {
   const { candidate } = item;
-  // The name links to the profile once ASMT-004 builds it.
   return (
     <div className="flex min-w-0 items-center gap-3">
       <Avatar id={candidate.id} name={candidate.name} />
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-[15px] leading-[22px] font-[650] text-ink">
+        <Link
+          href={candidateProfileHref(item)}
+          className="truncate text-[15px] leading-[22px] font-[650] text-ink hover:text-evergreen hover:underline"
+        >
           {candidate.name}
-        </span>
+        </Link>
         <span className="truncate text-[13px] leading-[18px] text-ink-muted">
           {candidate.email}
         </span>
@@ -450,6 +454,7 @@ function CandidateCard({
 
 function RowMenu({ item }: { item: PipelineCandidate }) {
   const { workspace } = useShell();
+  const router = useRouter();
   const name = item.candidate.name;
   const entries = candidateMenu(item, {
     decide: can(workspace.role, "decide_candidates"),
@@ -462,11 +467,13 @@ function RowMenu({ item }: { item: PipelineCandidate }) {
       label: t(`pipelines.candidates.actions.${entry}`),
       icon: ACTION_ICONS[entry],
       destructive: entry === "reject",
-      // The profile, flag review, downloads and the advance and reject dialogs arrive with
-      // ASMT-004, ASMT-003, ASMT-009 and ASMT-007; until then they show but can't be picked.
+      // Flag review, downloads and the advance and reject dialogs arrive with ASMT-003,
+      // ASMT-009 and ASMT-007; until then they show but can't be picked.
       disabled: href === null,
       onSelect: () => {
-        if (href) window.location.href = href;
+        if (!href) return;
+        if (href.startsWith("mailto:")) window.location.href = href;
+        else router.push(href);
       },
     };
   });

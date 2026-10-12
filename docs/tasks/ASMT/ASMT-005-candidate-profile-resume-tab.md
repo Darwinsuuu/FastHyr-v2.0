@@ -4,7 +4,7 @@
 |---|---|
 | Epic | ASMT — Assessment & review |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [ASMT-004](../ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md), [SCREEN-002](../SCREEN/SCREEN-002-resume-assessment-and-decision.md) |
 | Requirements | FR-ASMT-07 |

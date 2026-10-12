@@ -62,4 +62,5 @@ _(Auto-approved: the owner asked for no plan approvals, see the Log.)_
   - The row menu shows every FR-PIPE-13 item the role and stage allow. View profile, the downloads, Review flag, Advance and Reject are disabled until ASMT-004, ASMT-009, ASMT-003 and ASMT-007 build them (the PIPE-004 rule); Email candidate opens the mail app. Candidate names aren't links until the profile exists. Hiring managers get the profile and downloads only.
   - Applied shows from `xl` and Source from `xl`: at `lg` with the sidebar the table didn't fit.
   - The seed's résumé screens now carry must-have results and its assessments criterion scores (from a separate random generator, so the sample applications are unchanged), so the fit explanation reads like real data.
+- 2026-10-12: PR #54.
 - 2026-10-12: acceptance. Checked by hand on the seed (Senior Backend Engineer, 142 candidates) as Dana (Admin), Maria (Recruiter) and Jomar (Hiring manager: 15 shortlisted, four filters, no decisions in the menu), filters, search, the fit tooltip, the menu, Review requested (set by hand in the database), 360, 768, 1024 and 1440 px, light and dark.

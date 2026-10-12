@@ -104,7 +104,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 |---|---|---|---|---|---|
 | [DASH-003](DASH/DASH-003-analytics-views-and-endpoints.md) | Analytics views and endpoints | M | PIPE-001, APPLY-003, INTV-007, ASMT-001 | Done | |
 | [PIPE-007](PIPE/PIPE-007-pipeline-details-header-and-dashboard-tab.md) | Pipeline details — header and Dashboard tab | M | DASH-003, PIPE-004 | Done | |
-| [PIPE-008](PIPE/PIPE-008-pipeline-details-candidates-tab.md) | Pipeline details — Candidates tab | M | PIPE-007, APPLY-003 | Done | |
+| [PIPE-008](PIPE/PIPE-008-pipeline-details-candidates-tab.md) | Pipeline details — Candidates tab | M | PIPE-007, APPLY-003 | Done | #54 |
 | [PIPE-009](PIPE/PIPE-009-pipeline-details-setup-tab-and-duplicate.md) | Pipeline details — Setup tab and duplicate | S | PIPE-007 | Ready | |
 | [PIPE-010](PIPE/PIPE-010-pipelines-report-pdf.md) | Pipelines report PDF | M | DASH-003, FND-008 | Ready | |
 | [SCREEN-004](SCREEN/SCREEN-004-unreadable-resumes-and-manual-invite.md) | Unreadable résumés and manual invite | S | SCREEN-003, PIPE-008 | Ready | |

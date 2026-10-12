@@ -166,9 +166,9 @@ describe("candidateMenu", () => {
     ]);
   });
 
-  it("only emails for now: the rest arrive with their own tasks", () => {
+  it("emails and opens the profile; the rest arrive with their own tasks", () => {
     expect(candidateActionHref("email", row())).toBe("mailto:bea@example.test");
+    expect(candidateActionHref("profile", row())).toBe("/candidates/cand-1?application=app-1");
     expect(candidateActionHref("advance", row())).toBeNull();
-    expect(candidateActionHref("profile", row())).toBeNull();
   });
 });

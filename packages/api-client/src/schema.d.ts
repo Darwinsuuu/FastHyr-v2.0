@@ -571,6 +571,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/applications/{application_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Application
+         * @description The candidate profile (ASMT-004, FR-ASMT-07): the application with its résumé screen,
+         *     latest interview and assessment (criteria with signals and evidence, topics, summary,
+         *     strengths, probes, answer patterns), how it compares among the pipeline's assessed
+         *     interviews, integrity checks and flags, the person's other applications the caller can see,
+         *     and the journey. Hiring managers reach shortlisted applications only.
+         */
+        get: operations["get_application_v1_applications__application_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/applications/{application_id}/recording-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recording Url
+         * @description Signed links (15 minutes) to the latest interview's recording and poster frame;
+         *     `404 recording_not_ready` until the recording is finished.
+         */
+        get: operations["get_recording_url_v1_applications__application_id__recording_url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/applications/{application_id}/reinvite": {
         parameters: {
             query?: never;
@@ -1103,6 +1148,80 @@ export interface components {
             /** Token */
             token?: string | null;
         };
+        /** AnswerStats */
+        AnswerStats: {
+            /** Avg Answer Ms */
+            avg_answer_ms: number;
+            /** Avg Response Delay Ms */
+            avg_response_delay_ms: number;
+            /** Questions */
+            questions: number;
+            /** Follow Ups */
+            follow_ups: number;
+            /** Candidate Questions */
+            candidate_questions: number;
+            /** Talk Time Pct */
+            talk_time_pct: number;
+        };
+        /** AnswerStatsAverages */
+        AnswerStatsAverages: {
+            /** Avg Answer Ms */
+            avg_answer_ms: number;
+            /** Avg Response Delay Ms */
+            avg_response_delay_ms: number;
+            /** Follow Ups */
+            follow_ups: number;
+            /** Candidate Questions */
+            candidate_questions: number;
+            /** Talk Time Pct */
+            talk_time_pct: number;
+        };
+        /** ApplicationProfile */
+        ApplicationProfile: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "processing_resume" | "resume_not_match" | "invited" | "interview_in_progress" | "scoring" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected";
+            /** Flagged */
+            flagged: boolean;
+            /** Open Flags */
+            open_flags: number;
+            /** Review Requested */
+            review_requested: boolean;
+            /** Fit */
+            fit: ("strong" | "good") | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "linkedin" | "jobstreet" | "indeed" | "kalibrr" | "glassdoor" | "facebook" | "careers" | "other" | "direct";
+            /**
+             * Applied At
+             * Format: date-time
+             */
+            applied_at: string;
+            candidate: components["schemas"]["ProfileCandidate"];
+            pipeline: components["schemas"]["ProfilePipeline"];
+            /** Workspace Name */
+            workspace_name: string;
+            /** Timezone */
+            timezone: string;
+            resume: components["schemas"]["ProfileResume"];
+            interview: components["schemas"]["ProfileInterview"] | null;
+            assessment: components["schemas"]["ProfileAssessment"] | null;
+            comparison: components["schemas"]["Comparison"] | null;
+            integrity: components["schemas"]["ProfileIntegrity"] | null;
+            /** History */
+            history: components["schemas"]["HistoryItem"][];
+            /** Journey */
+            journey: components["schemas"]["JourneyStep"][];
+        };
         /**
          * Attention
          * @description FR-DASH-03, without human-review requests (ASMT-008 adds them).
@@ -1236,6 +1355,24 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * Comparison
+         * @description Among every completed, assessed interview in the pipeline (FR-ASMT-07). Aggregates only.
+         */
+        Comparison: {
+            /** Interviewed */
+            interviewed: number;
+            /** Rank */
+            rank: number;
+            /** Average */
+            average: number;
+            /** Passed */
+            passed: number;
+            /** Distribution */
+            distribution: components["schemas"]["ScoreBucket"][];
+            criteria: components["schemas"]["CriteriaComparison"];
+            answer_stats: components["schemas"]["AnswerStatsAverages"] | null;
+        };
         /** CreateDepartmentRequest */
         CreateDepartmentRequest: {
             /** Name */
@@ -1303,6 +1440,40 @@ export interface components {
             plan_credits: number | null;
             /** Plan Credits Used */
             plan_credits_used: number | null;
+        };
+        /** Criteria */
+        Criteria: {
+            technical: components["schemas"]["CriterionResult"];
+            communication: components["schemas"]["CriterionResult"];
+            culture: components["schemas"]["CriterionResult"];
+        };
+        /** CriteriaComparison */
+        CriteriaComparison: {
+            technical: components["schemas"]["CriterionComparison"];
+            communication: components["schemas"]["CriterionComparison"];
+            culture: components["schemas"]["CriterionComparison"];
+        };
+        /** CriterionComparison */
+        CriterionComparison: {
+            /** Average */
+            average: number;
+            /** Passed Average */
+            passed_average: number | null;
+        };
+        /** CriterionResult */
+        CriterionResult: {
+            /** Score */
+            score: number;
+            /** Weight */
+            weight: number;
+            /** Points */
+            points: number;
+            /** Signals */
+            signals: components["schemas"]["Signal"][];
+            /** Evidence */
+            evidence: components["schemas"]["Evidence"][];
+            /** Held Back */
+            held_back: string;
         };
         /**
          * CurrentNotices
@@ -1392,6 +1563,20 @@ export interface components {
             /** Technical Issue */
             technical_issue: number;
         };
+        /** Evidence */
+        Evidence: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "interview" | "resume";
+            /** Quote */
+            quote: string;
+            /** Start Ms */
+            start_ms: number | null;
+            /** Label */
+            label: string;
+        };
         /** FlaggedItem */
         FlaggedItem: {
             /** Name */
@@ -1444,6 +1629,68 @@ export interface components {
         HealthResponse: {
             /** Status */
             status: string;
+        };
+        /**
+         * HistoryItem
+         * @description One of the person's applications in this workspace that the caller can see.
+         */
+        HistoryItem: {
+            /**
+             * Application Id
+             * Format: uuid
+             */
+            application_id: string;
+            /** Pipeline Title */
+            pipeline_title: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "processing_resume" | "resume_not_match" | "invited" | "interview_in_progress" | "scoring" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected";
+            /** Overall Score */
+            overall_score: number | null;
+            /**
+             * Applied At
+             * Format: date-time
+             */
+            applied_at: string;
+            /** Current */
+            current: boolean;
+        };
+        /** IntegrityChecks */
+        IntegrityChecks: {
+            /** Face */
+            face: ("ran" | "no_consent" | "voice_only" | "no_video") | null;
+            /** Second Voice */
+            second_voice: "ran" | null;
+            /** Timing */
+            timing: ("ran" | "too_short") | null;
+            /** Read Aloud */
+            read_aloud: ("ran" | "too_short" | "failed") | null;
+        };
+        /** IntegrityFlag */
+        IntegrityFlag: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "different_face" | "no_face" | "second_voice" | "read_aloud" | "unusual_timing";
+            /** Start Ms */
+            start_ms: number;
+            /** End Ms */
+            end_ms: number;
+            /** Confidence */
+            confidence: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "no_concern" | "concern_confirmed";
         };
         /** InterviewCompany */
         InterviewCompany: {
@@ -1754,6 +2001,19 @@ export interface components {
             /** Finished At */
             finished_at: string | null;
         };
+        /** JourneyStep */
+        JourneyStep: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "applied" | "resume_matched" | "resume_not_matched" | "invited" | "interview_finished" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected";
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
         /** LastWorkspaceRequest */
         LastWorkspaceRequest: {
             /**
@@ -1858,6 +2118,13 @@ export interface components {
             month: string;
             /** Candidates */
             candidates: number;
+        };
+        /** MustHave */
+        MustHave: {
+            /** Name */
+            name: string;
+            /** Met */
+            met: boolean;
         };
         /**
          * MustHaves
@@ -2572,6 +2839,13 @@ export interface components {
              */
             expires_at: string;
         };
+        /** Point */
+        Point: {
+            /** Title */
+            title: string;
+            /** Reason */
+            reason: string;
+        };
         /**
          * Problem
          * @description The error body every endpoint returns.
@@ -2591,6 +2865,130 @@ export interface components {
             errors?: {
                 [key: string]: unknown;
             }[] | null;
+        };
+        /**
+         * ProfileAssessment
+         * @description The latest interview assessment (ASMT-001).
+         */
+        ProfileAssessment: {
+            /** Overall Score */
+            overall_score: number;
+            /** Passed */
+            passed: boolean;
+            /** Fit */
+            fit: ("strong" | "good") | null;
+            criteria: components["schemas"]["Criteria"];
+            /** Pass Mark */
+            pass_mark: number;
+            /** Topics */
+            topics: components["schemas"]["TopicResult"][];
+            summary: components["schemas"]["Summary"];
+            /** Strengths */
+            strengths: components["schemas"]["Point"][];
+            /** Probes */
+            probes: components["schemas"]["Point"][];
+            answer_stats: components["schemas"]["AnswerStats"] | null;
+            /** Evidence Count */
+            evidence_count: number;
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
+        };
+        /** ProfileCandidate */
+        ProfileCandidate: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Email */
+            email: string;
+        };
+        /** ProfileIntegrity */
+        ProfileIntegrity: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "none" | "off" | "ready" | "failed";
+            checks: components["schemas"]["IntegrityChecks"] | null;
+            /** Flags */
+            flags: components["schemas"]["IntegrityFlag"][];
+        };
+        /**
+         * ProfileInterview
+         * @description The application's latest interview link.
+         */
+        ProfileInterview: {
+            /** Status */
+            status: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "video_voice" | "voice_only";
+            /**
+             * Invited At
+             * Format: date-time
+             */
+            invited_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Recording Ready */
+            recording_ready: boolean;
+            /** Assessment Status */
+            assessment_status: string;
+            /** Integrity Status */
+            integrity_status: string;
+        };
+        /** ProfilePipeline */
+        ProfilePipeline: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: string;
+            /** Pass Mark */
+            pass_mark: number | null;
+            /** Interview Format */
+            interview_format: ("video_voice" | "voice_only") | null;
+            /** Integrity Enabled */
+            integrity_enabled: boolean;
+            /** Rubric Locked At */
+            rubric_locked_at: string | null;
+        };
+        /**
+         * ProfileResume
+         * @description The résumé screen (SCREEN-002); `score` and the rest are null until it has run.
+         */
+        ProfileResume: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "done" | "unreadable" | "error";
+            /** Score */
+            score: number | null;
+            /** Pass Bar */
+            pass_bar: number | null;
+            /** Passed */
+            passed: boolean | null;
+            /** Must Haves */
+            must_haves: components["schemas"]["MustHave"][];
+            /** Screened At */
+            screened_at: string | null;
         };
         /** PublicCompany */
         PublicCompany: {
@@ -2726,6 +3124,28 @@ export interface components {
             count: number;
         };
         /**
+         * RecordingUrl
+         * @description Signed links to the interview recording, valid until `expires_at`.
+         */
+        RecordingUrl: {
+            /** Url */
+            url: string;
+            /** Poster Url */
+            poster_url: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "video" | "audio";
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
          * ReinviteAllRequest
          * @description The pipeline dashboard's "Re-invite all": candidates whose link expired, who left their
          *     interview unfinished, or who hit a technical issue (FR-PIPE-11).
@@ -2804,6 +3224,20 @@ export interface components {
             /** Count */
             count: number;
         };
+        /** ScoreBucket */
+        ScoreBucket: {
+            /** Start */
+            start: number;
+            /** Count */
+            count: number;
+        };
+        /** Signal */
+        Signal: {
+            /** Name */
+            name: string;
+            /** Score */
+            score: number;
+        };
         /** SourceRow */
         SourceRow: {
             /** Source */
@@ -2868,6 +3302,13 @@ export interface components {
             /** Created */
             created: boolean;
         };
+        /** Summary */
+        Summary: {
+            /** Text */
+            text: string;
+            /** Refs */
+            refs: components["schemas"]["Evidence"][];
+        };
         /**
          * TopUpRequest
          * @description Top-up amounts the pipeline menus offer (FR-BILL-04).
@@ -2878,6 +3319,25 @@ export interface components {
              * @enum {integer}
              */
             credits: 25 | 50 | 100 | 200;
+        };
+        /** TopicResult */
+        TopicResult: {
+            /** Index */
+            index: number;
+            /** Title */
+            title: string;
+            /** Kind */
+            kind: ("warm_up" | "skills" | "candidate_questions") | null;
+            /** Start Ms */
+            start_ms: number;
+            /** Questions */
+            questions: number;
+            /** Follow Ups */
+            follow_ups: number;
+            /** Score */
+            score: number | null;
+            /** Average */
+            average: number | null;
         };
         /**
          * UpdateCompanyProfileRequest
@@ -5180,6 +5640,134 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_application_v1_applications__application_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationProfile"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_recording_url_v1_applications__application_id__recording_url_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingUrl"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

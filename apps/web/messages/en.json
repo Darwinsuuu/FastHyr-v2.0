@@ -1825,5 +1825,241 @@
       },
       "uploadBehind": "Your connection is slow. We’re still saving your interview, so keep this page open."
     }
+  },
+  "candidates": {
+    "profile": {
+      "back": "{pipeline} · Candidates",
+      "notFoundTitle": "We couldn't find this candidate",
+      "notFoundBody": "They may be in a pipeline you can't see, or the link may be out of date.",
+      "loadFailed": "We couldn't load this candidate. Try again in a moment.",
+      "applied": "Applied {date} via {source}",
+      "flagged": {
+        "one": "Flagged · {count} to review",
+        "other": "Flagged · {count} to review"
+      },
+      "reviewRequested": "Review requested",
+      "applications": {
+        "one": "{count} application to {workspace}",
+        "other": "{count} applications to {workspace}"
+      },
+      "actions": {
+        "email": "Email candidate",
+        "report": "Download candidate report",
+        "reportSoon": "Candidate reports are on their way.",
+        "advance": "Advance to next round",
+        "reject": "Reject candidate",
+        "decideSoon": "Advancing and rejecting are on their way.",
+        "more": "More actions",
+        "label": "Candidate actions"
+      },
+      "tabsLabel": "Candidate profile",
+      "tabs": {
+        "overview": "Candidate overview",
+        "resume": "Résumé",
+        "interview": "AI interview"
+      },
+      "comingSoonTitle": "On its way",
+      "comingSoon": {
+        "resume": "The résumé with its highlights, must-have evidence and comparisons will appear here."
+      },
+      "notAssessed": {
+        "title": "No interview assessment yet",
+        "processing_resume": "The résumé is being screened. The assessment appears here once they finish the AI interview.",
+        "resume_not_match": "The résumé didn't meet this pipeline's bar, so there's no interview to assess.",
+        "invited": "They're invited to the AI interview. The assessment appears here once they finish it.",
+        "interview_in_progress": "They're in the AI interview now. The assessment appears here once it's scored.",
+        "scoring": "The interview is being scored. This usually takes a few minutes.",
+        "other": "There's no interview assessment for this application."
+      },
+      "score": {
+        "title": "Overall score",
+        "outOf": "/ 100",
+        "passed": "Passed",
+        "notPassed": "Didn't pass",
+        "above": {
+          "one": "Scored {count} point above your pass mark",
+          "other": "Scored {count} points above your pass mark"
+        },
+        "below": {
+          "one": "Scored {count} point below your pass mark",
+          "other": "Scored {count} points below your pass mark"
+        },
+        "allMustHaves": "meets all {total} must-haves",
+        "someMustHaves": "meets {met} of {total} must-haves",
+        "and": "and",
+        "passMark": "Pass mark",
+        "rank": "Rank in this pipeline",
+        "rankValue": "{rank} of {total} interviewed",
+        "average": "Pipeline average",
+        "evidence": "Evidence behind the score",
+        "moments": {
+          "one": "{count} moment",
+          "other": "{count} moments"
+        },
+        "integrity": "Integrity checks"
+      },
+      "calc": {
+        "hint": "Each criterion score is multiplied by the weight you set for this pipeline, then added up.",
+        "locked": "Rubric locked on {date} when the pipeline was published. Every candidate here is scored the same way.",
+        "lockedNoDate": "Every candidate in this pipeline is scored with the same locked rubric."
+      },
+      "criteria": {
+        "technical": "Technical fit",
+        "communication": "Communication",
+        "culture": "Culture alignment"
+      },
+      "why": {
+        "title": "Why each score",
+        "hint": "The signals behind each criterion, and the moments in the interview or résumé they came from. Select a time to watch that moment.",
+        "evidence": "Evidence",
+        "heldBack": "Held it back:",
+        "resume": "Résumé",
+        "watch": "Watch {time}",
+        "signals": "Signals for {criterion}"
+      },
+      "distribution": {
+        "title": "Where {name} sits in this pipeline",
+        "hint": {
+          "one": "Interview scores of the {count} candidate who finished the AI interview",
+          "other": "Interview scores of all {count} candidates who finished the AI interview"
+        },
+        "series": "Candidates",
+        "passMark": "Pass mark {mark}",
+        "own": "{name} ({score})",
+        "passed": "Passed",
+        "notPassed": "Didn't pass"
+      },
+      "compare": {
+        "title": "Compared with other candidates",
+        "hint": "Same rubric, same pipeline",
+        "candidate": "{name}",
+        "passedAvg": "Passed candidates",
+        "pipelineAvg": "Pipeline average",
+        "delta": "{delta} vs average",
+        "noPassed": "No one has passed yet"
+      },
+      "topics": {
+        "title": "Interview topic scores",
+        "hint": "{name} against the pipeline average on each topic the AI interviewer covered",
+        "average": "avg {value}",
+        "noAverage": "no average yet",
+        "notScored": "Not scored",
+        "series": "{name}",
+        "avgSeries": "Pipeline average",
+        "empty": "No topic scores for this interview."
+      },
+      "history": {
+        "title": "History with {workspace}",
+        "hint": {
+          "one": "{count} application",
+          "other": "Interview scores across {count} applications"
+        },
+        "change": "{change} points",
+        "thisOne": "This application",
+        "noScore": "No interview score",
+        "open": "Open"
+      },
+      "summary": {
+        "title": "Summary",
+        "sources": "Sources",
+        "interviewAt": "Interview {time}",
+        "resume": "Résumé",
+        "ref": "Source {n}"
+      },
+      "strengths": "Strengths",
+      "probes": "Worth probing in the next round",
+      "resumeMatch": {
+        "title": "Résumé match",
+        "fit": "{score} fit",
+        "mustHaves": "{met} of {total} must-haves",
+        "see": "See résumé analysis",
+        "notScreened": "The résumé hasn't been screened yet.",
+        "unreadable": "We couldn't read this résumé.",
+        "met": "Met",
+        "notMet": "Not met"
+      },
+      "answers": {
+        "title": "Answer patterns",
+        "length": "Avg. answer length",
+        "delay": "Response delay",
+        "followUps": "Follow-ups needed",
+        "questions": "Questions asked",
+        "talk": "Talk time",
+        "avg": "avg {value}"
+      },
+      "integrity": {
+        "title": "Integrity checks",
+        "rows": {
+          "sameFace": "Same face the whole interview",
+          "inFrame": "Stayed in frame",
+          "oneVoice": "Only one voice heard",
+          "readAloud": "Answers in their own words",
+          "timing": "Natural response timing"
+        },
+        "states": {
+          "passed": "Passed",
+          "flagged": "Flagged",
+          "reviewed": "Reviewed",
+          "notRun": "Not run"
+        },
+        "notRun": {
+          "no_consent": "No biometric consent",
+          "voice_only": "Voice-only interview",
+          "no_video": "No video recorded",
+          "too_short": "Too little speech to judge",
+          "failed": "Couldn't be checked",
+          "unknown": "Not run"
+        },
+        "likely": "Likely",
+        "possible": "Possible",
+        "at": "{confidence} at {time}",
+        "guidance": "Flags can have innocent causes, like someone else in the room or reading notes because of nerves or a disability. Listen to the marked moments before deciding.",
+        "note": "Flags never reject a candidate on their own. You always review them.",
+        "off": "Off for this pipeline",
+        "pending": "Not checked yet",
+        "failed": "Couldn't run",
+        "allClear": "All clear",
+        "reviewed": "Flags reviewed",
+        "toReview": {
+          "one": "{count} flag to review",
+          "other": "{count} flags to review"
+        },
+        "offBody": "This pipeline doesn't check for possible impersonation.",
+        "pendingBody": "The checks run after the interview is transcribed.",
+        "failedBody": "The checks couldn't run on this interview."
+      },
+      "journey": {
+        "title": "Journey",
+        "hours": {
+          "one": "{count} h to assessment",
+          "other": "{count} h to assessment"
+        },
+        "steps": {
+          "applied": "Applied via {source}",
+          "resume_matched": "Résumé matched",
+          "resume_not_matched": "Résumé not a match",
+          "invited": "Invited to AI interview",
+          "interview_finished": "Completed interview",
+          "interview_finished_minutes": "Completed interview · {minutes} min",
+          "ready_for_review": "Ready for review",
+          "did_not_pass": "Didn't pass interview",
+          "advanced": "Advanced",
+          "rejected": "Not moving forward"
+        }
+      },
+      "fairness": "How this score stays fair.",
+      "fairnessBody": "Only job-related answers and résumé content were scored. Name, photo, age, address, graduation year, accent and appearance were not used.",
+      "recording": {
+        "title": "Interview recording",
+        "loading": "Loading the recording…",
+        "notReady": "The recording isn't ready yet. It appears here once the interview has been saved.",
+        "failed": "We couldn't load the recording. Try again in a moment.",
+        "retry": "Try again",
+        "startsAt": "Starting at {time}",
+        "more": "Topic markers, the topics with their scores and the searchable transcript are on their way.",
+        "video": "Interview video",
+        "audio": "Interview audio"
+      }
+    }
   }
 }

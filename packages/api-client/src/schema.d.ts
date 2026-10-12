@@ -316,7 +316,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pipeline */
+        /**
+         * Get Pipeline
+         * @description The pipeline with its department and owner (the wizard and the details header).
+         */
         get: operations["get_pipeline_v1_pipelines__pipeline_id__get"];
         put?: never;
         post?: never;
@@ -2097,6 +2100,113 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["PipelineSourceRow"][];
             dropoffs: components["schemas"]["PipelineDropoffs"];
+        };
+        /**
+         * PipelineDetail
+         * @description `GET /pipelines/{id}`: the pipeline with its department and owner for the details
+         *     header (PIPE-007). Department is null for No department; owner is null when they left.
+         */
+        PipelineDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "scheduled" | "live" | "paused" | "paused_no_credits" | "closed" | "cancelled";
+            /** Department Id */
+            department_id: string | null;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Slug */
+            slug: string | null;
+            /** Title */
+            title: string | null;
+            /** Employment Type */
+            employment_type: ("full_time" | "part_time" | "contract" | "internship") | null;
+            /** Work Setup */
+            work_setup: ("on_site" | "hybrid" | "remote") | null;
+            /** Location */
+            location: string | null;
+            /** Jd Text */
+            jd_text: string | null;
+            /** Must Haves */
+            must_haves: string[];
+            /** Nice To Haves */
+            nice_to_haves: string[];
+            /** Open To */
+            open_to: ("fresh_grads" | "career_changers" | "returners" | "no_degree" | "step_up" | "relocating")[];
+            /** Resume Pass Bar */
+            resume_pass_bar: number;
+            /** Interview Format */
+            interview_format: ("video_voice" | "voice_only") | null;
+            /** Tone */
+            tone: ("warm" | "professional" | "direct") | null;
+            /** Seniority */
+            seniority: ("entry" | "mid" | "senior" | "lead") | null;
+            /** Skills To Probe */
+            skills_to_probe: string[];
+            /** Link Expiry Days */
+            link_expiry_days: number;
+            /** Reminder Enabled */
+            reminder_enabled: boolean;
+            /** Integrity Enabled */
+            integrity_enabled: boolean;
+            /** Weight Technical */
+            weight_technical: number | null;
+            /** Weight Communication */
+            weight_communication: number | null;
+            /** Weight Culture */
+            weight_culture: number | null;
+            /** Pass Mark */
+            pass_mark: number;
+            /** Email Resume Reject */
+            email_resume_reject: boolean;
+            /** Email Post Interview */
+            email_post_interview: boolean;
+            /** Open Mode */
+            open_mode: ("now" | "scheduled") | null;
+            /** Opens At */
+            opens_at: string | null;
+            /** Duration Days */
+            duration_days: number | null;
+            /** Closes At */
+            closes_at: string | null;
+            /** Credits To Reserve */
+            credits_to_reserve: number | null;
+            /** Credits Reserved */
+            credits_reserved: number;
+            /** Credits Used */
+            credits_used: number;
+            /** Closed Reason */
+            closed_reason: ("schedule" | "manual") | null;
+            /** Archived At */
+            archived_at: string | null;
+            /** Ended At */
+            ended_at: string | null;
+            /** Published At */
+            published_at: string | null;
+            /** Published By */
+            published_by: string | null;
+            /** Locked At */
+            locked_at: string | null;
+            /** Duplicated From Id */
+            duplicated_from_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            department: components["schemas"]["PipelineListDepartment"] | null;
+            owner: components["schemas"]["PipelineOwner"] | null;
         };
         /** PipelineDropoffs */
         PipelineDropoffs: {
@@ -3967,7 +4077,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Pipeline"];
+                    "application/json": components["schemas"]["PipelineDetail"];
                 };
             };
             /** @description Unauthorized */

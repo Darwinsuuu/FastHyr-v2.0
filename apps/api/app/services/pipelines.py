@@ -34,6 +34,7 @@ from app.models import Pipeline as PipelineRow
 from app.repositories.audit import AuditRepository
 from app.repositories.company_profiles import workspace_timezone
 from app.repositories.pipelines import (
+    PipelineDetailRow,
     PipelineListRow,
     PipelineRepository,
     due_to_close,
@@ -42,6 +43,7 @@ from app.repositories.pipelines import (
 )
 from app.schemas.pipelines import (
     Pipeline,
+    PipelineDetail,
     PipelineList,
     PipelineListDepartment,
     PipelineListItem,
@@ -185,6 +187,24 @@ async def list_pipelines(
     )
 
 
+def _department(row: PipelineListRow | PipelineDetailRow) -> PipelineListDepartment | None:
+    department_id = row.pipeline.department_id
+    if department_id and row.department_name:
+        return PipelineListDepartment(id=department_id, name=row.department_name)
+    return None
+
+
+def _owner(row: PipelineListRow | PipelineDetailRow) -> PipelineOwner | None:
+    if not row.owner_user_id:
+        return None
+    return PipelineOwner(
+        user_id=row.owner_user_id,
+        name=row.owner_name,
+        email=row.owner_email,
+        avatar_url=row.owner_avatar_url,
+    )
+
+
 def _list_item(row: PipelineListRow) -> PipelineListItem:
     pipeline = row.pipeline
     reserved = pipeline.credits_reserved
@@ -196,21 +216,8 @@ def _list_item(row: PipelineListRow) -> PipelineListItem:
         closed_reason=pipeline.closed_reason,
         title=pipeline.title,
         slug=pipeline.slug,
-        department=(
-            PipelineListDepartment(id=pipeline.department_id, name=row.department_name)
-            if pipeline.department_id and row.department_name
-            else None
-        ),
-        owner=(
-            PipelineOwner(
-                user_id=row.owner_user_id,
-                name=row.owner_name,
-                email=row.owner_email,
-                avatar_url=row.owner_avatar_url,
-            )
-            if row.owner_user_id
-            else None
-        ),
+        department=_department(row),
+        owner=_owner(row),
         candidates=row.candidates,
         to_review=row.to_review,
         credits_used=pipeline.credits_used,
@@ -227,8 +234,16 @@ def _list_item(row: PipelineListRow) -> PipelineListItem:
 # ---------------------------------------------------------------------------
 async def get_pipeline(
     session: AsyncSession, ctx: RequestContext, pipeline_id: uuid.UUID
-) -> Pipeline:
-    return Pipeline.model_validate(await _repo(session, ctx).get(pipeline_id))
+) -> PipelineDetail:
+    """One pipeline with its department and owner (the wizard and the details header)."""
+    row = await _repo(session, ctx).detail(pipeline_id)
+    return PipelineDetail.model_validate(
+        {
+            **Pipeline.model_validate(row.pipeline).model_dump(),
+            "department": _department(row),
+            "owner": _owner(row),
+        }
+    )
 
 
 async def create_draft(session: AsyncSession, ctx: RequestContext, body: PipelineSetup) -> Pipeline:

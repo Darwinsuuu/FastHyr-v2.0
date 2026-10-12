@@ -102,7 +102,9 @@ export function remaining(item: PipelineListItem, now: Date, timeZone: string): 
 export type CreditTone = "normal" | "low" | "out" | "muted";
 
 /** Credit bar colour: amber from 80% of the reserve, red when it's used up, grey once ended. */
-export function creditTone(item: PipelineListItem): CreditTone {
+export function creditTone(
+  item: Pick<PipelineListItem, "status" | "credits_used" | "credits_reserved">,
+): CreditTone {
   if (hasEnded(item.status) || item.status === "draft") return "muted";
   if (item.credits_reserved <= 0) return "normal";
   const ratio = item.credits_used / item.credits_reserved;
@@ -110,7 +112,9 @@ export function creditTone(item: PipelineListItem): CreditTone {
 }
 
 /** Share of the reserve used, 0–100, for the bar. */
-export function creditPercent(item: PipelineListItem): number {
+export function creditPercent(
+  item: Pick<PipelineListItem, "credits_used" | "credits_reserved">,
+): number {
   if (item.credits_reserved <= 0) return 0;
   return Math.min(100, Math.round((item.credits_used / item.credits_reserved) * 100));
 }

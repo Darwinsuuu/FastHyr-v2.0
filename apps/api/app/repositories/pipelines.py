@@ -45,6 +45,19 @@ class PipelineListRow:
     to_review: int
 
 
+@dataclass(frozen=True)
+class PipelineDetailRow:
+    """One pipeline with its department name and owner, for the pipeline details header
+    (PIPE-007)."""
+
+    pipeline: Pipeline
+    department_name: str | None
+    owner_user_id: uuid.UUID | None
+    owner_name: str | None
+    owner_email: str | None
+    owner_avatar_url: str | None
+
+
 class PipelineRepository(WorkspaceRepository[Pipeline]):
     model = Pipeline
 
@@ -72,6 +85,48 @@ class PipelineRepository(WorkspaceRepository[Pipeline]):
 
     async def get(self, pipeline_id: uuid.UUID) -> Pipeline:
         return await self._get_or_404(pipeline_id)
+
+    async def detail(self, pipeline_id: uuid.UUID) -> PipelineDetailRow:
+        """The pipeline with its department name and owner's profile; 404 outside scope."""
+        row = (
+            await self.session.execute(
+                self._owner_and_department(
+                    select(
+                        Pipeline,
+                        Department.name,
+                        Profile.id,
+                        Profile.full_name,
+                        Profile.email,
+                        Profile.avatar_url,
+                    )
+                ).where(*self._in_scope(), Pipeline.id == pipeline_id)
+            )
+        ).first()
+        if row is None:
+            raise NotFoundError()
+        pipeline, department_name, user_id, name, email, avatar_url = row
+        return PipelineDetailRow(pipeline, department_name, user_id, name, email, avatar_url)
+
+    @staticmethod
+    def _owner_and_department[S: Select[*tuple[Any, ...]]](statement: S) -> S:
+        """Joins the department and the owner's profile; either can be missing."""
+        return (
+            statement.outerjoin(
+                Department,
+                and_(
+                    Department.workspace_id == Pipeline.workspace_id,
+                    Department.id == Pipeline.department_id,
+                ),
+            )
+            .outerjoin(
+                WorkspaceMember,
+                and_(
+                    WorkspaceMember.workspace_id == Pipeline.workspace_id,
+                    WorkspaceMember.id == Pipeline.owner_id,
+                ),
+            )
+            .outerjoin(Profile, Profile.id == WorkspaceMember.user_id)
+        )
 
     async def lock(self, pipeline_id: uuid.UUID) -> Pipeline:
         """Holds the workspace row, then the pipeline row, `FOR UPDATE` until the transaction
@@ -141,31 +196,18 @@ class PipelineRepository(WorkspaceRepository[Pipeline]):
         candidates = func.coalesce(counts.c.candidates, 0)
         to_review = func.coalesce(counts.c.to_review, 0)
         statement = (
-            select(
-                Pipeline,
-                Department.name,
-                Profile.id,
-                Profile.full_name,
-                Profile.email,
-                Profile.avatar_url,
-                candidates,
-                to_review,
+            self._owner_and_department(
+                select(
+                    Pipeline,
+                    Department.name,
+                    Profile.id,
+                    Profile.full_name,
+                    Profile.email,
+                    Profile.avatar_url,
+                    candidates,
+                    to_review,
+                )
             )
-            .outerjoin(
-                Department,
-                and_(
-                    Department.workspace_id == Pipeline.workspace_id,
-                    Department.id == Pipeline.department_id,
-                ),
-            )
-            .outerjoin(
-                WorkspaceMember,
-                and_(
-                    WorkspaceMember.workspace_id == Pipeline.workspace_id,
-                    WorkspaceMember.id == Pipeline.owner_id,
-                ),
-            )
-            .outerjoin(Profile, Profile.id == WorkspaceMember.user_id)
             .outerjoin(counts, counts.c.pipeline_id == Pipeline.id)
             .where(
                 *self._in_scope(),

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | S |
 | Depends on | [PIPE-007](../PIPE/PIPE-007-pipeline-details-header-and-dashboard-tab.md) |
 | Requirements | FR-PIPE-14 |

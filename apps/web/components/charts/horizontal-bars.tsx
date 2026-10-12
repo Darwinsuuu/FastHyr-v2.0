@@ -19,6 +19,8 @@ export interface HorizontalBarsProps {
   max?: number;
   /** Bar thickness from the frames: 8, 10 or 22. */
   size?: 8 | 10 | 22;
+  /** A wider label column from md (180 px instead of 130 px) for longer labels. */
+  wideLabels?: boolean;
   /** Column header for the screen-reader table. */
   valueLabel?: string;
   className?: string;
@@ -33,6 +35,7 @@ export function HorizontalBars({
   rows,
   max,
   size = 10,
+  wideLabels = false,
   valueLabel = t("charts.value"),
   className,
 }: HorizontalBarsProps) {
@@ -51,7 +54,10 @@ export function HorizontalBars({
         {rows.map((row) => (
           <li
             key={row.label}
-            className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 md:grid-cols-[130px_1fr_auto]"
+            className={cn(
+              "grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5",
+              wideLabels ? "md:grid-cols-[180px_1fr_auto]" : "md:grid-cols-[130px_1fr_auto]",
+            )}
           >
             <span className="truncate text-[14px] text-ink">{row.label}</span>
             <span className="col-span-2 row-start-2 overflow-hidden rounded-pill bg-surface md:col-span-1 md:row-start-auto">

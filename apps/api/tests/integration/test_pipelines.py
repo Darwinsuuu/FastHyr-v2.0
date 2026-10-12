@@ -330,12 +330,17 @@ def test_department_scoping_and_roles(tenancy: Tenancy) -> None:
     own = ok(recruiter.post("/v1/pipelines", json={**SETUP, "department_id": engineering}), 201)
     ok(recruiter.post(f"/v1/pipelines/{own['id']}/publish", json=CONFIRM))
 
-    # Hiring managers see their departments' pipelines but can't change them.
-    assert ok(hiring_manager.get(f"/v1/pipelines/{own['id']}"))["status"] == "live"
+    # Hiring managers see their departments' pipelines but can't change them. The details
+    # header (PIPE-007) gets the department and the owner with the pipeline.
+    seen = ok(hiring_manager.get(f"/v1/pipelines/{own['id']}"))
+    assert seen["status"] == "live"
+    assert seen["department"]["id"] == engineering and seen["department"]["name"]
+    assert seen["owner"]["user_id"] == str(tenancy.member("a", Role.RECRUITER).user_id)
     assert hiring_manager.post(f"/v1/pipelines/{own['id']}/pause").status_code == 403
 
     # No department is for Admins only; other workspaces see nothing.
     no_department = draft(tenancy)
+    assert ok(admin(tenancy).get(f"/v1/pipelines/{no_department['id']}"))["department"] is None
     for client in (recruiter, hiring_manager):
         assert client.get(f"/v1/pipelines/{no_department['id']}").status_code == 404
     tenancy.assert_hidden_from_other_workspace("GET", f"/v1/pipelines/{own['id']}")

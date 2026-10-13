@@ -4,7 +4,7 @@
 |---|---|
 | Epic | ASMT — Assessment & review |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [ASMT-007](../ASMT/ASMT-007-advance-and-reject-actions.md), [SCREEN-003](../SCREEN/SCREEN-003-post-screen-actions-invite-or-schedule-rejection.md) |
 | Requirements | FR-COMP-03 |
@@ -35,7 +35,7 @@ Candidates can ask a person to review an automated rejection, and TA teams resol
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- A TA's own rejection (ASMT-007) also carries a review link (`decision_type` by whether the interview was finished), and Rejected is final: decide whether a request on it can override, or only be answered.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

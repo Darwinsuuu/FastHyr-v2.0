@@ -12,9 +12,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useRef } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { DecisionDialog } from "@/components/candidates/decision-dialogs";
 import { ProfileOverview } from "@/components/candidates/profile-overview";
 import { ProfileRecording } from "@/components/candidates/profile-recording";
 import { Avatar } from "@/components/ui/avatar";
@@ -27,6 +28,7 @@ import { StagePill } from "@/components/ui/status-pill";
 import { Tabs } from "@/components/ui/tabs";
 import { ApiError, api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
+import type { Decision } from "@/lib/candidates/decisions";
 import { INTEGRITY_ANCHOR } from "@/lib/candidates/flags";
 import {
   type ApplicationProfile,
@@ -92,6 +94,13 @@ export function CandidateProfilePage({
   );
 
   const profile = query.data;
+  // The advance or reject dialog; the last choice stays while it closes.
+  const [decision, setDecision] = useState<Decision>("advance");
+  const [deciding, setDeciding] = useState(false);
+  const decide = useCallback((next: Decision) => {
+    setDecision(next);
+    setDeciding(true);
+  }, []);
   // "Review flag" in the Candidates tab links to the integrity card; it renders after the data.
   const scrolled = useRef(false);
   useEffect(() => {
@@ -121,10 +130,10 @@ export function CandidateProfilePage({
   }
   if (!profile) return <ProfileSkeleton />;
 
-  const decide = can(workspace.role, "decide_candidates");
-  const actions = profileActions(profile, decide);
+  const decides = can(workspace.role, "decide_candidates");
+  const actions = profileActions(profile, decides);
   return (
-    <Page bottomBar={decide}>
+    <Page bottomBar={decides}>
       <div className="flex flex-col gap-3">
         <Link
           href={candidatesHref(profile.pipeline.id)}
@@ -133,7 +142,7 @@ export function CandidateProfilePage({
           <ArrowLeftIcon aria-hidden="true" className="size-4" />
           {t("candidates.profile.back", { pipeline: profile.pipeline.title })}
         </Link>
-        <Header profile={profile} actions={actions} decide={decide} />
+        <Header profile={profile} actions={actions} decides={decides} onDecide={decide} />
       </div>
       <Tabs
         label={t("candidates.profile.tabsLabel")}
@@ -161,7 +170,12 @@ export function CandidateProfilePage({
             ),
         }))}
       />
-      {decide && <BottomBar profile={profile} actions={actions} />}
+      {decides && <BottomBar profile={profile} actions={actions} onDecide={decide} />}
+      <DecisionDialog
+        decision={decision}
+        target={deciding ? { id: profile.id, name: profile.candidate.name } : null}
+        onOpenChange={setDeciding}
+      />
     </Page>
   );
 }
@@ -183,11 +197,13 @@ function Page({ children, bottomBar = false }: { children: ReactNode; bottomBar?
 function Header({
   profile,
   actions,
-  decide,
+  decides,
+  onDecide,
 }: {
   profile: ApplicationProfile;
   actions: ReturnType<typeof profileActions>;
-  decide: boolean;
+  decides: boolean;
+  onDecide: (decision: Decision) => void;
 }) {
   const { candidate } = profile;
   const others = profile.history.length;
@@ -260,7 +276,7 @@ function Header({
       <div
         className={cn(
           "flex-wrap items-center gap-2.5 xl:justify-end",
-          decide ? "hidden md:flex" : "flex",
+          decides ? "hidden md:flex" : "flex",
         )}
       >
         {actions.email && (
@@ -283,14 +299,12 @@ function Header({
         >
           {t("candidates.profile.actions.report")}
         </Button>
-        {/* The advance and reject dialogs arrive with ASMT-007. */}
         {actions.reject && (
           <Button
             variant="secondary"
             destructive
             icon={<XIcon aria-hidden="true" className="size-5" />}
-            disabled
-            title={t("candidates.profile.actions.decideSoon")}
+            onClick={() => onDecide("reject")}
           >
             {t("candidates.profile.actions.reject")}
           </Button>
@@ -298,8 +312,7 @@ function Header({
         {actions.advance && (
           <Button
             icon={<ArrowRightIcon aria-hidden="true" className="size-5" />}
-            disabled
-            title={t("candidates.profile.actions.decideSoon")}
+            onClick={() => onDecide("advance")}
           >
             {t("candidates.profile.actions.advance")}
           </Button>
@@ -313,9 +326,11 @@ function Header({
 function BottomBar({
   profile,
   actions,
+  onDecide,
 }: {
   profile: ApplicationProfile;
   actions: ReturnType<typeof profileActions>;
+  onDecide: (decision: Decision) => void;
 }) {
   return (
     <div
@@ -324,7 +339,7 @@ function BottomBar({
       className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2 border-t border-line bg-surface-raised px-4 py-3 md:hidden"
     >
       {actions.advance && (
-        <Button className="flex-1" disabled title={t("candidates.profile.actions.decideSoon")}>
+        <Button className="flex-1" onClick={() => onDecide("advance")}>
           {t("candidates.profile.actions.advance")}
         </Button>
       )}
@@ -333,8 +348,7 @@ function BottomBar({
           variant="secondary"
           destructive
           className="flex-1"
-          disabled
-          title={t("candidates.profile.actions.decideSoon")}
+          onClick={() => onDecide("reject")}
         >
           {t("candidates.profile.actions.reject")}
         </Button>

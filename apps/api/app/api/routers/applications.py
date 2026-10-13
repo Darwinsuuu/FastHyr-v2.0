@@ -1,19 +1,20 @@
 """Applications (API.md "Applications & candidates"). Recruiters reach only applications in
 their departments' pipelines and Hiring managers only shortlisted ones; anything else is 404.
-Decisions come with their tasks."""
+Hiring managers read; they never advance or reject (ADR-005)."""
 
 import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter
 
-from app.api.deps import JobQueueDep, Session, SettingsDep, StorageDep, require
+from app.api.deps import JobQueueDep, RealtimeDep, Session, SettingsDep, StorageDep, require
 from app.core.context import RequestContext
 from app.core.errors import PROBLEM_JSON, PROBLEM_RESPONSES, Problem
 from app.core.permissions import Action
 from app.schemas.application_profile import ApplicationProfile, RecordingUrl
+from app.schemas.decisions import AdvanceRequest, ApplicationDecision, RejectRequest
 from app.schemas.reinvites import ReinviteResult
-from app.services import application_profile, interview_lifecycle
+from app.services import application_profile, decisions, interview_lifecycle
 
 router = APIRouter(prefix="/applications", tags=["applications"], responses=PROBLEM_RESPONSES)
 
@@ -58,3 +59,38 @@ async def reinvite_application(
     or a cancelled pipeline, is `409 reinvite_not_allowed`."""
     done = await interview_lifecycle.reinvite(session, settings, queue, ctx, application_id)
     return ReinviteResult(reinvited=len(done.application_ids))
+
+
+@router.post("/{application_id}/advance", response_model=ApplicationDecision, responses=CONFLICT)
+async def advance_application(
+    application_id: uuid.UUID,
+    body: AdvanceRequest,
+    ctx: Decider,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+) -> ApplicationDecision:
+    """ "Advance to next round" (ADR-017): a Ready for review candidate moves to Advanced, with an
+    optional note for the team, and gets the "Moving to the next stage" email unless
+    `send_email` is false. Waiting automatic emails are cancelled. `409 flags_to_review` while
+    integrity flags are open; `409 decision_not_allowed` from any other stage (Advanced and
+    Rejected are final)."""
+    return await decisions.advance(session, settings, queue, ctx, application_id, body)
+
+
+@router.post("/{application_id}/reject", response_model=ApplicationDecision, responses=CONFLICT)
+async def reject_application(
+    application_id: uuid.UUID,
+    body: RejectRequest,
+    ctx: Decider,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+    realtime: RealtimeDep,
+) -> ApplicationDecision:
+    """ "Reject candidate" (FR-PIPE-13): from Invited, Interview in progress or Ready for review
+    (or an unreadable résumé), with a reason only the team sees. A running interview ends. The
+    rejection email goes out now unless `send_email` is false: about the interview after a
+    finished one, otherwise about the résumé, with a "Request a human review" link. Waiting
+    automatic emails are cancelled. `409 decision_not_allowed` from any other stage."""
+    return await decisions.reject(session, settings, queue, realtime, ctx, application_id, body)

@@ -15,7 +15,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | M2 Pipelines | 7 | 3 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
-| M5 Review | 18 | 5 |
+| M5 Review | 18 | 6 |
 | M6 Billing & analytics | 7 | 0 |
 | M7 Public site & demo | 6 | 0 |
 | M8 Launch readiness | 6 | 0 |
@@ -115,7 +115,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Ready | |
 | [ASMT-006](ASMT/ASMT-006-candidate-profile-ai-interview-tab.md) | Candidate profile — AI interview tab | M | ASMT-004, INTV-008 | Ready | |
 | [ASMT-007](ASMT/ASMT-007-advance-and-reject-actions.md) | Advance and reject actions | M | PIPE-008, MSG-003 | Ready | |
-| [ASMT-008](ASMT/ASMT-008-human-review-requests.md) | Human review requests | M | ASMT-007, SCREEN-003 | Backlog | |
+| [ASMT-008](ASMT/ASMT-008-human-review-requests.md) | Human review requests | M | ASMT-007, SCREEN-003 | Ready | |
 | [ASMT-009](ASMT/ASMT-009-candidate-report-pdf-and-resume-download.md) | Candidate report PDF and résumé download | M | ASMT-004, PIPE-010 | Backlog | |
 | [CAND-001](CAND/CAND-001-candidates-pool-list-and-profile-drawer.md) | Candidates pool — list and profile drawer | M | ASMT-001, WS-005 | Backlog | |
 | [AVA-001](AVA/AVA-001-ava-backend-scoped-assistant.md) | Ava backend (scoped assistant) | L | ASMT-001, WS-005, FND-013 | Backlog | |

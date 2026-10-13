@@ -92,6 +92,23 @@ class InterviewNotFoundError(AppError):
     title = "We couldn't find that interview"
 
 
+class DecisionNotAllowedError(AppError):
+    """The candidate can't be advanced or rejected from the stage they're in: advancing needs
+    Ready for review, rejecting a stage before a decision, and both are final (ASMT-007)."""
+
+    status = 409
+    code = "decision_not_allowed"
+    title = "This candidate can't be moved from their current stage"
+
+
+class FlagsToReviewError(AppError):
+    """Advance waits until every integrity flag on the interview is reviewed (A-02, ASMT-003)."""
+
+    status = 409
+    code = "flags_to_review"
+    title = "Review this candidate's integrity flags first"
+
+
 class ReinviteNotAllowedError(AppError):
     """The application can't get a new interview link: it isn't waiting on its interview, the
     interview is finished or running right now, or the pipeline is cancelled (INTV-007)."""

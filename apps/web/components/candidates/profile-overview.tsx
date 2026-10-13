@@ -1089,7 +1089,9 @@ function JourneyCard({ profile }: { profile: ApplicationProfile }) {
                 })
               : step.kind === "interview_finished" && minutes !== null
                 ? t("candidates.profile.journey.steps.interview_finished_minutes", { minutes })
-                : t(`candidates.profile.journey.steps.${step.kind}`);
+                : (step.kind === "advanced" || step.kind === "rejected") && step.by
+                  ? t(`candidates.profile.journey.steps.${step.kind}By`, { name: step.by })
+                  : t(`candidates.profile.journey.steps.${step.kind}`);
           return (
             <li key={`${step.kind}-${step.at}`} className="flex gap-3">
               <span aria-hidden="true" className="flex w-3 flex-col items-center">
@@ -1101,6 +1103,12 @@ function JourneyCard({ profile }: { profile: ApplicationProfile }) {
                 <span className="text-[12px] text-ink-muted">
                   {journeyTime(step.at, profile.timezone)}
                 </span>
+                {/* The advance note or reject reason, for the team only (ASMT-007). */}
+                {step.note && (
+                  <span className="mt-1 border-l-2 border-line pl-2.5 text-[13px] leading-[18px] break-words whitespace-pre-line text-ink-muted">
+                    {step.note}
+                  </span>
+                )}
               </span>
             </li>
           );

@@ -13,9 +13,10 @@ import {
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { DecisionDialog } from "@/components/candidates/decision-dialogs";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { IconButton } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import { type Column, Table } from "@/components/ui/table";
 import { Tooltip } from "@/components/ui/tooltip";
 import { api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
+import type { Decision } from "@/lib/candidates/decisions";
 import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
@@ -456,19 +458,33 @@ function RowMenu({ item }: { item: PipelineCandidate }) {
   const { workspace } = useShell();
   const router = useRouter();
   const name = item.candidate.name;
+  const trigger = useRef<HTMLButtonElement>(null);
+  // The advance or reject dialog; the last choice stays while it closes.
+  const [decision, setDecision] = useState<Decision>("advance");
+  const [deciding, setDeciding] = useState(false);
   const entries = candidateMenu(item, {
     decide: can(workspace.role, "decide_candidates"),
     resolve: can(workspace.role, "resolve_reviews"),
   });
   const items: MenuEntry[] = entries.map((entry) => {
     if (entry === "separator") return "separator";
+    const label = t(`pipelines.candidates.actions.${entry}`);
+    if (entry === "advance" || entry === "reject") {
+      return {
+        label,
+        icon: ACTION_ICONS[entry],
+        destructive: entry === "reject",
+        onSelect: () => {
+          setDecision(entry);
+          setDeciding(true);
+        },
+      };
+    }
     const href = candidateActionHref(entry, item);
     return {
-      label: t(`pipelines.candidates.actions.${entry}`),
+      label,
       icon: ACTION_ICONS[entry],
-      destructive: entry === "reject",
-      // Flag review, downloads and the advance and reject dialogs arrive with ASMT-003,
-      // ASMT-009 and ASMT-007; until then they show but can't be picked.
+      // The downloads arrive with ASMT-009; until then they show but can't be picked.
       disabled: href === null,
       onSelect: () => {
         if (!href) return;
@@ -478,16 +494,25 @@ function RowMenu({ item }: { item: PipelineCandidate }) {
     };
   });
   return (
-    <Menu
-      title={name}
-      trigger={
-        <IconButton
-          label={t("pipelines.candidates.actionsFor", { name })}
-          icon={<DotsThreeVerticalIcon weight="bold" className="size-5" />}
-          className="md:size-9"
-        />
-      }
-      items={items}
-    />
+    <>
+      <Menu
+        title={name}
+        trigger={
+          <IconButton
+            ref={trigger}
+            label={t("pipelines.candidates.actionsFor", { name })}
+            icon={<DotsThreeVerticalIcon weight="bold" className="size-5" />}
+            className="md:size-9"
+          />
+        }
+        items={items}
+      />
+      <DecisionDialog
+        decision={decision}
+        target={deciding ? { id: item.id, name } : null}
+        onOpenChange={setDeciding}
+        returnFocusTo={trigger}
+      />
+    </>
   );
 }

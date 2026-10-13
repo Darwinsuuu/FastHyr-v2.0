@@ -16,6 +16,7 @@ from app.models import (
     Interview,
     Pipeline,
     Profile,
+    WorkspaceMember,
 )
 from app.repositories.base import WorkspaceRepository
 
@@ -109,7 +110,13 @@ async def reviewer_names(
     session: AsyncSession, flags: Sequence[IntegrityFlag]
 ) -> dict[uuid.UUID, str]:
     """Who reviewed these flags: each reviewer's name, or their email without one."""
-    ids = {flag.resolved_by for flag in flags if flag.resolved_by is not None}
+    return await member_names(
+        session, {flag.resolved_by for flag in flags if flag.resolved_by is not None}
+    )
+
+
+async def member_names(session: AsyncSession, ids: set[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """Each user's name, or their email without one."""
     if not ids:
         return {}
     rows = await session.execute(
@@ -135,3 +142,17 @@ async def integrity_pending_before(
         .limit(200)
     )
     return [(row.workspace_id, row.id) for row in rows]
+
+
+async def member_names_by_member(
+    session: AsyncSession, member_ids: set[uuid.UUID]
+) -> dict[uuid.UUID, str]:
+    """Each workspace member's name, or their email without one, by member ID."""
+    if not member_ids:
+        return {}
+    rows = await session.execute(
+        select(WorkspaceMember.id, Profile.full_name, Profile.email)
+        .join(Profile, Profile.id == WorkspaceMember.user_id)
+        .where(WorkspaceMember.id.in_(member_ids))
+    )
+    return {row.id: (row.full_name or "").strip() or row.email or "" for row in rows}

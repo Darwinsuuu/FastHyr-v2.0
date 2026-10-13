@@ -1848,7 +1848,6 @@
         "reportSoon": "Candidate reports are on their way.",
         "advance": "Advance to next round",
         "reject": "Reject candidate",
-        "decideSoon": "Advancing and rejecting are on their way.",
         "more": "More actions",
         "label": "Candidate actions"
       },
@@ -2044,7 +2043,9 @@
           "ready_for_review": "Ready for review",
           "did_not_pass": "Didn't pass interview",
           "advanced": "Advanced",
-          "rejected": "Not moving forward"
+          "rejected": "Not moving forward",
+          "advancedBy": "Advanced by {name}",
+          "rejectedBy": "Not moving forward · {name}"
         }
       },
       "fairness": "How this score stays fair.",
@@ -2094,6 +2095,38 @@
           "noteRequired": "Add a note saying what you saw or heard.",
           "noteTooLong": "Keep the note under {max} characters."
         }
+      }
+    },
+    "decisions": {
+      "advance": {
+        "title": "Advance {name}?",
+        "body": "They'll move to Advanced in this pipeline. FastHyr doesn't schedule the next round, so you'll arrange it with them.",
+        "textLabel": "Note for your team (optional)",
+        "textHint": "Only your team sees this.",
+        "placeholder": "e.g. Strong on system design. Book a technical round with the platform team.",
+        "email": "Email the candidate with your “Moving to the next stage” template.",
+        "emailHint": "Sent right away.",
+        "confirm": "Advance candidate",
+        "done": "{name} advanced"
+      },
+      "reject": {
+        "title": "Reject {name}?",
+        "body": "They'll move out of this pipeline's active stages and can't be moved forward. Their résumé, interview and scores stay on their profile.",
+        "textLabel": "Reason for rejecting",
+        "textHint": "Only your team sees this. Keep it about the job, not personal details.",
+        "placeholder": "e.g. Strong on system design, but we need more hands-on Kubernetes experience for this role.",
+        "reasonRequired": "Add a reason so your team knows why.",
+        "email": "Email the candidate to let them know.",
+        "emailHint": "Uses your “Rejection” email template, sent right away.",
+        "confirm": "Reject candidate",
+        "done": "{name} rejected"
+      },
+      "emailed": "We've emailed them.",
+      "errors": {
+        "notFound": "This candidate isn't available anymore. Refresh the page.",
+        "flags": "Review this candidate's integrity flags before advancing them.",
+        "stage": "This candidate has moved on since the page loaded, so this action no longer applies. Refresh the page.",
+        "failed": "That didn't save. Try again."
       }
     }
   }

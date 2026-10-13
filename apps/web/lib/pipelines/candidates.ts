@@ -162,9 +162,9 @@ export function candidateProfileHref(item: PipelineCandidate): string {
 }
 
 /**
- * Where a menu action goes, or null while its task isn't built: the downloads (ASMT-009) and the
- * advance and reject dialogs (ASMT-007). View profile opens the profile (ASMT-004), Review flag
- * its integrity card (ASMT-003); Email candidate opens the member's mail app.
+ * Where a menu action goes, or null when it isn't a link: Advance and Reject open their dialogs
+ * (ASMT-007), and the downloads wait for ASMT-009. View profile opens the profile (ASMT-004),
+ * Review flag its integrity card (ASMT-003); Email candidate opens the member's mail app.
  */
 export function candidateActionHref(
   action: CandidateAction,

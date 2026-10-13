@@ -11,7 +11,7 @@ email + password; the local password is printed at the end. Against any other da
 
 Credits go through `app.services.credits`, so batches, reserves and the ledger add up exactly as
 they would in the product. Each epic extends this file as its tables arrive: pipelines have their
-full setup, slugs and dates since PIPE-001; the nine default email templates since MSG-001 (the
+full setup, slugs and dates since PIPE-001; the default email templates since MSG-001 (the
 interview invitation edited by Maria, as in the design); since DASH-003 every credit a pipeline used
 is a sample applicant with a screen, an interview and a score (scripts/seed_applications.py), and
 two of them asked for a human review (ASMT-008).

@@ -176,19 +176,22 @@ def test_an_interview_decision_is_overridden_to_ready_for_review(
     assert application(tenancy, application_id)["stage"] == "ready_for_review"
 
 
-def test_upholding_sends_nothing(tenancy: Tenancy, candidates: list[CandidateUser]) -> None:
+def test_upholding_emails_the_outcome(tenancy: Tenancy, candidates: list[CandidateUser]) -> None:
     application_id = not_a_match(tenancy, candidates[0])
     ok(ask(tenancy, review_link(tenancy, application_id, "resume")))
-    before = len(emails(tenancy, application_id))
-    done = ok(resolve(admin(tenancy), open_request(tenancy, application_id), "uphold"))
+    request_id = open_request(tenancy, application_id)
+    done = ok(resolve(admin(tenancy), request_id, "uphold", note="Needs Kubernetes"))
     assert (done["status"], done["stage"], done["emailed"]) == (
         "upheld",
         "resume_not_match",
-        False,
+        True,
     )
     row = application(tenancy, application_id)
     assert (row["stage"], row["review_requested"]) == ("resume_not_match", False)
-    assert len(emails(tenancy, application_id)) == before
+    [outcome] = [m for m in emails(tenancy, application_id) if m["template_key"] == "review_upheld"]
+    assert outcome["dedupe_key"] == f"review_upheld:{request_id}"
+    # The team's note stays with the team.
+    assert "Kubernetes" not in outcome["html_rendered"]
 
 
 def review_token(tenancy: Tenancy, application_id: uuid.UUID, template_key: str) -> str:
@@ -246,7 +249,9 @@ def test_a_decision_that_moved_on_can_only_be_upheld(
     request_id = open_request(tenancy, application_id)
     sql(tenancy, "update applications set stage = 'invited' where id = $1", application_id)
     refused(resolve(admin(tenancy), request_id, "override"), 409, "override_not_allowed")
-    assert ok(resolve(admin(tenancy), request_id, "uphold"))["stage"] == "invited"
+    done = ok(resolve(admin(tenancy), request_id, "uphold"))
+    # "We're keeping our decision" would contradict the new invitation.
+    assert (done["stage"], done["emailed"]) == ("invited", False)
 
 
 def test_a_link_closes_when_it_expires_or_the_decision_moves_on(

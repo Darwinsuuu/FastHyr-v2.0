@@ -23,6 +23,7 @@ class TemplateKey(StrEnum):
     REJECT_INTERVIEW = "reject_interview"
     ROLE_CLOSED = "role_closed"
     REVIEW_RECEIVED = "review_received"
+    REVIEW_UPHELD = "review_upheld"
 
 
 # Every template can use these.
@@ -161,6 +162,18 @@ DEFAULTS: dict[TemplateKey, DefaultTemplate] = {
                 "application at [Company.name]. We've received your request.",
                 "Someone from our hiring team will look at your application and let you know the "
                 "outcome by email.",
+            ),
+        ),
+        DefaultTemplate(
+            TemplateKey.REVIEW_UPHELD,
+            "The outcome of your review request",
+            _body(
+                "Thank you for your patience. A person on our hiring team has reviewed the "
+                "decision on your [Job.title] application at [Company.name].",
+                "After looking at your application again, we're keeping our original decision, so "
+                "we won't be moving forward this time. We know this isn't the news you were "
+                "hoping for.",
+                "We'd be glad to see you apply for other roles with us in the future.",
             ),
         ),
     )

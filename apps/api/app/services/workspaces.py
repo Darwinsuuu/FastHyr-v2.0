@@ -104,7 +104,7 @@ async def grant_trial(session: AsyncSession, workspace: Workspace) -> None:
 
 
 async def create_default_email_templates(session: AsyncSession, workspace: Workspace) -> None:
-    """The nine candidate email templates every workspace starts with (FR-MSG-01)."""
+    """The ten candidate email templates every workspace starts with (FR-MSG-01)."""
     await email_templates.ensure_defaults(session, workspace.id)
 
 

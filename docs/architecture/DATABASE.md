@@ -103,7 +103,7 @@ The `pipelines_lock_setup` trigger rejects changes to the Role, AI interview, Sc
 **human_review_requests** (ASMT-008) — `id`, `workspace_id`, `application_id` (deleted with it), `decision_type` (`resume|interview`), `review_link_id` (the link the request came through), `candidate_message` (≤ 1,000), `status` (`open|upheld|overridden`), `resolved_by` (workspace member ID), `resolved_at`, `resolution_note` (required to resolve, ≤ 1,000), `created_at`. At most one open request per application; `applications.review_requested` follows it. Written only by `services/review_requests.py`.
 
 ### Messaging
-**email_templates** — `id`, `workspace_id`, `key` (`interview_invitation|interview_reminder|finish_interview|next_stage|reject_resume|reject_interview|interview_received|role_closed|review_received`), `subject` (1–200 characters), `body_html` (sanitised), `is_default bool` (true until someone saves their own wording), `updated_by` (null while default), `updated_at`. Unique `(workspace_id, key)`. Defaults come from `app/emails/defaults.py` (MSG-001).
+**email_templates** — `id`, `workspace_id`, `key` (`interview_invitation|interview_reminder|finish_interview|next_stage|reject_resume|reject_interview|interview_received|role_closed|review_received|review_upheld`), `subject` (1–200 characters), `body_html` (sanitised), `is_default bool` (true until someone saves their own wording), `updated_by` (null while default), `updated_at`. Unique `(workspace_id, key)`. Defaults come from `app/emails/defaults.py` (MSG-001).
 
 **email_template_versions** — `id`, `workspace_id`, `template_id`, `subject`, `body_html`, `created_by`, `created_at`, `note` (e.g. "Reset to default"). One row per save; deleted with its template.
 

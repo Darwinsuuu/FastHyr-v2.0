@@ -289,7 +289,8 @@ async def resolve(
     *,
     now: datetime | None = None,
 ) -> ResolvedReviewRequest:
-    """Upholds or overrides the request; commits, then sends the email an override brings.
+    """Upholds or overrides the request; commits, then sends the email it brings (the outcome
+    after an uphold, the invitation after a résumé override).
     `404` outside the caller's workspace or departments; `409 review_request_resolved` once
     resolved; `409 override_not_allowed` once the decision no longer stands (or, to invite, when the
     pipeline is cancelled or archived)."""
@@ -311,6 +312,22 @@ async def resolve(
     resolved = _Resolved()
     if body.outcome == "override":
         resolved.emails = await _override(session, settings, application, request, now)
+    elif application.stage in STANDING[request.decision_type]:
+        # The "Request sent" page promises the outcome by email. Not when the application has
+        # moved on since (a re-invite): "we're keeping our decision" would contradict it.
+        resolved.emails = [
+            (
+                await candidate_emails.schedule(
+                    session,
+                    settings,
+                    workspace_id=ctx.workspace_id,
+                    application_id=application.id,
+                    key=TemplateKey.REVIEW_UPHELD,
+                    at=now,
+                    dedupe_key=f"{TemplateKey.REVIEW_UPHELD.value}:{request.id}",
+                )
+            ).message
+        ]
     request.status = "overridden" if body.outcome == "override" else "upheld"
     request.resolved_by = ctx.member_id
     request.resolved_at = now

@@ -2177,7 +2177,7 @@
       "uphold": {
         "button": "Uphold decision",
         "title": "Uphold the decision on {name}?",
-        "body": "The decision stays as it is. We won't send another email, because they already have it.",
+        "body": "The decision stays as it is. We'll email them that a person reviewed it and kept it. Your note isn't included.",
         "placeholder": "e.g. Looked at the résumé again. The role needs Kubernetes in production, which isn't there.",
         "confirm": "Uphold decision",
         "done": "Decision on {name} upheld"

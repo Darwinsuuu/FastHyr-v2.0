@@ -65,5 +65,6 @@ class ResolvedReviewRequest(BaseModel):
     application_id: uuid.UUID
     # The application's stage afterwards.
     stage: str
-    # Whether an email to the candidate went out (the invitation after a résumé override).
+    # Whether an email to the candidate went out (the outcome after an uphold, the invitation
+    # after a résumé override).
     emailed: bool

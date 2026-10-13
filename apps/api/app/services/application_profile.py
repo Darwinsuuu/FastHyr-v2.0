@@ -143,7 +143,9 @@ async def profile(
                 message=open_review.candidate_message,
                 created_at=open_review.created_at,
                 by_person=application.stage == "rejected",
-                can_override=review_requests.can_override(application.stage),
+                can_override=review_requests.can_override(
+                    application.stage, open_review.decision_type
+                ),
             )
             if open_review
             else None
@@ -516,7 +518,8 @@ def journey(
                 note=application.advanced_note,
             )
         )
-    if application.stage == "rejected" and application.rejected_at:
+    # Shown after an override too: the review steps say what changed it (ASMT-008).
+    if application.rejected_at:
         steps.append(
             JourneyStep(
                 kind="rejected",

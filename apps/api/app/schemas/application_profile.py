@@ -258,8 +258,9 @@ class ProfileReviewRequest(BaseModel):
     # What the candidate wrote, if anything (only the team sees it).
     message: str | None
     created_at: datetime
-    # A person's own rejection: it can only be upheld.
+    # A person's own rejection (ASMT-007) rather than an automated one.
     by_person: bool
+    # Whether the decision still stands, so it can be overridden as well as upheld.
     can_override: bool
 
 

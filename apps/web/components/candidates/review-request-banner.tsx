@@ -27,7 +27,7 @@ import { longDate } from "@/lib/pipelines/detail";
 
 /**
  * A-03 (ADR-015): "{name} asked for a person to review this decision on {date}." with the
- * candidate's message, then "Uphold decision" and, for an automated decision, "Invite to
+ * candidate's message, then "Uphold decision" and, while the decision stands, "Invite to
  * interview" (résumé) or "Move to Ready for review" (interview). Both ask for a note only the
  * team sees. Hiring managers read it only.
  */

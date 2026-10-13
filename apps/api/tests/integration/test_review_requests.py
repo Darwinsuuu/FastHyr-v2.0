@@ -1,6 +1,6 @@
 """ASMT-008: human review requests. The link's states, one request per link with the candidate's
 acknowledgement and the owner's email, overriding a résumé (invited, with the invitation) or an
-interview (Ready for review) decision, upholding, a person's own rejection only upheld, the
+interview (Ready for review) decision, upholding, a person's own rejection overridden too, the
 audit rows, the profile's banner and journey, and who reaches the team endpoints."""
 
 import json
@@ -23,6 +23,7 @@ from tests.integration.test_applications import (
     queue,
 )
 from tests.integration.test_decisions import application, assessed, emails, reject
+from tests.integration.test_interview_links import invite
 from tests.integration.test_interview_sessions import refused
 from tests.integration.test_pipelines import admin, ok, sql
 from tests.integration.test_screening import resume_pdf, submit
@@ -190,20 +191,62 @@ def test_upholding_sends_nothing(tenancy: Tenancy, candidates: list[CandidateUse
     assert len(emails(tenancy, application_id)) == before
 
 
-def test_a_persons_rejection_can_only_be_upheld(
+def review_token(tenancy: Tenancy, application_id: uuid.UUID, template_key: str) -> str:
+    [sent] = [m for m in emails(tenancy, application_id) if m["template_key"] == template_key]
+    return str(sent["html_rendered"].split("/review-request/")[1].split('"')[0])
+
+
+def test_a_persons_rejection_after_the_interview_is_overridden(
     tenancy: Tenancy, candidates: list[CandidateUser]
 ) -> None:
     application_id = assessed(tenancy, candidates[0])
     ok(reject(admin(tenancy), application_id, reason="Needs more Kubernetes."))
-    [sent] = [m for m in emails(tenancy, application_id) if m["template_key"] == "reject_interview"]
-    token = sent["html_rendered"].split("/review-request/")[1].split('"')[0]
-    ok(ask(tenancy, token))
+    ok(ask(tenancy, review_token(tenancy, application_id, "reject_interview")))
     request_id = open_request(tenancy, application_id)
     profile = ok(admin(tenancy).get(f"/v1/applications/{application_id}"))
     assert profile["review_request"]["by_person"] is True
-    assert profile["review_request"]["can_override"] is False
+    assert profile["review_request"]["can_override"] is True
+    done = ok(resolve(admin(tenancy), request_id, "override"))
+    assert (done["stage"], done["emailed"]) == ("ready_for_review", False)
+    kinds = [
+        step["kind"]
+        for step in ok(admin(tenancy).get(f"/v1/applications/{application_id}"))["journey"]
+    ]
+    # The rejection stays in the journey, followed by the review that changed it.
+    assert kinds[-3:] == ["rejected", "review_requested", "review_overridden"]
+
+
+def test_a_persons_rejection_before_the_interview_gets_a_new_link(
+    tenancy: Tenancy, candidates: list[CandidateUser]
+) -> None:
+    _, old_interview = invite(tenancy, candidates[0])
+    [row] = sql(tenancy, "select application_id from interviews where id = $1", old_interview)
+    application_id = row["application_id"]
+    ok(reject(admin(tenancy), application_id, reason="Role filled internally"))
+    ok(ask(tenancy, review_token(tenancy, application_id, "reject_resume")))
+    done = ok(resolve(admin(tenancy), open_request(tenancy, application_id), "override"))
+    assert (done["stage"], done["emailed"]) == ("invited", True)
+    interviews = sql(
+        tenancy,
+        "select id, superseded_by from interviews where application_id = $1",
+        application_id,
+    )
+    # The old link points at the new one, which is the live link now.
+    [old] = [r for r in interviews if r["id"] == old_interview]
+    [live] = [r for r in interviews if r["superseded_by"] is None]
+    assert old["superseded_by"] == live["id"]
+    assert "interview_invitation" in [m["template_key"] for m in emails(tenancy, application_id)]
+
+
+def test_a_decision_that_moved_on_can_only_be_upheld(
+    tenancy: Tenancy, candidates: list[CandidateUser]
+) -> None:
+    application_id = not_a_match(tenancy, candidates[0])
+    ok(ask(tenancy, review_link(tenancy, application_id, "resume")))
+    request_id = open_request(tenancy, application_id)
+    sql(tenancy, "update applications set stage = 'invited' where id = $1", application_id)
     refused(resolve(admin(tenancy), request_id, "override"), 409, "override_not_allowed")
-    assert ok(resolve(admin(tenancy), request_id, "uphold"))["stage"] == "rejected"
+    assert ok(resolve(admin(tenancy), request_id, "uphold"))["stage"] == "invited"
 
 
 def test_a_link_closes_when_it_expires_or_the_decision_moves_on(

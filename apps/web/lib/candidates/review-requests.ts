@@ -13,8 +13,8 @@ export type ReviewOutcome = "uphold" | "override";
 /** The API's limit (`app/schemas/review_requests.py`). */
 export const RESOLUTION_NOTE_MAX = 1000;
 
-/** The buttons the banner shows: Uphold always; override only for an automated decision that
- * still stands (a person's own rejection is final). */
+/** The buttons the banner shows: Uphold always; override while the decision still stands
+ * (automated or a person's own rejection). */
 export function reviewOutcomes(request: ProfileReviewRequest): ReviewOutcome[] {
   return request.can_override ? ["uphold", "override"] : ["uphold"];
 }

@@ -8,9 +8,11 @@ it to the candidate with the workspace's `review_received` email.
 
 A member who may decide candidates resolves it with a note only the team sees:
 - **Uphold**: the decision stands. No email: the rejection already went out.
-- **Override** an automated decision: a résumé that didn't pass goes to Invited with a new
-  interview link and the invitation; an interview below the pass mark goes to Ready for review.
-A person's own rejection (stage `rejected`) is final, so a request about it can only be upheld.
+- **Override**: a résumé decision (an automated "not a match", or a person's rejection before
+  the interview was finished) goes to Invited with a new interview link and the invitation; an
+  interview decision (below the pass mark, or a person's rejection after it) goes to Ready for
+  review. A person's own rejection can be overridden too (the owner's call on ASMT-008), so
+  Rejected is final only once a review of it is resolved.
 Either way the overlay clears, and each request and resolution goes to `audit_log` (never the
 message or note, which may describe the person).
 """
@@ -33,6 +35,7 @@ from app.core.errors import (
     ReviewLinkNotFoundError,
     ReviewRequestResolvedError,
 )
+from app.core.ids import new_id
 from app.core.tokens import hash_token
 from app.emails import system
 from app.emails.defaults import TemplateKey
@@ -41,6 +44,7 @@ from app.models import Application, EmailMessage, HumanReviewRequest, Workspace
 from app.repositories.applications import ApplicationRepository
 from app.repositories.audit import AuditRepository
 from app.repositories.company_profiles import BrandingRow
+from app.repositories.interviews import InterviewRepository
 from app.repositories.review_requests import (
     ReviewLinkRow,
     ReviewRequestRepository,
@@ -73,8 +77,10 @@ STANDING = {
     "resume": frozenset({"resume_not_match", REJECTED}),
     "interview": frozenset({"did_not_pass", REJECTED}),
 }
-# Where an override takes an automated decision (WORKFLOW.md §3).
-OVERRIDES = {"resume_not_match": "invited", "did_not_pass": "ready_for_review"}
+# Where an override takes each kind of decision (WORKFLOW.md §3).
+OVERRIDES = {"resume": "invited", "interview": "ready_for_review"}
+# A new interview link can't be issued on these (as for re-invites, INTV-007).
+CLOSED_PIPELINES = ("cancelled", "archived")
 LIST_LIMIT = 100
 
 
@@ -254,8 +260,9 @@ async def _notify_team(
 # --- The team's side ----------------------------------------------------------------------
 
 
-def can_override(stage: str) -> bool:
-    return stage in OVERRIDES
+def can_override(stage: str, decision_type: str) -> bool:
+    """Whether the decision still stands, so overriding it has somewhere to go."""
+    return stage in STANDING.get(decision_type, frozenset())
 
 
 async def list_requests(
@@ -284,7 +291,8 @@ async def resolve(
 ) -> ResolvedReviewRequest:
     """Upholds or overrides the request; commits, then sends the email an override brings.
     `404` outside the caller's workspace or departments; `409 review_request_resolved` once
-    resolved; `409 override_not_allowed` for a person's rejection or a stage that moved on."""
+    resolved; `409 override_not_allowed` once the decision no longer stands (or, to invite, when the
+    pipeline is cancelled or archived)."""
     now = now or datetime.now(UTC)
     repo = ReviewRequestRepository(session, ctx.workspace_id)
     row = await repo.get_scoped(request_id, department_ids=_departments(ctx), lock=True)
@@ -342,20 +350,33 @@ async def _override(
     request: HumanReviewRequest,
     now: datetime,
 ) -> list[EmailMessage]:
-    stage = OVERRIDES.get(application.stage)
-    if stage is None or application.stage not in STANDING[request.decision_type]:
+    if not can_override(application.stage, request.decision_type):
         raise OverrideNotAllowedError()
-    await move_stage(session, application.workspace_id, application.id, stage, now=now)
+    stage = OVERRIDES[request.decision_type]
     if stage != "invited":
         # Back to Ready for review: the team decides from there (ASMT-007); no email yet.
+        await move_stage(session, application.workspace_id, application.id, stage, now=now)
         return []
+
+    workspace_id = application.workspace_id
+    pipeline = await ScreeningRepository(session, workspace_id).pipeline(application.pipeline_id)
+    if pipeline.status in CLOSED_PIPELINES:
+        raise OverrideNotAllowedError()
+    await move_stage(session, workspace_id, application.id, stage, now=now)
+    # A person's rejection before the interview was finished left a closed link: the new one
+    # replaces it, as a re-invite does (INTV-007).
+    old = await InterviewRepository(session, workspace_id).live_of(application.id)
+    new_interview_id = None
+    if old is not None:
+        new_interview_id = new_id()
+        old.superseded_by = new_interview_id
+        await session.flush()
     # A résumé that didn't pass has no interview plan: the plain skills plan, then the link and
     # the invitation, as for a passed screen (SCREEN-003, INTV-007).
     await interviews.add_fallback_plan(session, application)
-    pipeline = await ScreeningRepository(session, application.workspace_id).pipeline(
-        application.pipeline_id
+    issued = await interview_lifecycle.issue_link(
+        session, settings, application, pipeline, now, interview_id=new_interview_id
     )
-    issued = await interview_lifecycle.issue_link(session, settings, application, pipeline, now)
     return issued.emails
 
 

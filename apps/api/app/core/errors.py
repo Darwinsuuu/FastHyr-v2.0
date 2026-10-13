@@ -126,8 +126,8 @@ class ReviewRequestResolvedError(AppError):
 
 
 class OverrideNotAllowedError(AppError):
-    """The decision can only be upheld: a person's own rejection is final, or the application
-    has moved on from the stage the request was about (ASMT-008)."""
+    """The decision can only be upheld: the application has moved on from the stage the request
+    was about, or the pipeline can't take a new interview link (ASMT-008)."""
 
     status = 409
     code = "override_not_allowed"

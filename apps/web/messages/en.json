@@ -2169,7 +2169,7 @@
         "resume": "The decision was about their résumé.",
         "interview": "The decision was about their interview."
       },
-      "byPerson": "Your team made it, so it can only be upheld.",
+      "byPerson": "Your team made it.",
       "noMessage": "They didn't add a message.",
       "noteLabel": "Note for your team",
       "noteHint": "Only your team sees this.",

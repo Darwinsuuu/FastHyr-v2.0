@@ -48,7 +48,7 @@ class ReviewRequestItem(BaseModel):
     pipeline_id: uuid.UUID
     pipeline_title: str
     decision_type: DecisionType
-    # A TA's own rejection (ASMT-007): it can be upheld, not overridden.
+    # A person's own rejection (ASMT-007) rather than an automated one.
     by_person: bool
     status: ReviewStatus
     created_at: datetime

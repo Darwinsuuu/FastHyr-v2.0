@@ -292,6 +292,7 @@ async def overview(
             running_low=running_low,
             plan_credits_expiring=plan_expiry,
             invites_expiring=invite_expiry,
+            review_requests=None if shortlist else await repo.review_requests(),
         ),
         funnel=funnel,
         top_candidates=[

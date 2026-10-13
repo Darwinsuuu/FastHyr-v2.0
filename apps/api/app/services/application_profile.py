@@ -27,7 +27,14 @@ from app.integrations.storage import (
     StorageRejectedError,
     recording_file_path,
 )
-from app.models import Application, Assessment, IntegrityFlag, Interview, ResumeAssessment
+from app.models import (
+    Application,
+    Assessment,
+    HumanReviewRequest,
+    IntegrityFlag,
+    Interview,
+    ResumeAssessment,
+)
 from app.repositories.application_profile import (
     ApplicationProfileRepository,
     PipelineScore,
@@ -36,6 +43,7 @@ from app.repositories.application_profile import (
 from app.repositories.company_profiles import workspace_timezone
 from app.repositories.integrity import member_names_by_member, reviewer_names
 from app.repositories.pipeline_candidates import FLAGGABLE_STAGES
+from app.repositories.review_requests import ReviewRequestRepository
 from app.schemas.application_profile import (
     AnswerStats,
     AnswerStatsAverages,
@@ -56,6 +64,7 @@ from app.schemas.application_profile import (
     ProfileInterview,
     ProfilePipeline,
     ProfileResume,
+    ProfileReviewRequest,
     RecordingUrl,
     ScoreBucket,
     Signal,
@@ -65,6 +74,7 @@ from app.schemas.application_profile import (
 from app.schemas.application_profile import (
     Criteria as CriteriaResult,
 )
+from app.services import review_requests
 from app.services.integrity_reviews import flag_result
 
 CRITERIA = ("technical", "communication", "culture")
@@ -118,12 +128,26 @@ async def profile(
 
     history = await repo.history(candidate.id)
     open_flags = sum(1 for flag in flags if flag.status == "open")
+    reviews = await ReviewRequestRepository(session, ctx.workspace_id).latest_of(application.id)
+    open_review = next((review for review in reviews if review.status == "open"), None)
     return ApplicationProfile(
         id=application.id,
         stage=application.stage,
         flagged=application.has_open_flags and application.stage in FLAGGABLE_STAGES,
         open_flags=open_flags,
         review_requested=application.review_requested,
+        review_request=(
+            ProfileReviewRequest(
+                id=open_review.id,
+                decision_type="interview" if open_review.decision_type == "interview" else "resume",
+                message=open_review.candidate_message,
+                created_at=open_review.created_at,
+                by_person=application.stage == "rejected",
+                can_override=review_requests.can_override(application.stage),
+            )
+            if open_review
+            else None
+        ),
         fit=application.fit,
         source=application.source,
         applied_at=application.applied_at,
@@ -161,7 +185,14 @@ async def profile(
             )
             for item in history
         ],
-        journey=journey(row, screen, interview, assessment, await _deciders(session, application)),
+        journey=journey(
+            row,
+            screen,
+            interview,
+            assessment,
+            await _deciders(session, application, reviews),
+            reviews,
+        ),
     )
 
 
@@ -451,9 +482,10 @@ def journey(
     interview: Interview | None,
     assessment: Assessment | None,
     deciders: dict[uuid.UUID, str] | None = None,
+    reviews: Sequence[HumanReviewRequest] = (),
 ) -> list[JourneyStep]:
-    """What happened to the application, in order; `deciders` names who advanced or
-    rejected it."""
+    """What happened to the application, in order; `deciders` names who advanced, rejected or
+    resolved a review request (by member ID)."""
     deciders = deciders or {}
     application = row.application
     steps = [JourneyStep(kind="applied", at=application.applied_at)]
@@ -493,12 +525,34 @@ def journey(
                 note=application.rejected_reason,
             )
         )
+    # Review steps go in by time; the steps above keep their order.
+    for review in reviews:
+        _insert(steps, JourneyStep(kind="review_requested", at=review.created_at))
+        if review.resolved_at is not None:
+            _insert(
+                steps,
+                JourneyStep(
+                    kind="review_overridden" if review.status == "overridden" else "review_upheld",
+                    at=review.resolved_at,
+                    by=deciders.get(review.resolved_by) if review.resolved_by else None,
+                    note=review.resolution_note,
+                ),
+            )
     return steps
 
 
-async def _deciders(session: AsyncSession, application: Application) -> dict[uuid.UUID, str]:
-    """Who advanced or rejected the application (ASMT-007)."""
+def _insert(steps: list[JourneyStep], step: JourneyStep) -> None:
+    """Before the first later step, else last."""
+    index = next((i for i, other in enumerate(steps) if other.at > step.at), len(steps))
+    steps.insert(index, step)
+
+
+async def _deciders(
+    session: AsyncSession, application: Application, reviews: Sequence[HumanReviewRequest]
+) -> dict[uuid.UUID, str]:
+    """Who advanced or rejected the application (ASMT-007) and resolved its review requests."""
     ids = {application.advanced_by, application.rejected_by}
+    ids |= {review.resolved_by for review in reviews}
     return await member_names_by_member(session, {id_ for id_ in ids if id_ is not None})
 
 

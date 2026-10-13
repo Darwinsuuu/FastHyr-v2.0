@@ -79,6 +79,7 @@ async def delete_credit_rows(supabase: Supabase, workspace_ids: list[uuid.UUID])
                 "ai_calls",
                 "audit_log",
                 "ai_decisions",
+                "human_review_requests",
                 "review_links",
                 "integrity_flags",
                 "assessments",

@@ -31,6 +31,8 @@ After scoring (ASMT-001, `services/scoring.py`): `did_not_pass` schedules `rejec
 
 When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`. Advance and reject (ASMT-007, `services/decisions.py`) send their email at once, after moving the stage, so the stage change cancels only the emails that were waiting; a TA rejection carries `[Review.link]` like every rejection (a `review_links` row of the matching decision type, valid 30 days; an earlier link of that type gets the new token).
 
+Human review requests (ASMT-008, `services/review_requests.py`): the request sends `review_received` to the candidate at once (dedupe key per request) and the `review_request` system email to the team. Upholding sends nothing (the rejection already went out); overriding a résumé decision sends `interview_invitation` (and the reminder with the pipeline's toggle) through `interview_lifecycle.issue_link()`; overriding an interview decision sends nothing until the team advances or rejects.
+
 Scheduling (MSG-003): `services/candidate_emails.schedule()` renders the workspace's template for one application (candidate first and last name are the first and last word of the name they gave; job title; company) plus the values only the caller knows (`Interview.link`, `Interview.expiry`, `Review.link`), and stores it with the application's current stage and a dedupe key (`{key}:{application}:{stage}` unless the caller gives one), so a retried job never schedules a second copy. Callers check the pipeline toggles themselves.
 
 Business days skip Saturday/Sunday in the workspace time zone (`app/core/business_days.py`; company profile time zone, else the workspace's; public holidays: post-MVP) and keep the local time of day: a résumé screened on Friday at 10:00 gets its rejection on Tuesday at 10:00 (`candidate_emails.send_at()`). `[Interview.expiry]` is written with `candidate_emails.local_time()`.
@@ -50,7 +52,7 @@ Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via Fa
 |---|---|
 | Member invite | Admin invites or resends (link `{site}/join/{token}` + code, expires in 7 days); from "FastHyr" (FND-010) |
 | Password reset / email verification | Supabase Auth via Resend SMTP (branded templates in Supabase config) |
-| Human review request to TA | Candidate requests review → pipeline owner |
+| Human review request to TA (`review_request`) | Candidate requests review → pipeline owner while still a member, else the workspace's Admins; links to the candidate's profile on `APP_URL` (ASMT-008) |
 | Pipeline paused (out of credits) / running low | Credits service → pipeline owner + Admins |
 | Payment failed | Stripe webhook → Admins |
 | Contact form | → hello@fasthyr.com |

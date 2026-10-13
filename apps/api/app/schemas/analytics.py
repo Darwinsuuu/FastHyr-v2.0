@@ -146,7 +146,7 @@ class InviteExpiry(BaseModel):
 
 
 class Attention(BaseModel):
-    """FR-DASH-03, without human-review requests (ASMT-008 adds them)."""
+    """FR-DASH-03."""
 
     ready_for_review: ReviewQueue
     flagged: FlaggedQueue
@@ -154,6 +154,8 @@ class Attention(BaseModel):
     running_low: list[CreditAttention]
     plan_credits_expiring: PlanExpiry | None
     invites_expiring: InviteExpiry | None
+    # Open human review requests (ASMT-008); null for Hiring managers, who don't resolve them.
+    review_requests: int | None = None
 
 
 class CreditsCard(BaseModel):

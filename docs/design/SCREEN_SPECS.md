@@ -79,7 +79,7 @@ After "Résumé must-haves": **"Nice-to-haves (optional)"** chip input with "Hid
 
 ### A-03 Review requested (PipelineView, CandidateProfile, Overview — ADR-015)
 - Candidates tab: filter "Review requested {n}"; row badge "Review requested" (marigold-outline pill, ink text).
-- Profile: banner on top of Overview (or Résumé tab for résumé decisions): "{name} asked for a person to review this decision on {date}." + candidate message in a quote block + buttons "Uphold decision" / "Invite to interview" (résumé) or "Move to Ready for review" (interview). Both require a note ("Only your team sees this"). Upholding sends no new email in MVP (the rejection already went out) *[confirm]*; overriding sends the invitation (résumé) or nothing (interview).
+- Profile: banner on top of Overview (or Résumé tab for résumé decisions): "{name} asked for a person to review this decision on {date}." + candidate message in a quote block + buttons "Uphold decision" / "Invite to interview" (résumé) or "Move to Ready for review" (interview). Both require a note ("Only your team sees this"). Upholding sends no new email in MVP (the rejection already went out); overriding sends the invitation (résumé) or nothing (interview). A request about a person's own rejection (ASMT-007) shows "Your team made it, so it can only be upheld." and only "Uphold decision". *(ASMT-008 shows the banner on Overview for both kinds until ASMT-005 builds the Résumé tab.)*
 - Overview "Needs your attention": "{n} review requests" → Candidates tab filtered.
 
 ### A-04 Flag review panel (CandidateProfile — ADR-016)

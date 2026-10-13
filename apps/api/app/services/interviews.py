@@ -141,3 +141,26 @@ async def record_fallback(session: AsyncSession, application_id: uuid.UUID) -> P
         return Planned.SKIPPED
     logger.warning("interview plan fell back to the skills plan: application %s", application.id)
     return Planned.PLANNED
+
+
+async def add_fallback_plan(session: AsyncSession, application: Application) -> bool:
+    """For a person inviting a candidate whose résumé didn't pass (ASMT-008 override): failed
+    screens get no plan, so the plain skills plan is added in the caller's transaction, without
+    a model call. Returns False when the application already has a plan."""
+    plans = InterviewPlanRepository(session, application.workspace_id)
+    if await plans.plan_of(application.id) is not None:
+        return False
+    answer = planning.fallback(await _context(session, application))
+    plans.add(
+        InterviewPlan(
+            application_id=application.id,
+            workspace_id=application.workspace_id,
+            topics=[topic.model_dump() for topic in answer.topics],
+            claims_to_verify=[claim.model_dump() for claim in answer.claims_to_verify],
+            source="fallback",
+            model="none",
+            prompt_version=planning.FALLBACK_VERSION,
+        )
+    )
+    await session.flush()
+    return True

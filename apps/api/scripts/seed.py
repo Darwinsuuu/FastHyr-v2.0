@@ -13,7 +13,8 @@ Credits go through `app.services.credits`, so batches, reserves and the ledger a
 they would in the product. Each epic extends this file as its tables arrive: pipelines have their
 full setup, slugs and dates since PIPE-001; the nine default email templates since MSG-001 (the
 interview invitation edited by Maria, as in the design); since DASH-003 every credit a pipeline used
-is a sample applicant with a screen, an interview and a score (scripts/seed_applications.py).
+is a sample applicant with a screen, an interview and a score (scripts/seed_applications.py), and
+two of them asked for a human review (ASMT-008).
 """
 
 import asyncio
@@ -34,12 +35,15 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.slugs import slugify
 from app.emails.defaults import TemplateKey
 from app.models import (
+    Application,
     CompanyProfile,
     Department,
+    HumanReviewRequest,
     Invite,
     MemberDepartment,
     Pipeline,
     Profile,
+    ReviewLink,
     Workspace,
     WorkspaceMember,
 )
@@ -392,7 +396,65 @@ async def seed(session_factory: async_sessionmaker[AsyncSession], password: str)
 
         await seed_credits(session, workspace.id, departments, members, created, now)
         await seed_email_templates(session, workspace.id)
+        await seed_review_requests(session, workspace.id, now)
     return True
+
+
+# Two candidates who asked for a person to review an automated rejection (ASMT-008).
+REVIEW_REQUESTS = (
+    (
+        "resume_not_match",
+        "resume",
+        "I led the payments team's move to Kubernetes in 2024, which isn't clear from my résumé.",
+        2,
+    ),
+    ("did_not_pass", "interview", None, 1),
+)
+
+
+async def seed_review_requests(
+    session: AsyncSession, workspace_id: uuid.UUID, now: datetime
+) -> None:
+    """Open review requests on the Senior Backend Engineer pipeline: the oldest application in
+    each stage, with its review link already used."""
+    pipeline_id = await session.scalar(
+        select(Pipeline.id).where(
+            Pipeline.workspace_id == workspace_id, Pipeline.title == "Senior Backend Engineer"
+        )
+    )
+    for stage, decision_type, message, days_ago in REVIEW_REQUESTS:
+        application = await session.scalar(
+            select(Application)
+            .where(Application.pipeline_id == pipeline_id, Application.stage == stage)
+            .order_by(Application.applied_at)
+            .limit(1)
+        )
+        if application is None:
+            continue
+        asked = now - timedelta(days=days_ago)
+        link = ReviewLink(
+            workspace_id=workspace_id,
+            application_id=application.id,
+            decision_type=decision_type,
+            token_hash=new_token_hash()[1],
+            expires_at=asked + timedelta(days=25),
+            requested_at=asked,
+            created_at=asked - timedelta(days=5),
+        )
+        session.add(link)
+        await session.flush()
+        session.add(
+            HumanReviewRequest(
+                workspace_id=workspace_id,
+                application_id=application.id,
+                decision_type=decision_type,
+                review_link_id=link.id,
+                candidate_message=message,
+                created_at=asked,
+            )
+        )
+        application.review_requested = True
+    await session.commit()
 
 
 # The canvas EditEmailTemplate frame's second wording, saved by Maria.

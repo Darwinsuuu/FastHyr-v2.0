@@ -101,6 +101,39 @@ class DecisionNotAllowedError(AppError):
     title = "This candidate can't be moved from their current stage"
 
 
+class ReviewLinkNotFoundError(AppError):
+    """No review link has this token (ASMT-008)."""
+
+    status = 404
+    code = "review_link_not_found"
+    title = "This link isn't valid"
+
+
+class ReviewLinkClosedError(AppError):
+    """The review link expired, or the decision it was about no longer stands (ASMT-008)."""
+
+    status = 409
+    code = "review_link_closed"
+    title = "This link no longer works"
+
+
+class ReviewRequestResolvedError(AppError):
+    """The review request was already upheld or overridden (ASMT-008)."""
+
+    status = 409
+    code = "review_request_resolved"
+    title = "This review request was already resolved"
+
+
+class OverrideNotAllowedError(AppError):
+    """The decision can only be upheld: a person's own rejection is final, or the application
+    has moved on from the stage the request was about (ASMT-008)."""
+
+    status = 409
+    code = "override_not_allowed"
+    title = "This decision can only be upheld"
+
+
 class FlagsToReviewError(AppError):
     """Advance waits until every integrity flag on the interview is reviewed (A-02, ASMT-003)."""
 

@@ -1826,6 +1826,35 @@
       "uploadBehind": "Your connection is slow. We’re still saving your interview, so keep this page open."
     }
   },
+  "reviewRequest": {
+    "pageTitle": "Ask {company} for a review",
+    "hiresWith": "hires with",
+    "open": {
+      "title": "Ask for a person to review your application",
+      "body": "Your application for {job} at {company} was reviewed with the help of AI. You can ask a member of the {company} hiring team to look at it again.",
+      "messageLabel": "Anything you’d like them to know? (optional)",
+      "messageHint": "For example, experience that isn’t clear from your résumé.",
+      "submit": "Request a review",
+      "failed": "That didn’t send. Check your connection and try again."
+    },
+    "sent": {
+      "title": "Request sent",
+      "body": "The {company} team will review your application and email you with the outcome."
+    },
+    "requested": {
+      "title": "You’ve already asked for a review",
+      "body": "We’ll email you when it’s done."
+    },
+    "expired": {
+      "title": "This link has expired",
+      "body": "Review links work for 30 days after the email that sent them. If you’d still like a person to look at your application, contact {company}."
+    },
+    "unavailable": {
+      "title": "This link no longer works",
+      "body": "Your application for {job} has changed since this email, so there’s nothing to review here. If you have questions, contact {company}."
+    },
+    "contact": "Visit {company}’s website"
+  },
   "candidates": {
     "profile": {
       "back": "{pipeline} · Candidates",
@@ -2045,7 +2074,12 @@
           "advanced": "Advanced",
           "rejected": "Not moving forward",
           "advancedBy": "Advanced by {name}",
-          "rejectedBy": "Not moving forward · {name}"
+          "rejectedBy": "Not moving forward · {name}",
+          "review_requested": "Asked for a human review",
+          "review_upheld": "Review: decision upheld",
+          "review_overridden": "Review: decision changed",
+          "review_upheldBy": "Review: decision upheld · {name}",
+          "review_overriddenBy": "Review: decision changed · {name}"
         }
       },
       "fairness": "How this score stays fair.",
@@ -2126,6 +2160,48 @@
         "notFound": "This candidate isn't available anymore. Refresh the page.",
         "flags": "Review this candidate's integrity flags before advancing them.",
         "stage": "This candidate has moved on since the page loaded, so this action no longer applies. Refresh the page.",
+        "failed": "That didn't save. Try again."
+      }
+    },
+    "reviewRequest": {
+      "title": "{name} asked for a person to review this decision on {date}.",
+      "decision": {
+        "resume": "The decision was about their résumé.",
+        "interview": "The decision was about their interview."
+      },
+      "byPerson": "Your team made it, so it can only be upheld.",
+      "noMessage": "They didn't add a message.",
+      "noteLabel": "Note for your team",
+      "noteHint": "Only your team sees this.",
+      "noteRequired": "Add a note so your team knows why.",
+      "uphold": {
+        "button": "Uphold decision",
+        "title": "Uphold the decision on {name}?",
+        "body": "The decision stays as it is. We won't send another email, because they already have it.",
+        "placeholder": "e.g. Looked at the résumé again. The role needs Kubernetes in production, which isn't there.",
+        "confirm": "Uphold decision",
+        "done": "Decision on {name} upheld"
+      },
+      "invite": {
+        "button": "Invite to interview",
+        "title": "Invite {name} to interview?",
+        "body": "They'll move to Invited and get your interview invitation email with a new link.",
+        "placeholder": "e.g. Their message shows the Kubernetes experience we need.",
+        "confirm": "Invite to interview",
+        "done": "{name} invited to interview"
+      },
+      "ready": {
+        "button": "Move to Ready for review",
+        "title": "Move {name} to Ready for review?",
+        "body": "Their interview and scores stay as they are, and you'll decide with Advance or Reject. We won't email them yet.",
+        "placeholder": "e.g. Listened to the interview again. The system design answers were stronger than the score.",
+        "confirm": "Move to Ready for review",
+        "done": "{name} moved to Ready for review"
+      },
+      "errors": {
+        "notFound": "This request isn't available anymore. Refresh the page.",
+        "resolved": "Someone on your team already resolved this request. Refresh the page.",
+        "stage": "This candidate has moved on since the page loaded, so the decision can only be upheld. Refresh the page.",
         "failed": "That didn't save. Try again."
       }
     }

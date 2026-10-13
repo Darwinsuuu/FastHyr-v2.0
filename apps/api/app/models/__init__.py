@@ -1,7 +1,7 @@
 """SQLAlchemy models. Import every model module here so `Base.metadata` is complete."""
 
 from app.models.ai import AICall, AIDecision
-from app.models.applications import Application, Candidate, ReviewLink
+from app.models.applications import Application, Candidate, HumanReviewRequest, ReviewLink
 from app.models.assessments import Assessment
 from app.models.audit import AuditLog
 from app.models.base import Base
@@ -44,6 +44,7 @@ __all__ = [
     "EmailMessage",
     "EmailTemplate",
     "EmailTemplateVersion",
+    "HumanReviewRequest",
     "IntegrityFlag",
     "Interview",
     "InterviewAttempt",

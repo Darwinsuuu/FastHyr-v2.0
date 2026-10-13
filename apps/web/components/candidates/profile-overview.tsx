@@ -1062,6 +1062,13 @@ function IntegrityCard({
   );
 }
 
+/** Journey steps a person took, which name who (ASMT-007, ASMT-008). */
+const DECIDED_STEPS = ["advanced", "rejected", "review_upheld", "review_overridden"] as const;
+
+function decidedStep(kind: string): kind is (typeof DECIDED_STEPS)[number] {
+  return (DECIDED_STEPS as readonly string[]).includes(kind);
+}
+
 function JourneyCard({ profile }: { profile: ApplicationProfile }) {
   const hours = hoursToAssessment(profile);
   const minutes = profile.interview?.duration_seconds
@@ -1089,7 +1096,7 @@ function JourneyCard({ profile }: { profile: ApplicationProfile }) {
                 })
               : step.kind === "interview_finished" && minutes !== null
                 ? t("candidates.profile.journey.steps.interview_finished_minutes", { minutes })
-                : (step.kind === "advanced" || step.kind === "rejected") && step.by
+                : decidedStep(step.kind) && step.by
                   ? t(`candidates.profile.journey.steps.${step.kind}By`, { name: step.by })
                   : t(`candidates.profile.journey.steps.${step.kind}`);
           return (
@@ -1103,7 +1110,7 @@ function JourneyCard({ profile }: { profile: ApplicationProfile }) {
                 <span className="text-[12px] text-ink-muted">
                   {journeyTime(step.at, profile.timezone)}
                 </span>
-                {/* The advance note or reject reason, for the team only (ASMT-007). */}
+                {/* The advance note, reject reason or review note, for the team only. */}
                 {step.note && (
                   <span className="mt-1 border-l-2 border-line pl-2.5 text-[13px] leading-[18px] break-words whitespace-pre-line text-ink-muted">
                     {step.note}

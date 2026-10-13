@@ -4,6 +4,7 @@
 
 import type { components } from "@fasthyr/api-client";
 
+import { INTEGRITY_ANCHOR } from "@/lib/candidates/flags";
 import { profileHref } from "@/lib/candidates/profile";
 import { t } from "@/lib/i18n";
 import { longDate } from "@/lib/pipelines/detail";
@@ -161,9 +162,9 @@ export function candidateProfileHref(item: PipelineCandidate): string {
 }
 
 /**
- * Where a menu action goes, or null while its task isn't built: flag review (ASMT-003), the
- * downloads (ASMT-009) and the advance and reject dialogs (ASMT-007). View profile opens the
- * profile (ASMT-004); Email candidate opens the member's mail app.
+ * Where a menu action goes, or null while its task isn't built: the downloads (ASMT-009) and the
+ * advance and reject dialogs (ASMT-007). View profile opens the profile (ASMT-004), Review flag
+ * its integrity card (ASMT-003); Email candidate opens the member's mail app.
  */
 export function candidateActionHref(
   action: CandidateAction,
@@ -171,5 +172,6 @@ export function candidateActionHref(
 ): string | null {
   if (action === "email") return `mailto:${item.candidate.email}`;
   if (action === "profile") return candidateProfileHref(item);
+  if (action === "reviewFlag") return `${candidateProfileHref(item)}#${INTEGRITY_ANCHOR}`;
   return null;
 }

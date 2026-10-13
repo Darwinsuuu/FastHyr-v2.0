@@ -35,7 +35,7 @@ TA users move candidates forward or reject them with a reason, and candidates ar
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- Advance needs every integrity flag reviewed (A-02, FR-PIPE-13): refuse it while `applications.has_open_flags` is true; ASMT-003 clears the overlay when the last flag is reviewed (`PATCH /v1/integrity-flags/{id}`). The web already hides or disables Advance while `flagged`.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

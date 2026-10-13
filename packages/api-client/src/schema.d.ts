@@ -639,6 +639,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/integrity-flags/{flag_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Resolve Flag
+         * @description Marks a flag No concern or Concern confirmed (a note is required for a concern). The
+         *     stage never changes; when the application's last open flag is reviewed it leaves the
+         *     Flagged filter. Returns the flag and whether the application is still flagged.
+         */
+        patch: operations["resolve_flag_v1_integrity_flags__flag_id__patch"];
+        trace?: never;
+    };
     "/v1/candidates/dashboard": {
         parameters: {
             query?: never;
@@ -1577,6 +1599,18 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** FlaggedApplication */
+        FlaggedApplication: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Flagged */
+            flagged: boolean;
+            /** Open Flags */
+            open_flags: number;
+        };
         /** FlaggedItem */
         FlaggedItem: {
             /** Name */
@@ -1691,6 +1725,12 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "no_concern" | "concern_confirmed";
+            /** Resolved At */
+            resolved_at?: string | null;
+            /** Resolved By */
+            resolved_by?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /** InterviewCompany */
         InterviewCompany: {
@@ -3179,6 +3219,25 @@ export interface components {
             returning_pass_rate: number | null;
             /** First Time Pass Rate */
             first_time_pass_rate: number | null;
+        };
+        /**
+         * ResolveFlagRequest
+         * @description No concern, or Concern confirmed with a note saying what the reviewer saw. Confirming a
+         *     concern never rejects anyone: the team still chooses Advance or Reject.
+         */
+        ResolveFlagRequest: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_concern" | "concern_confirmed";
+            /** Note */
+            note?: string | null;
+        };
+        /** ResolvedFlag */
+        ResolvedFlag: {
+            flag: components["schemas"]["IntegrityFlag"];
+            application: components["schemas"]["FlaggedApplication"];
         };
         /**
          * ResumeUpload
@@ -5842,6 +5901,74 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    resolve_flag_v1_integrity_flags__flag_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                flag_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveFlagRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolvedFlag"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

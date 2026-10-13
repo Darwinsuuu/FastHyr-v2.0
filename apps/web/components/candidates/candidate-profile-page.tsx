@@ -12,7 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useCallback } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
 import { ProfileOverview } from "@/components/candidates/profile-overview";
@@ -27,6 +27,7 @@ import { StagePill } from "@/components/ui/status-pill";
 import { Tabs } from "@/components/ui/tabs";
 import { ApiError, api, unwrap } from "@/lib/api/client";
 import { keys } from "@/lib/api/keys";
+import { INTEGRITY_ANCHOR } from "@/lib/candidates/flags";
 import {
   type ApplicationProfile,
   PROFILE_TABS,
@@ -91,6 +92,15 @@ export function CandidateProfilePage({
   );
 
   const profile = query.data;
+  // "Review flag" in the Candidates tab links to the integrity card; it renders after the data.
+  const scrolled = useRef(false);
+  useEffect(() => {
+    if (!profile || scrolled.current) return;
+    scrolled.current = true;
+    if (window.location.hash !== `#${INTEGRITY_ANCHOR}`) return;
+    document.getElementById(INTEGRITY_ANCHOR)?.scrollIntoView({ block: "start" });
+  }, [profile]);
+
   // The URL names both; a mismatched pair is a broken link, not another person's profile.
   const mismatch = profile !== undefined && profile.candidate.id !== candidateId;
   if (!applicationId || query.isError || mismatch) {
@@ -206,9 +216,11 @@ function Header({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {profile.flagged ? (
-              <Badge tone="gap" icon={<FlagIcon aria-hidden="true" weight="bold" />}>
-                {plural("candidates.profile.flagged", profile.open_flags)}
-              </Badge>
+              <a href={`#${INTEGRITY_ANCHOR}`} className="rounded-pill hover:opacity-80">
+                <Badge tone="gap" icon={<FlagIcon aria-hidden="true" weight="bold" />}>
+                  {plural("candidates.profile.flagged", profile.open_flags)}
+                </Badge>
+              </a>
             ) : (
               <StagePill stage={profile.stage} />
             )}

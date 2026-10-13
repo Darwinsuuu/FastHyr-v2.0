@@ -2059,6 +2059,41 @@
         "more": "Topic markers, the topics with their scores and the searchable transcript are on their way.",
         "video": "Interview video",
         "audio": "Interview audio"
+      },
+      "flagReview": {
+        "title": "Flags to review",
+        "reviewedTitle": "Reviewed flags",
+        "types": {
+          "different_face": "A different face",
+          "no_face": "Face out of frame",
+          "second_voice": "A second voice",
+          "read_aloud": "Answer may be read aloud",
+          "unusual_timing": "Unusual response timing"
+        },
+        "listen": "Listen at {time}",
+        "decision": "Your review",
+        "outcomes": {
+          "no_concern": "No concern",
+          "concern_confirmed": "Concern confirmed"
+        },
+        "noteLabel": "Note",
+        "noteHint": "Required when you confirm a concern. Your team sees it; the candidate never does.",
+        "save": "Save review",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "change": "Change review",
+        "waiting": "Waiting for a Recruiter or Admin to review it.",
+        "reviewedOn": "On {date}",
+        "reviewedBy": "By {name} on {date}",
+        "saved": "Review saved",
+        "allReviewed": "Every flag is reviewed. Advance or reject as usual.",
+        "failed": "We couldn't save the review. Try again.",
+        "gone": "This flag isn't available any more. Refresh the page.",
+        "errors": {
+          "status": "Choose No concern or Concern confirmed.",
+          "noteRequired": "Add a note saying what you saw or heard.",
+          "noteTooLong": "Keep the note under {max} characters."
+        }
       }
     }
   }

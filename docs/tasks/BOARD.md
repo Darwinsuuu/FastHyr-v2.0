@@ -110,7 +110,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [SCREEN-004](SCREEN/SCREEN-004-unreadable-resumes-and-manual-invite.md) | Unreadable résumés and manual invite | S | SCREEN-003, PIPE-008 | Ready | |
 | [ASMT-001](ASMT/ASMT-001-interview-scoring.md) | Interview scoring | L | INTV-008, FND-013 | Done | #49 |
 | [ASMT-002](ASMT/ASMT-002-integrity-checks-worker.md) | Integrity checks (worker) | L | INTV-008 | Done | #50 |
-| [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Ready | |
+| [ASMT-003](ASMT/ASMT-003-flag-review-ui.md) | Flag review UI | S | ASMT-002, ASMT-004 | Done | |
 | [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Done | #55 |
 | [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Ready | |
 | [ASMT-006](ASMT/ASMT-006-candidate-profile-ai-interview-tab.md) | Candidate profile — AI interview tab | M | ASMT-004, INTV-008 | Ready | |

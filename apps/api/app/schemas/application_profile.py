@@ -184,13 +184,21 @@ class Comparison(BaseModel):
     answer_stats: AnswerStatsAverages | None
 
 
+FlagStatus = Literal["open", "no_concern", "concern_confirmed"]
+
+
 class IntegrityFlag(BaseModel):
     id: uuid.UUID
     type: FlagType
     start_ms: int
     end_ms: int
     confidence: float
-    status: Literal["open", "no_concern", "concern_confirmed"]
+    status: FlagStatus
+    # Set once a person reviewed it (ASMT-003): when, who (name, or email without one) and
+    # their note, for the team only.
+    resolved_at: datetime | None = None
+    resolved_by: str | None = None
+    note: str | None = None
 
 
 class IntegrityChecks(BaseModel):

@@ -34,6 +34,7 @@ from app.repositories.application_profile import (
     ProfileRow,
 )
 from app.repositories.company_profiles import workspace_timezone
+from app.repositories.integrity import reviewer_names
 from app.repositories.pipeline_candidates import FLAGGABLE_STAGES
 from app.schemas.application_profile import (
     AnswerStats,
@@ -64,9 +65,7 @@ from app.schemas.application_profile import (
 from app.schemas.application_profile import (
     Criteria as CriteriaResult,
 )
-from app.schemas.application_profile import (
-    IntegrityFlag as FlagResult,
-)
+from app.services.integrity_reviews import flag_result
 
 CRITERIA = ("technical", "communication", "culture")
 # The distribution's groups: under 50, then each ten, with 90 to 100 together.
@@ -146,7 +145,11 @@ async def profile(
         interview=_interview(interview) if interview else None,
         assessment=profile_assessment,
         comparison=comparison,
-        integrity=_integrity(interview, flags) if interview and interview.completed_at else None,
+        integrity=(
+            _integrity(interview, flags, await reviewer_names(session, flags))
+            if interview and interview.completed_at
+            else None
+        ),
         history=[
             HistoryItem(
                 application_id=item.application.id,
@@ -424,7 +427,9 @@ _CHECK_VALUES = {
 }
 
 
-def _integrity(interview: Interview, flags: Sequence[IntegrityFlag]) -> ProfileIntegrity:
+def _integrity(
+    interview: Interview, flags: Sequence[IntegrityFlag], reviewers: dict[uuid.UUID, str]
+) -> ProfileIntegrity:
     checks = None
     if interview.integrity_checks:
         checks = IntegrityChecks(
@@ -436,17 +441,7 @@ def _integrity(interview: Interview, flags: Sequence[IntegrityFlag]) -> ProfileI
     return ProfileIntegrity(
         status=interview.integrity_status,
         checks=checks,
-        flags=[
-            FlagResult(
-                id=flag.id,
-                type=flag.type,
-                start_ms=flag.start_ms,
-                end_ms=flag.end_ms,
-                confidence=float(flag.confidence),
-                status=flag.status,
-            )
-            for flag in flags
-        ],
+        flags=[flag_result(flag, reviewers) for flag in flags],
     )
 
 

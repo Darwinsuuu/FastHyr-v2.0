@@ -59,6 +59,8 @@ export function SegmentedControl<T extends string>({
     >
       {options.map((option, index) => {
         const selected = option.value === value;
+        // With nothing chosen yet (a review form), the first segment takes the Tab stop.
+        const tabStop = selected || (index === 0 && !options.some((item) => item.value === value));
         return (
           <button
             key={option.value}
@@ -68,7 +70,7 @@ export function SegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={selected}
-            tabIndex={selected ? 0 : -1}
+            tabIndex={tabStop ? 0 : -1}
             onClick={() => onValueChange(option.value)}
             onKeyDown={(event) => onKeyDown(event, index)}
             className={cn(

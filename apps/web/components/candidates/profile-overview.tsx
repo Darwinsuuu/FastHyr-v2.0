@@ -14,6 +14,8 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { useShell } from "@/components/app-shell/shell-context";
+import { FlagReviewList } from "@/components/candidates/flag-review";
 import { BarChart } from "@/components/charts/bar-chart";
 import { Legend } from "@/components/charts/chart-frame";
 import { HorizontalBars } from "@/components/charts/horizontal-bars";
@@ -27,7 +29,6 @@ import {
   CRITERIA,
   citations,
   clock,
-  confidenceWord,
   delay,
   distributionBins,
   historyChange,
@@ -42,9 +43,11 @@ import {
   profileHref,
   scoreSentence,
 } from "@/lib/candidates/profile";
+import { INTEGRITY_ANCHOR } from "@/lib/candidates/flags";
 import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import { plural, t } from "@/lib/i18n";
+import { can } from "@/lib/permissions";
 import { longDate, sourceLabel } from "@/lib/pipelines/detail";
 
 const SERIES_FILL = ["bg-evergreen", "bg-chart-2", "bg-chart-3"];
@@ -63,13 +66,16 @@ export function ProfileOverview({
   onResume,
 }: { profile: ApplicationProfile } & Navigate) {
   const assessment = profile.assessment;
+  // With flags the integrity card is the review panel (A-04): full width, near the top.
+  const reviewing = hasFlags(profile);
   if (!assessment) {
     return (
       <div className="flex flex-col gap-4 md:gap-5">
         <NotAssessed profile={profile} />
+        {reviewing && <IntegrityCard profile={profile} onSeek={onSeek} />}
         <div className="grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
           <ResumeMatchCard profile={profile} onResume={onResume} />
-          {profile.integrity && <IntegrityCard profile={profile} onSeek={onSeek} />}
+          {profile.integrity && !reviewing && <IntegrityCard profile={profile} onSeek={onSeek} />}
           <JourneyCard profile={profile} />
         </div>
         {profile.history.length > 1 && <HistoryCard profile={profile} />}
@@ -83,6 +89,7 @@ export function ProfileOverview({
         <ScoreCard profile={profile} assessment={assessment} />
         <CalcCard profile={profile} assessment={assessment} />
       </div>
+      {reviewing && <IntegrityCard profile={profile} onSeek={onSeek} />}
       <WhyCard assessment={assessment} onSeek={onSeek} onResume={onResume} />
       {profile.comparison && (
         <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
@@ -102,10 +109,15 @@ export function ProfileOverview({
         <SummaryCard assessment={assessment} onSeek={onSeek} onResume={onResume} />
         <PointsCard assessment={assessment} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-4">
+      <div
+        className={cn(
+          "grid gap-4 md:grid-cols-2 md:gap-5",
+          reviewing ? "xl:grid-cols-3" : "xl:grid-cols-4",
+        )}
+      >
         <ResumeMatchCard profile={profile} onResume={onResume} />
         <AnswersCard profile={profile} assessment={assessment} />
-        <IntegrityCard profile={profile} onSeek={onSeek} />
+        {!reviewing && <IntegrityCard profile={profile} onSeek={onSeek} />}
         <JourneyCard profile={profile} />
       </div>
       <p className="flex gap-3 rounded-lg border border-line bg-surface p-4 text-[14px] leading-[21px] text-ink md:p-5">
@@ -117,6 +129,10 @@ export function ProfileOverview({
       </p>
     </div>
   );
+}
+
+function hasFlags(profile: ApplicationProfile): boolean {
+  return profile.integrity?.status === "ready" && profile.integrity.flags.length > 0;
 }
 
 function firstName(name: string): string {
@@ -932,6 +948,7 @@ function IntegrityCard({
   profile: ApplicationProfile;
   onSeek: (ms: number) => void;
 }) {
+  const { workspace } = useShell();
   const integrity = profile.integrity;
   const title = t("candidates.profile.integrity.title");
   if (!integrity) return null;
@@ -943,67 +960,104 @@ function IntegrityCard({
           ? "failedBody"
           : "pendingBody";
     return (
-      <Card titleId="profile-integrity" title={title}>
+      <Card id={INTEGRITY_ANCHOR} titleId="profile-integrity" title={title}>
         <p className="text-[14px] text-ink-muted">{t(`candidates.profile.integrity.${key}`)}</p>
       </Card>
     );
   }
   const rows = integrityRows(integrity);
-  const flagged = rows.some((row) => row.state === "flagged");
+  const checks = (
+    <ul className="flex flex-col gap-3">
+      {rows.map((row) => (
+        <li key={row.key} className="flex flex-col gap-1.5">
+          <div className="flex items-start justify-between gap-3 text-[14px]">
+            <span className="text-ink">{t(`candidates.profile.integrity.rows.${row.key}`)}</span>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1 text-[13px] font-[650]",
+                STATE_CLASSES[row.state],
+              )}
+            >
+              {row.state === "passed" && (
+                <CheckIcon aria-hidden="true" weight="bold" className="size-3.5" />
+              )}
+              {row.state === "flagged" && (
+                <FlagIcon aria-hidden="true" weight="bold" className="size-3.5" />
+              )}
+              {t(`candidates.profile.integrity.states.${row.state}`)}
+            </span>
+          </div>
+          {row.state === "notRun" && row.reason && (
+            <span className="text-[12px] text-ink-muted">{row.reason}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+  const note = (
+    <p className="text-[12px] leading-[17px] text-ink-muted">
+      {t("candidates.profile.integrity.note")}
+    </p>
+  );
+  if (integrity.flags.length === 0) {
+    return (
+      <Card id={INTEGRITY_ANCHOR} titleId="profile-integrity" title={title}>
+        {checks}
+        <div className="mt-auto">{note}</div>
+      </Card>
+    );
+  }
+
+  const open = integrity.flags.filter((flag) => flag.status === "open");
+  const reviewed = integrity.flags.filter((flag) => flag.status !== "open");
+  const canResolve = can(workspace.role, "resolve_reviews");
   return (
-    <Card titleId="profile-integrity" title={title}>
-      <ul className="flex flex-col gap-3">
-        {rows.map((row) => (
-          <li key={row.key} className="flex flex-col gap-1.5">
-            <div className="flex items-start justify-between gap-3 text-[14px]">
-              <span className="text-ink">{t(`candidates.profile.integrity.rows.${row.key}`)}</span>
-              <span
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-1 text-[13px] font-[650]",
-                  STATE_CLASSES[row.state],
-                )}
-              >
-                {row.state === "passed" && (
-                  <CheckIcon aria-hidden="true" weight="bold" className="size-3.5" />
-                )}
-                {row.state === "flagged" && (
-                  <FlagIcon aria-hidden="true" weight="bold" className="size-3.5" />
-                )}
-                {t(`candidates.profile.integrity.states.${row.state}`)}
-              </span>
+    <Card
+      id={INTEGRITY_ANCHOR}
+      titleId="profile-integrity"
+      title={title}
+      hint={
+        open.length > 0
+          ? plural("candidates.profile.integrity.toReview", open.length)
+          : t("candidates.profile.integrity.reviewed")
+      }
+    >
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-6">
+        <div className="flex flex-col gap-4">
+          {checks}
+          {note}
+        </div>
+        <div className="flex flex-col gap-4">
+          {open.length > 0 && (
+            <>
+              <p className="rounded-md bg-surface p-3 text-[13px] leading-[19px] text-ink">
+                {t("candidates.profile.integrity.guidance")}
+              </p>
+              <FlagReviewList
+                profile={profile}
+                flags={open}
+                canResolve={canResolve}
+                onSeek={onSeek}
+              />
+            </>
+          )}
+          {reviewed.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {open.length > 0 && (
+                <h3 className="text-[13px] font-[650] text-ink-muted">
+                  {t("candidates.profile.flagReview.reviewedTitle")}
+                </h3>
+              )}
+              <FlagReviewList
+                profile={profile}
+                flags={reviewed}
+                canResolve={canResolve}
+                onSeek={onSeek}
+              />
             </div>
-            {row.state === "notRun" && row.reason && (
-              <span className="text-[12px] text-ink-muted">{row.reason}</span>
-            )}
-            {row.flags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {row.flags.map((flag) => (
-                  <button
-                    key={flag.id}
-                    type="button"
-                    onClick={() => onSeek(flag.start_ms)}
-                    className="inline-flex min-h-8 items-center gap-1 rounded-pill border border-line px-2.5 text-[12px] font-[650] text-ink tabular-nums hover:bg-surface"
-                  >
-                    <PlayIcon aria-hidden="true" weight="fill" className="size-3" />
-                    {t("candidates.profile.integrity.at", {
-                      confidence: confidenceWord(flag.confidence),
-                      time: clock(flag.start_ms),
-                    })}
-                  </button>
-                ))}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-      {flagged && (
-        <p className="rounded-md bg-surface p-3 text-[13px] leading-[19px] text-ink">
-          {t("candidates.profile.integrity.guidance")}
-        </p>
-      )}
-      <p className="mt-auto text-[12px] leading-[17px] text-ink-muted">
-        {t("candidates.profile.integrity.note")}
-      </p>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }

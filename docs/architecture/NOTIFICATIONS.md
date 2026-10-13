@@ -29,7 +29,7 @@ Interview emails (INTV-007, `services/interview_lifecycle.py`): the link token i
 
 After scoring (ASMT-001, `services/scoring.py`): `did_not_pass` schedules `reject_interview` 3 business days after the interview completed, with `[Review.link]` (a `review_links` row with `decision_type = interview`, valid 30 days after the send time), when the pipeline's "Email candidates after their interview" (`email_post_interview`) is on; the wizard shows that toggle as "Interview results".
 
-When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`.
+When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`. Advance and reject (ASMT-007, `services/decisions.py`) send their email at once, after moving the stage, so the stage change cancels only the emails that were waiting; a TA rejection carries `[Review.link]` like every rejection (a `review_links` row of the matching decision type, valid 30 days; an earlier link of that type gets the new token).
 
 Scheduling (MSG-003): `services/candidate_emails.schedule()` renders the workspace's template for one application (candidate first and last name are the first and last word of the name they gave; job title; company) plus the values only the caller knows (`Interview.link`, `Interview.expiry`, `Review.link`), and stores it with the application's current stage and a dedupe key (`{key}:{application}:{stage}` unless the caller gives one), so a retried job never schedules a second copy. Callers check the pipeline toggles themselves.
 

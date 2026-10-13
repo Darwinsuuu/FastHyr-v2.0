@@ -7,6 +7,7 @@ their own rows.
 """
 
 import uuid
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -181,6 +182,40 @@ class ApplicationRepository(WorkspaceRepository[Application]):
             full_name=row[3],
             job_title=row[4] or "",
         )
+
+    async def get_scoped(
+        self,
+        application_id: uuid.UUID,
+        *,
+        department_ids: Collection[uuid.UUID] | None,
+        lock: bool = False,
+    ) -> Application | None:
+        """The application for a TA action (ASMT-007): None when its pipeline is outside
+        `department_ids` (None: every department) or the candidate's data was deleted. `lock`
+        takes the row lock and re-reads it as it is now."""
+        statement = (
+            self._scoped()
+            .join(
+                Pipeline,
+                (Pipeline.workspace_id == Application.workspace_id)
+                & (Pipeline.id == Application.pipeline_id),
+            )
+            .join(
+                Candidate,
+                (Candidate.workspace_id == Application.workspace_id)
+                & (Candidate.id == Application.candidate_id),
+            )
+            .where(Application.id == application_id, Candidate.deleted_at.is_(None))
+        )
+        if department_ids is not None:
+            # No department is Admins only (null is never in the list).
+            statement = statement.where(Pipeline.department_id.in_(list(department_ids)))
+        if lock:
+            statement = statement.with_for_update(of=Application).execution_options(
+                populate_existing=True
+            )
+        row: Application | None = await self.session.scalar(statement)
+        return row
 
     async def set_stage(self, application_id: uuid.UUID, stage: str, now: datetime) -> str | None:
         """Moves the application to `stage`; returns the stage it was in (None if not found)."""

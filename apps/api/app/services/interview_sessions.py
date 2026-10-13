@@ -82,7 +82,7 @@ COMPLETING = frozenset({"candidate_ended", "wrap_up", "time_cap"})
 
 
 @dataclass
-class _Ended:
+class Ended:
     """Calls to hang up once the transaction that ended their attempts has committed."""
 
     call_ids: list[str]
@@ -117,7 +117,7 @@ async def start(
     attempts = InterviewAttemptRepository(session, workspace_id)
     interview = await attempts.lock_interview(row.interview.id)
     history = await attempts.of_interview(interview.id)
-    ended = _Ended([])
+    ended = Ended([])
     for attempt in history:
         if attempt.ended_at is None:
             reason = "disconnect" if attempt.connected_at else "error"
@@ -297,7 +297,7 @@ async def heartbeat(
             interview.drop_reason = None
     attempt.last_seen_at = now
     if now >= deadline(attempt):
-        ended = _Ended([])
+        ended = Ended([])
         await end_attempt(session, interview, attempt, "time_cap", now, ended)
         await session.commit()
         await hang_up(realtime, ended)
@@ -340,7 +340,7 @@ async def complete(
         and interview_links.resolve(row, candidate, now) not in interview_links.OPEN_STATES
     ):
         raise InterviewNotOpenError()
-    ended = _Ended([])
+    ended = Ended([])
     for attempt in history:
         if attempt.ended_at is None:
             await end_attempt(session, interview, attempt, "candidate_ended", now, ended)
@@ -385,7 +385,7 @@ async def end_attempt(
     attempt: InterviewAttempt,
     reason: str,
     now: datetime,
-    ended: _Ended | None = None,
+    ended: Ended | None = None,
 ) -> bool:
     """Ends an attempt (the caller holds the interview's lock and commits). Returns False if it
     had already ended. The call id goes to `ended` to be hung up after the commit."""
@@ -404,7 +404,20 @@ async def end_attempt(
     return True
 
 
-async def hang_up(realtime: RealtimeProvider, ended: _Ended) -> None:
+async def end_running(
+    session: AsyncSession, interview: Interview, reason: str, now: datetime
+) -> Ended:
+    """Ends the interview's running attempts (the caller holds the interview's lock and commits,
+    then calls `hang_up()` with the result), e.g. when the team rejects the candidate mid-call."""
+    ended = Ended([])
+    for attempt in await InterviewAttemptRepository(session, interview.workspace_id).of_interview(
+        interview.id
+    ):
+        await end_attempt(session, interview, attempt, reason, now, ended)
+    return ended
+
+
+async def hang_up(realtime: RealtimeProvider, ended: Ended) -> None:
     """Best effort: a call that can't be hung up now is ended by OpenAI when the browser leaves,
     and the watchdog has already closed its attempt."""
     for call_id in ended.call_ids:
@@ -444,7 +457,7 @@ async def end_if_overdue(
     if reason is None:
         await session.rollback()
         return None
-    ended = _Ended([])
+    ended = Ended([])
     await end_attempt(session, interview, attempt, reason, now, ended)
     await session.commit()
     await hang_up(realtime, ended)

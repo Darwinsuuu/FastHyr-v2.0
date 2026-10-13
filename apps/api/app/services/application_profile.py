@@ -34,7 +34,7 @@ from app.repositories.application_profile import (
     ProfileRow,
 )
 from app.repositories.company_profiles import workspace_timezone
-from app.repositories.integrity import reviewer_names
+from app.repositories.integrity import member_names_by_member, reviewer_names
 from app.repositories.pipeline_candidates import FLAGGABLE_STAGES
 from app.schemas.application_profile import (
     AnswerStats,
@@ -161,7 +161,7 @@ async def profile(
             )
             for item in history
         ],
-        journey=journey(row, screen, interview, assessment),
+        journey=journey(row, screen, interview, assessment, await _deciders(session, application)),
     )
 
 
@@ -450,8 +450,11 @@ def journey(
     screen: ResumeAssessment | None,
     interview: Interview | None,
     assessment: Assessment | None,
+    deciders: dict[uuid.UUID, str] | None = None,
 ) -> list[JourneyStep]:
-    """What happened to the application, in order."""
+    """What happened to the application, in order; `deciders` names who advanced or
+    rejected it."""
+    deciders = deciders or {}
     application = row.application
     steps = [JourneyStep(kind="applied", at=application.applied_at)]
     if screen is not None:
@@ -473,10 +476,30 @@ def journey(
             )
         )
     if application.stage == "advanced" and application.advanced_at:
-        steps.append(JourneyStep(kind="advanced", at=application.advanced_at))
+        steps.append(
+            JourneyStep(
+                kind="advanced",
+                at=application.advanced_at,
+                by=deciders.get(application.advanced_by) if application.advanced_by else None,
+                note=application.advanced_note,
+            )
+        )
     if application.stage == "rejected" and application.rejected_at:
-        steps.append(JourneyStep(kind="rejected", at=application.rejected_at))
+        steps.append(
+            JourneyStep(
+                kind="rejected",
+                at=application.rejected_at,
+                by=deciders.get(application.rejected_by) if application.rejected_by else None,
+                note=application.rejected_reason,
+            )
+        )
     return steps
+
+
+async def _deciders(session: AsyncSession, application: Application) -> dict[uuid.UUID, str]:
+    """Who advanced or rejected the application (ASMT-007)."""
+    ids = {application.advanced_by, application.rejected_by}
+    return await member_names_by_member(session, {id_ for id_ in ids if id_ is not None})
 
 
 # --- Recording ------------------------------------------------------------------------------

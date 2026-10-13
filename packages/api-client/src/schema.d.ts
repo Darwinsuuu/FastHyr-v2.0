@@ -639,6 +639,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/applications/{application_id}/advance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Advance Application
+         * @description "Advance to next round" (ADR-017): a Ready for review candidate moves to Advanced, with an
+         *     optional note for the team, and gets the "Moving to the next stage" email unless
+         *     `send_email` is false. Waiting automatic emails are cancelled. `409 flags_to_review` while
+         *     integrity flags are open; `409 decision_not_allowed` from any other stage (Advanced and
+         *     Rejected are final).
+         */
+        post: operations["advance_application_v1_applications__application_id__advance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/applications/{application_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject Application
+         * @description "Reject candidate" (FR-PIPE-13): from Invited, Interview in progress or Ready for review
+         *     (or an unreadable résumé), with a reason only the team sees. A running interview ends. The
+         *     rejection email goes out now unless `send_email` is false: about the interview after a
+         *     finished one, otherwise about the résumé, with a "Request a human review" link. Waiting
+         *     automatic emails are cancelled. `409 decision_not_allowed` from any other stage.
+         */
+        post: operations["reject_application_v1_applications__application_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/integrity-flags/{flag_id}": {
         parameters: {
             query?: never;
@@ -1170,6 +1218,20 @@ export interface components {
             /** Token */
             token?: string | null;
         };
+        /**
+         * AdvanceRequest
+         * @description "Advance to next round": an optional note for the team, and whether the candidate gets
+         *     the workspace's "Moving to the next stage" email (ticked by default).
+         */
+        AdvanceRequest: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Send Email
+             * @default true
+             */
+            send_email: boolean;
+        };
         /** AnswerStats */
         AnswerStats: {
             /** Avg Answer Ms */
@@ -1197,6 +1259,21 @@ export interface components {
             candidate_questions: number;
             /** Talk Time Pct */
             talk_time_pct: number;
+        };
+        /** ApplicationDecision */
+        ApplicationDecision: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "advanced" | "rejected";
+            /** Emailed */
+            emailed: boolean;
         };
         /** ApplicationProfile */
         ApplicationProfile: {
@@ -2053,6 +2130,10 @@ export interface components {
              * Format: date-time
              */
             at: string;
+            /** By */
+            by?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /** LastWorkspaceRequest */
         LastWorkspaceRequest: {
@@ -3204,6 +3285,20 @@ export interface components {
         ReinviteResult: {
             /** Reinvited */
             reinvited: number;
+        };
+        /**
+         * RejectRequest
+         * @description "Reject candidate": the reason (only the team sees it) and whether the candidate gets the
+         *     rejection email (ticked by default).
+         */
+        RejectRequest: {
+            /** Reason */
+            reason: string;
+            /**
+             * Send Email
+             * @default true
+             */
+            send_email: boolean;
         };
         /** Repeats */
         Repeats: {
@@ -5867,6 +5962,162 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReinviteResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    advance_application_v1_applications__application_id__advance_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdvanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationDecision"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    reject_application_v1_applications__application_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationDecision"];
                 };
             };
             /** @description Unauthorized */

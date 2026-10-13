@@ -242,6 +242,9 @@ JourneyKind = Literal[
 class JourneyStep(BaseModel):
     kind: JourneyKind
     at: datetime
+    # Advanced and rejected (ASMT-007): who decided, and the note or reason (the team's only).
+    by: str | None = None
+    note: str | None = None
 
 
 class ApplicationProfile(BaseModel):

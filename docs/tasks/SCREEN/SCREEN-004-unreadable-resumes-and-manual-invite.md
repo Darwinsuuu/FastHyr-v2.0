@@ -32,7 +32,7 @@ TA users can handle résumés FastHyr couldn't read instead of candidates being 
 - [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
-- —
+- `POST /v1/applications/{id}/reject` (ASMT-007) already accepts `processing_resume` with `resume_status = unreadable`; add `reject` to the row menu (`candidateMenu()` in `lib/pipelines/candidates.ts`, `profileActions()` in `lib/candidates/profile.ts`) once the list exposes the unreadable state.
 
 ## Test plan
 _(Important functional tests only — write them after the feature works; see [`process/TESTING_STRATEGY.md`](../../process/TESTING_STRATEGY.md).)_

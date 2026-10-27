@@ -364,6 +364,20 @@ export function applyLink(
   return url.toString();
 }
 
+/** Every source's apply link, for `ShareTiles` where the pipeline was just published. */
+export function applyLinks(
+  siteUrl: string,
+  workspaceSlug: string,
+  pipelineSlug: string,
+): Record<ShareSource, string> {
+  return Object.fromEntries(
+    SHARE_SOURCES.map((source) => [
+      source,
+      applyLink(siteUrl, workspaceSlug, pipelineSlug, source),
+    ]),
+  ) as Record<ShareSource, string>;
+}
+
 /** Drafts and scheduled pipelines (until they open) can still be edited (WORKFLOW.md §2). */
 export function isEditable(pipeline: Pick<Pipeline, "status">): boolean {
   return pipeline.status === "draft" || pipeline.status === "scheduled";

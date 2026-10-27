@@ -334,6 +334,27 @@ export interface paths {
         patch: operations["update_pipeline_v1_pipelines__pipeline_id__patch"];
         trace?: never;
     };
+    "/v1/pipelines/{pipeline_id}/share-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pipeline Share Links
+         * @description The apply link tagged for each job board, careers page and "Other" (FR-PIPE-10), for the
+         *     share modal. Drafts and cancelled pipelines have no apply page: `409 no_apply_link`.
+         */
+        get: operations["pipeline_share_links_v1_pipelines__pipeline_id__share_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pipelines/{pipeline_id}/dashboard": {
         parameters: {
             query?: never;
@@ -3709,6 +3730,28 @@ export interface components {
             /** Count */
             count: number;
         };
+        /** ShareLink */
+        ShareLink: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "linkedin" | "jobstreet" | "indeed" | "kalibrr" | "glassdoor" | "facebook" | "careers" | "other";
+            /** Url */
+            url: string;
+        };
+        /**
+         * ShareLinks
+         * @description `GET /pipelines/{id}/share-links`: the apply link tagged for each source (PIPE-006).
+         */
+        ShareLinks: {
+            /** Workspace Slug */
+            workspace_slug: string;
+            /** Pipeline Slug */
+            pipeline_slug: string;
+            /** Links */
+            links: components["schemas"]["ShareLink"][];
+        };
         /** Signal */
         Signal: {
             /** Name */
@@ -5209,6 +5252,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Pipeline"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pipeline_share_links_v1_pipelines__pipeline_id__share_links_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareLinks"];
                 };
             };
             /** @description Unauthorized */

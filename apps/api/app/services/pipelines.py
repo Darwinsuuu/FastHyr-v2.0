@@ -19,6 +19,7 @@ using a credit or another action on the same pipeline.
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,6 +27,7 @@ from app.core.config import Settings
 from app.core.context import RequestContext
 from app.core.errors import (
     InvalidTransitionError,
+    NoApplyLinkError,
     PipelineIncompleteError,
     PipelineLockedError,
     UnknownDepartmentError,
@@ -37,6 +39,7 @@ from app.models import Pipeline as PipelineRow
 from app.repositories.audit import AuditRepository
 from app.repositories.company_profiles import workspace_timezone
 from app.repositories.pipelines import (
+    HIDDEN_STATUSES,
     PipelineDetailRow,
     PipelineListRow,
     PipelineRepository,
@@ -46,6 +49,7 @@ from app.repositories.pipelines import (
     out_of_credit_pipeline_ids,
 )
 from app.schemas.pipelines import (
+    SHARE_SOURCES,
     ClosedPipeline,
     Pipeline,
     PipelineDetail,
@@ -56,6 +60,8 @@ from app.schemas.pipelines import (
     PipelineSetup,
     PipelineTab,
     PipelineTabCounts,
+    ShareLink,
+    ShareLinks,
 )
 from app.services import candidate_emails, credits, emails
 
@@ -248,6 +254,25 @@ async def get_pipeline(
             "department": _department(row),
             "owner": _owner(row),
         }
+    )
+
+
+async def share_links(
+    session: AsyncSession, ctx: RequestContext, pipeline_id: uuid.UUID, settings: Settings
+) -> ShareLinks:
+    """The apply link tagged for each place the team posts the job (FR-PIPE-10):
+    `{SITE_URL}/apply/{workspace-slug}/{pipeline-slug}?source={id}`. Scheduled pipelines share
+    too (the page says when it opens); drafts and cancelled ones have no apply page."""
+    repo = _repo(session, ctx)
+    pipeline = await repo.get(pipeline_id)
+    if pipeline.status in HIDDEN_STATUSES or not pipeline.slug:
+        raise NoApplyLinkError()
+    workspace_slug = await repo.workspace_slug()
+    base = f"{settings.site_url.rstrip('/')}/apply/{quote(workspace_slug)}/{quote(pipeline.slug)}"
+    return ShareLinks(
+        workspace_slug=workspace_slug,
+        pipeline_slug=pipeline.slug,
+        links=[ShareLink(source=source, url=f"{base}?source={source}") for source in SHARE_SOURCES],
     )
 
 

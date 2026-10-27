@@ -1,6 +1,6 @@
-"""Pipelines (API.md "Pipelines"): the list (PIPE-004), draft setup and lifecycle actions. Share
-links (PIPE-006) come with their task. Recruiters and Hiring managers reach only
-pipelines in their departments; anything else is 404."""
+"""Pipelines (API.md "Pipelines"): the list (PIPE-004), draft setup, lifecycle actions and share
+links (PIPE-006). Recruiters and Hiring managers reach only pipelines in their departments;
+anything else is 404."""
 
 import uuid
 from typing import Annotated, Any
@@ -22,6 +22,7 @@ from app.schemas.pipelines import (
     PipelineSetup,
     PipelineTab,
     PublishRequest,
+    ShareLinks,
     TopUpRequest,
 )
 from app.schemas.reinvites import ReinviteAllRequest, ReinviteResult
@@ -69,6 +70,15 @@ async def create_pipeline(body: PipelineSetup, ctx: Editor, session: Session) ->
 async def get_pipeline(pipeline_id: uuid.UUID, ctx: Viewer, session: Session) -> PipelineDetail:
     """The pipeline with its department and owner (the wizard and the details header)."""
     return await pipeline_service.get_pipeline(session, ctx, pipeline_id)
+
+
+@router.get("/{pipeline_id}/share-links", response_model=ShareLinks, responses=CONFLICT)
+async def pipeline_share_links(
+    pipeline_id: uuid.UUID, ctx: Viewer, session: Session, settings: SettingsDep
+) -> ShareLinks:
+    """The apply link tagged for each job board, careers page and "Other" (FR-PIPE-10), for the
+    share modal. Drafts and cancelled pipelines have no apply page: `409 no_apply_link`."""
+    return await pipeline_service.share_links(session, ctx, pipeline_id, settings)
 
 
 @router.get("/{pipeline_id}/dashboard", response_model=PipelineDashboard)

@@ -36,6 +36,7 @@ import {
   tabHref,
 } from "@/lib/pipelines/detail";
 import { actionHref, DESTRUCTIVE_ACTIONS, PENDING_ACTIONS } from "@/lib/pipelines/list";
+import { hasApplyLink } from "@/lib/pipelines/share";
 
 /** Pipeline details (frame PipelineView, FR-PIPE-11): the header and the tabs. The Dashboard
  * tab is PIPE-007 and Candidates PIPE-008; Ask Ava (AVA-002) and Setup (PIPE-009) fill in later. */
@@ -100,6 +101,7 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
         <Header
           pipeline={pipeline}
           timeZone={dashboard.data?.timezone}
+          onShare={(returnFocusTo) => actions.share(pipeline, returnFocusTo)}
           actions={
             dashboard.data && (
               <ActionsMenu
@@ -110,6 +112,7 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
                 }}
                 archived={Boolean(pipeline.archived_at)}
                 onAction={actions.run}
+                onShare={actions.share}
               />
             )
           }
@@ -164,12 +167,15 @@ function BackLink() {
 function Header({
   pipeline,
   timeZone,
+  onShare,
   actions,
 }: {
   pipeline: PipelineDetail;
   timeZone?: string;
+  onShare: (returnFocusTo: RefObject<HTMLButtonElement | null>) => void;
   actions?: ReactNode;
 }) {
+  const shareButton = useRef<HTMLButtonElement>(null);
   const owner = pipeline.owner;
   const ownerName = owner?.name || owner?.email;
   const opened = timeZone ? openedLabel(pipeline, timeZone) : null;
@@ -217,15 +223,16 @@ function Header({
         </div>
       </div>
       <div className="flex items-center gap-2 self-start md:self-auto">
-        {/* The share window (8 sources, posting hints) arrives with PIPE-006. */}
-        <Button
-          variant="secondary"
-          icon={<LinkSimpleIcon aria-hidden="true" className="size-5" />}
-          disabled
-          title={t("pipelines.detail.shareSoon")}
-        >
-          {t("pipelines.detail.share")}
-        </Button>
+        {hasApplyLink(pipeline.status) && (
+          <Button
+            ref={shareButton}
+            variant="secondary"
+            icon={<LinkSimpleIcon aria-hidden="true" className="size-5" />}
+            onClick={() => onShare(shareButton)}
+          >
+            {t("pipelines.detail.share")}
+          </Button>
+        )}
         {actions}
       </div>
     </header>
@@ -237,6 +244,7 @@ function ActionsMenu({
   summary,
   archived,
   onAction,
+  onShare,
 }: {
   summary: PipelineSummary;
   archived: boolean;
@@ -245,6 +253,7 @@ function ActionsMenu({
     summary: PipelineSummary,
     returnFocusTo: RefObject<HTMLButtonElement | null>,
   ) => void;
+  onShare: (summary: PipelineSummary, returnFocusTo: RefObject<HTMLButtonElement | null>) => void;
 }) {
   const router = useRouter();
   const { workspace } = useShell();
@@ -257,10 +266,11 @@ function ActionsMenu({
     return {
       label: t(`pipelines.list.actions.${entry}`),
       destructive: DESTRUCTIVE_ACTIONS.includes(entry),
-      // Copy apply link arrives with PIPE-006 and Top up with BILL-006.
+      // Top up arrives with BILL-006.
       disabled: PENDING_ACTIONS.includes(entry),
       onSelect: () => {
         if (href) router.push(href);
+        else if (entry === "copyLink") onShare(summary, trigger);
         else if (isLifecycleAction(entry)) onAction(entry, summary, trigger);
       },
     };

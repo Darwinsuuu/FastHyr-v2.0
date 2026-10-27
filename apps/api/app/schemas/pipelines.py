@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self, get_args
 
 from pydantic import (
     AfterValidator,
@@ -264,3 +264,24 @@ class ClosedPipeline(Pipeline):
     """A pipeline just closed by hand, with how many candidates got the "Role closed" email."""
 
     notified: int
+
+
+# Where a TA team posts the job (FR-PIPE-10), in tile order; GLOSSARY.md source tags without
+# `direct`, which is a link with no tag.
+ShareSource = Literal[
+    "linkedin", "jobstreet", "indeed", "kalibrr", "glassdoor", "facebook", "careers", "other"
+]
+SHARE_SOURCES: tuple[ShareSource, ...] = get_args(ShareSource)
+
+
+class ShareLink(BaseModel):
+    source: ShareSource
+    url: str
+
+
+class ShareLinks(BaseModel):
+    """`GET /pipelines/{id}/share-links`: the apply link tagged for each source (PIPE-006)."""
+
+    workspace_slug: str
+    pipeline_slug: str
+    links: list[ShareLink]

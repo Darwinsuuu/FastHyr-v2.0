@@ -224,7 +224,9 @@ export function PipelinesPage() {
             columns={columns}
             rowKey={(item) => item.id}
             card={(item) => <PipelineCard item={item} now={now} timeZone={timeZone} />}
-            rowMenu={(item) => <RowMenu item={item} onAction={actions.run} />}
+            rowMenu={(item) => (
+              <RowMenu item={item} onAction={actions.run} onShare={actions.share} />
+            )}
             empty={empty}
             footer={
               data.total > 0 && (
@@ -473,6 +475,7 @@ function PipelineCard({
 function RowMenu({
   item,
   onAction,
+  onShare,
 }: {
   item: PipelineListItem;
   onAction: (
@@ -480,6 +483,7 @@ function RowMenu({
     item: PipelineListItem,
     returnFocusTo: RefObject<HTMLButtonElement | null>,
   ) => void;
+  onShare: (item: PipelineListItem, returnFocusTo: RefObject<HTMLButtonElement | null>) => void;
 }) {
   const router = useRouter();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -493,11 +497,11 @@ function RowMenu({
     return {
       label: t(`pipelines.list.actions.${entry}`),
       destructive: DESTRUCTIVE_ACTIONS.includes(entry),
-      // Copy apply link arrives with PIPE-006 and Top up with BILL-006; until then they show
-      // but can't be picked.
+      // Top up arrives with BILL-006; until then it shows but can't be picked.
       disabled: PENDING_ACTIONS.includes(entry),
       onSelect: () => {
         if (href) router.push(href);
+        else if (entry === "copyLink") onShare(item, trigger);
         else if (isLifecycleAction(entry)) onAction(entry, item, trigger);
       },
     };

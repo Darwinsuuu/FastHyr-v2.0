@@ -4,9 +4,8 @@ import { CheckIcon, GlobeIcon, LinkIcon } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
-import { env } from "@/lib/env";
 import { t } from "@/lib/i18n";
-import { applyLink, SHARE_SOURCES, type ShareSource } from "@/lib/pipelines/wizard";
+import { SHARE_SOURCES, type ShareSource } from "@/lib/pipelines/wizard";
 
 const COPIED_MS = 2500;
 
@@ -30,16 +29,15 @@ const MARKS: Record<ShareSource, { mark: ReactNode; className: string }> = {
 
 /**
  * One tile per place a TA team posts the job (FR-PIPE-10). A click copies the apply link tagged
- * with that source and shows the board's posting hint. Used by the wizard's done state; PIPE-006
- * puts it in the share modal.
+ * with that source and shows the board's posting hint. Used by the wizard's done state and the
+ * share modal (`ShareDialog`, PIPE-006).
  */
 export function ShareTiles({
-  workspaceSlug,
-  pipelineSlug,
+  links,
   className,
 }: {
-  workspaceSlug: string;
-  pipelineSlug: string;
+  /** The apply link tagged for each source (`applyLinks()`, or the API's share links). */
+  links: Record<ShareSource, string>;
   className?: string;
 }) {
   const [copied, setCopied] = useState<ShareSource | null>(null);
@@ -49,10 +47,9 @@ export function ShareTiles({
   useEffect(() => () => clearTimeout(timer.current), []);
 
   async function copy(source: ShareSource) {
-    const url = applyLink(env.siteUrl, workspaceSlug, pipelineSlug, source);
     let failed = false;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(links[source]);
     } catch {
       failed = true;
     }
@@ -64,9 +61,10 @@ export function ShareTiles({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
+      {/* Room under the second row for its "copied" bubble, so it never covers the hint. */}
       <ul
         aria-label={t("pipelines.share.label")}
-        className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4 sm:gap-y-12"
+        className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4 sm:gap-y-12 sm:pb-11"
       >
         {SHARE_SOURCES.map((source) => {
           const label = t(`pipelines.share.sources.${source}.label`);
@@ -125,7 +123,7 @@ export function ShareTiles({
           <div className="flex flex-col gap-1.5">
             <p className="text-ink-muted">{t("pipelines.share.copyFailed")}</p>
             <code className="rounded-sm bg-surface-sunk px-2 py-1.5 font-mono text-[13px] break-all text-ink select-all">
-              {applyLink(env.siteUrl, workspaceSlug, pipelineSlug, last.source)}
+              {links[last.source]}
             </code>
           </div>
         )}

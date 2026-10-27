@@ -12,7 +12,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 |---|---|---|
 | M0 Foundation | 14 | 14 |
 | M1 Access | 12 | 11 |
-| M2 Pipelines | 7 | 5 |
+| M2 Pipelines | 7 | 6 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
 | M5 Review | 18 | 6 |
@@ -65,7 +65,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [PIPE-003](PIPE/PIPE-003-new-pipeline-wizard-scoring-schedule-credits-revie.md) | New pipeline wizard — Scoring, Schedule & credits, Review, Publish | L | PIPE-002 | Done | #29 |
 | [PIPE-004](PIPE/PIPE-004-pipelines-list.md) | Pipelines list | M | PIPE-001, DASH-001 | Done | #51 |
 | [PIPE-005](PIPE/PIPE-005-pipeline-lifecycle-actions.md) | Pipeline lifecycle actions | M | PIPE-004, FND-010 | Done | #59 |
-| [PIPE-006](PIPE/PIPE-006-share-apply-link.md) | Share apply link | S | PIPE-001 | Ready | |
+| [PIPE-006](PIPE/PIPE-006-share-apply-link.md) | Share apply link | S | PIPE-001 | Done | #60 |
 | [BILL-001](BILL/BILL-001-stripe-foundation-and-webhooks.md) | Stripe foundation and webhooks | M | FND-004, FND-008 | Ready | |
 
 ## M3 Intake

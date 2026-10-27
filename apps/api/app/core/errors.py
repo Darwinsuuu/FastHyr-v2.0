@@ -293,6 +293,14 @@ class PipelineLockedError(AppError):
     title = "This pipeline's setup is locked"
 
 
+class NoApplyLinkError(AppError):
+    """Drafts and cancelled pipelines have no public apply page, so nothing to share (PIPE-006)."""
+
+    status = 409
+    code = "no_apply_link"
+    title = "This pipeline has no apply link"
+
+
 class PipelineIncompleteError(AppError):
     """Publishing a draft whose setup is missing something; `errors` names the fields."""
 

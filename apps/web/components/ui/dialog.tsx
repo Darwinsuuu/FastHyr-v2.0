@@ -25,6 +25,8 @@ export interface DialogProps {
   dismissible?: boolean;
   /** Shown before the title, e.g. a 64 px avatar in the user profile. */
   leading?: ReactNode;
+  /** A small uppercase label above the title, e.g. "Share apply link". */
+  eyebrow?: ReactNode;
   /**
    * Where focus goes on close, for dialogs opened from a menu item (the item is gone by then).
    * Without it, focus returns to whatever was focused when the dialog opened.
@@ -48,6 +50,7 @@ export function Dialog({
   size = "md",
   dismissible = true,
   leading,
+  eyebrow,
   returnFocusTo,
 }: DialogProps) {
   return (
@@ -86,6 +89,7 @@ export function Dialog({
           <div className="flex items-start gap-3 px-4 pt-[max(16px,env(safe-area-inset-top))] md:px-7 md:pt-7">
             {leading}
             <div className={cn("min-w-0 flex-1", leading ? "self-center" : "pt-1.5")}>
+              {eyebrow && <p className="type-label mb-1.5 text-ink-muted">{eyebrow}</p>}
               <RadixDialog.Title className="text-[22px] leading-7 font-[650] tracking-[-0.01em]">
                 {title}
               </RadixDialog.Title>

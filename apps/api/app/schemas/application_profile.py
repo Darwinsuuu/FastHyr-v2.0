@@ -236,6 +236,9 @@ JourneyKind = Literal[
     "did_not_pass",
     "advanced",
     "rejected",
+    "review_requested",
+    "review_upheld",
+    "review_overridden",
 ]
 
 
@@ -247,6 +250,20 @@ class JourneyStep(BaseModel):
     note: str | None = None
 
 
+class ProfileReviewRequest(BaseModel):
+    """The candidate's open request for a person to review a rejection (ASMT-008, A-03)."""
+
+    id: uuid.UUID
+    decision_type: Literal["resume", "interview"]
+    # What the candidate wrote, if anything (only the team sees it).
+    message: str | None
+    created_at: datetime
+    # A person's own rejection (ASMT-007) rather than an automated one.
+    by_person: bool
+    # Whether the decision still stands, so it can be overridden as well as upheld.
+    can_override: bool
+
+
 class ApplicationProfile(BaseModel):
     id: uuid.UUID
     stage: ApplicationStage
@@ -254,6 +271,8 @@ class ApplicationProfile(BaseModel):
     flagged: bool
     open_flags: int
     review_requested: bool
+    # The open review request, when there is one.
+    review_request: ProfileReviewRequest | None
     fit: Fit | None
     source: SourceTag
     applied_at: datetime

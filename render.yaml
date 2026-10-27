@@ -45,6 +45,8 @@ services:
         value: https://dev.fasthyr.com,https://app.dev.fasthyr.com
       - key: SITE_URL
         value: https://dev.fasthyr.com
+      - key: APP_URL
+        value: https://app.dev.fasthyr.com
       - key: API_URL
         value: https://api.dev.fasthyr.com
       - key: SUPABASE_URL
@@ -94,6 +96,8 @@ services:
         value: development
       - key: SITE_URL
         value: https://dev.fasthyr.com
+      - key: APP_URL
+        value: https://app.dev.fasthyr.com
       - key: API_URL
         value: https://api.dev.fasthyr.com
       # Shared with the API: entered once on the API service.
@@ -155,6 +159,8 @@ services:
         value: https://qa.fasthyr.com,https://app.qa.fasthyr.com
       - key: SITE_URL
         value: https://qa.fasthyr.com
+      - key: APP_URL
+        value: https://app.qa.fasthyr.com
       - key: API_URL
         value: https://api.qa.fasthyr.com
       - key: SUPABASE_URL
@@ -204,6 +210,8 @@ services:
         value: qa
       - key: SITE_URL
         value: https://qa.fasthyr.com
+      - key: APP_URL
+        value: https://app.qa.fasthyr.com
       - key: API_URL
         value: https://api.qa.fasthyr.com
       - key: SUPABASE_URL

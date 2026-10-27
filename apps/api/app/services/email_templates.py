@@ -3,7 +3,7 @@
 Every workspace has one template per key, starting from FastHyr's defaults
 (`app/emails/defaults.py`). New workspaces get them when they are created; workspaces created
 before MSG-001 get them the first time their templates are read here, so callers always find
-all nine. A save checks the parameters, cleans the HTML with the email allow-list and records
+all ten. A save checks the parameters, cleans the HTML with the email allow-list and records
 the new wording in the change history. Rejection templates never need `[Review.link]` in the
 text: `app/emails/candidate.py` adds the review line when the email is rendered.
 """
@@ -36,7 +36,7 @@ async def ensure_defaults(session: AsyncSession, workspace_id: uuid.UUID) -> Non
 
 
 async def list_templates(session: AsyncSession, workspace_id: uuid.UUID) -> list[EmailTemplate]:
-    """All nine templates in the order of NOTIFICATIONS.md §1."""
+    """All ten templates in the order of NOTIFICATIONS.md §1."""
     await ensure_defaults(session, workspace_id)
     rows = {row.key: row for row in await EmailTemplateRepository(session, workspace_id).list_all()}
     return [rows[key.value] for key in TemplateKey]

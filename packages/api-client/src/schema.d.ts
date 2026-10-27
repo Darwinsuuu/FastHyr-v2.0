@@ -709,6 +709,49 @@ export interface paths {
         patch: operations["resolve_flag_v1_integrity_flags__flag_id__patch"];
         trace?: never;
     };
+    "/v1/review-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Review Requests
+         * @description Review requests in the caller's departments, oldest first (up to 100), and the total.
+         */
+        get: operations["list_review_requests_v1_review_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/review-requests/{request_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve Review Request
+         * @description Upholds the decision (no email) or overrides it: a résumé that didn't pass goes to
+         *     Invited and gets the interview invitation, an interview below the pass mark goes to Ready
+         *     for review. The note is required and only the team sees it. A person's own rejection can
+         *     only be upheld (`409 override_not_allowed`); `409 review_request_resolved` once resolved.
+         */
+        post: operations["resolve_review_request_v1_review_requests__request_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/candidates/dashboard": {
         parameters: {
             query?: never;
@@ -804,6 +847,34 @@ export interface paths {
         get: operations["get_notice_version_v1_public_notices__kind___version__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/review-requests/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review Link
+         * @description The link's state (`open`, `requested`, `expired`, `unavailable`), the company and the job
+         *     title. Never a stage, score or reason.
+         */
+        get: operations["get_review_link_v1_public_review_requests__token__get"];
+        put?: never;
+        /**
+         * Request Review
+         * @description Asks a person to review the decision, with an optional message (1,000 characters). The
+         *     pipeline's owner is emailed and the candidate gets the "Human review received" email. A
+         *     repeat returns `requested`; `409 review_link_closed` once the link expired or the decision
+         *     no longer stands.
+         */
+        post: operations["request_review_v1_public_review_requests__token__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1293,6 +1364,7 @@ export interface components {
             open_flags: number;
             /** Review Requested */
             review_requested: boolean;
+            review_request: components["schemas"]["ProfileReviewRequest"] | null;
             /** Fit */
             fit: ("strong" | "good") | null;
             /**
@@ -1323,7 +1395,7 @@ export interface components {
         };
         /**
          * Attention
-         * @description FR-DASH-03, without human-review requests (ASMT-008 adds them).
+         * @description FR-DASH-03.
          */
         Attention: {
             ready_for_review: components["schemas"]["ReviewQueue"];
@@ -1334,6 +1406,8 @@ export interface components {
             running_low: components["schemas"]["CreditAttention"][];
             plan_credits_expiring: components["schemas"]["PlanExpiry"] | null;
             invites_expiring: components["schemas"]["InviteExpiry"] | null;
+            /** Review Requests */
+            review_requests?: number | null;
         };
         /**
          * BrandingKind
@@ -2124,7 +2198,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "applied" | "resume_matched" | "resume_not_matched" | "invited" | "interview_finished" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected";
+            kind: "applied" | "resume_matched" | "resume_not_matched" | "invited" | "interview_finished" | "ready_for_review" | "did_not_pass" | "advanced" | "rejected" | "review_requested" | "review_upheld" | "review_overridden";
             /**
              * At
              * Format: date-time
@@ -3111,6 +3185,33 @@ export interface components {
             /** Screened At */
             screened_at: string | null;
         };
+        /**
+         * ProfileReviewRequest
+         * @description The candidate's open request for a person to review a rejection (ASMT-008, A-03).
+         */
+        ProfileReviewRequest: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Decision Type
+             * @enum {string}
+             */
+            decision_type: "resume" | "interview";
+            /** Message */
+            message: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** By Person */
+            by_person: boolean;
+            /** Can Override */
+            can_override: boolean;
+        };
         /** PublicCompany */
         PublicCompany: {
             /** Name */
@@ -3329,10 +3430,45 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /**
+         * ResolveReviewRequest
+         * @description Uphold or override, with a note only the team sees.
+         */
+        ResolveReviewRequest: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "uphold" | "override";
+            /** Note */
+            note: string;
+        };
         /** ResolvedFlag */
         ResolvedFlag: {
             flag: components["schemas"]["IntegrityFlag"];
             application: components["schemas"]["FlaggedApplication"];
+        };
+        /** ResolvedReviewRequest */
+        ResolvedReviewRequest: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "upheld" | "overridden";
+            /**
+             * Application Id
+             * Format: uuid
+             */
+            application_id: string;
+            /** Stage */
+            stage: string;
+            /** Emailed */
+            emailed: boolean;
         };
         /**
          * ResumeUpload
@@ -3357,6 +3493,20 @@ export interface components {
              */
             max_bytes: number;
         };
+        /**
+         * ReviewLink
+         * @description What the review request page shows: never a score, stage or reason.
+         */
+        ReviewLink: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "requested" | "expired" | "unavailable";
+            company: components["schemas"]["InterviewCompany"];
+            /** Job Title */
+            job_title: string;
+        };
         /** ReviewQueue */
         ReviewQueue: {
             /** Count */
@@ -3365,6 +3515,62 @@ export interface components {
             pipelines: number;
             /** Oldest Waiting Since */
             oldest_waiting_since: string | null;
+        };
+        /** ReviewRequestCreate */
+        ReviewRequestCreate: {
+            /** Message */
+            message?: string | null;
+        };
+        /** ReviewRequestItem */
+        ReviewRequestItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Application Id
+             * Format: uuid
+             */
+            application_id: string;
+            /**
+             * Candidate Id
+             * Format: uuid
+             */
+            candidate_id: string;
+            /** Candidate Name */
+            candidate_name: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Title */
+            pipeline_title: string;
+            /**
+             * Decision Type
+             * @enum {string}
+             */
+            decision_type: "resume" | "interview";
+            /** By Person */
+            by_person: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "upheld" | "overridden";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ReviewRequestList */
+        ReviewRequestList: {
+            /** Items */
+            items: components["schemas"]["ReviewRequestItem"][];
+            /** Total */
+            total: number;
         };
         /**
          * Role
@@ -6240,6 +6446,148 @@ export interface operations {
             };
         };
     };
+    list_review_requests_v1_review_requests_get: {
+        parameters: {
+            query?: {
+                status?: "open" | "upheld" | "overridden" | "all";
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewRequestList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    resolve_review_request_v1_review_requests__request_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+            };
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolvedReviewRequest"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     candidates_dashboard_v1_candidates_dashboard_get: {
         parameters: {
             query?: never;
@@ -6530,6 +6878,144 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_review_link_v1_public_review_requests__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewLink"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    request_review_v1_public_review_requests__token__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewLink"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

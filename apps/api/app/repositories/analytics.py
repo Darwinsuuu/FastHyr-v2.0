@@ -472,6 +472,34 @@ class AnalyticsRepository:
         )
         return int(total or 0), [(name, title) for name, title in rows]
 
+    async def review_requests(self) -> int:
+        """Open human review requests (ASMT-008): applications marked Review requested in the
+        caller's pipelines whose candidate wasn't deleted."""
+        total = await self.session.scalar(
+            select(func.count())
+            .select_from(Application)
+            .join(
+                Pipeline,
+                and_(
+                    Pipeline.workspace_id == Application.workspace_id,
+                    Pipeline.id == Application.pipeline_id,
+                ),
+            )
+            .join(
+                Candidate,
+                and_(
+                    Candidate.workspace_id == Application.workspace_id,
+                    Candidate.id == Application.candidate_id,
+                ),
+            )
+            .where(
+                *self._pipeline_scope(),
+                Application.review_requested,
+                Candidate.deleted_at.is_(None),
+            )
+        )
+        return int(total or 0)
+
     async def candidate_counts(self, since_month: datetime) -> dict[str, int]:
         """The candidate pool's headline numbers: people, people who first applied (within the
         caller's reach) on or after `since_month`, people with more than one application,

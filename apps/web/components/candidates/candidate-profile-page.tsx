@@ -18,6 +18,7 @@ import { useShell } from "@/components/app-shell/shell-context";
 import { DecisionDialog } from "@/components/candidates/decision-dialogs";
 import { ProfileOverview } from "@/components/candidates/profile-overview";
 import { ProfileRecording } from "@/components/candidates/profile-recording";
+import { ReviewRequestBanner } from "@/components/candidates/review-request-banner";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, IconButton } from "@/components/ui/button";
@@ -153,11 +154,21 @@ export function CandidateProfilePage({
           label: t(`candidates.profile.tabs.${value}`),
           content:
             value === "overview" ? (
-              <ProfileOverview
-                profile={profile}
-                onSeek={(ms) => go("interview", Math.floor(ms / 1000))}
-                onResume={() => go("resume")}
-              />
+              <div className="flex flex-col gap-4 md:gap-5">
+                {/* A-03 puts résumé requests on the Résumé tab; it waits for ASMT-005. */}
+                {profile.review_request && (
+                  <ReviewRequestBanner
+                    profile={profile}
+                    request={profile.review_request}
+                    canResolve={can(workspace.role, "resolve_reviews")}
+                  />
+                )}
+                <ProfileOverview
+                  profile={profile}
+                  onSeek={(ms) => go("interview", Math.floor(ms / 1000))}
+                  onResume={() => go("resume")}
+                />
+              </div>
             ) : value === "interview" ? (
               <ProfileRecording profile={profile} seconds={seek} />
             ) : (

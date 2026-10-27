@@ -35,7 +35,7 @@ def render(
 
 def test_there_is_a_default_for_every_key_and_each_passes_its_own_checks() -> None:
     assert set(DEFAULTS) == set(TemplateKey)
-    assert len(DEFAULTS) == 9
+    assert len(DEFAULTS) == 10
     for key, default in DEFAULTS.items():
         assert validate(key, default.subject, default.body_html) == (
             default.subject,

@@ -142,4 +142,55 @@ class ReviewLink(Base):
     decision_type: Mapped[str] = mapped_column(Text)
     token_hash: Mapped[str] = mapped_column(Text, unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # When the candidate used it (ASMT-008); cleared when a new rejection gives it a new token.
+    requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = created_at_column()
+
+
+class HumanReviewRequest(Base):
+    """A candidate's request for a person to review a rejection (ADR-015, ASMT-008)."""
+
+    __tablename__ = "human_review_requests"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "application_id"],
+            ["applications.workspace_id", "applications.id"],
+            name="human_review_requests_application_fkey",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["review_link_id"],
+            ["review_links.id"],
+            name="human_review_requests_review_link_id_fkey",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["workspace_id", "resolved_by"],
+            ["workspace_members.workspace_id", "workspace_members.id"],
+            name="human_review_requests_resolved_by_fkey",
+        ),
+        Index(
+            "human_review_requests_open_key",
+            "application_id",
+            unique=True,
+            postgresql_where=text("status = 'open'::text"),
+        ),
+        Index(
+            "human_review_requests_workspace_id_status_idx",
+            "workspace_id",
+            "status",
+            "created_at",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = id_column()
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"))
+    application_id: Mapped[uuid.UUID] = mapped_column()
+    decision_type: Mapped[str] = mapped_column(Text)
+    review_link_id: Mapped[uuid.UUID] = mapped_column()
+    candidate_message: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default=text("'open'::text"))
+    resolved_by: Mapped[uuid.UUID | None] = mapped_column()
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resolution_note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = created_at_column()

@@ -25,6 +25,8 @@ from app.api.routers import (
     pipelines,
     public_notices,
     public_pipelines,
+    public_review_requests,
+    review_requests,
     webhooks_resend,
     workspaces,
 )
@@ -107,9 +109,11 @@ def create_app(
     v1.include_router(pipelines.router)
     v1.include_router(applications.router)
     v1.include_router(integrity_flags.router)
+    v1.include_router(review_requests.router)
     v1.include_router(candidates.router)
     v1.include_router(public_pipelines.router)
     v1.include_router(public_notices.router)
+    v1.include_router(public_review_requests.router)
     v1.include_router(candidate.router)
     v1.include_router(credits.router)
     v1.include_router(members.router)

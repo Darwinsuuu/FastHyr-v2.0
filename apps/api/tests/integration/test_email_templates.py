@@ -1,4 +1,4 @@
-"""MSG-001: every workspace has the nine candidate email templates, including workspaces made
+"""MSG-001: every workspace has the ten candidate email templates, including workspaces made
 before them; a save keeps the change history; one workspace never reads another's templates."""
 
 import uuid
@@ -30,7 +30,7 @@ def test_workspaces_made_before_templates_get_the_defaults_when_read(tenancy: Te
         "select key, subject, body_html, is_default from email_templates where workspace_id = $1",
         workspace_id,
     )
-    assert len(rows) == 9
+    assert len(rows) == 10
     for row in rows:
         default = DEFAULTS[TemplateKey(row["key"])]
         assert (row["subject"], row["body_html"], row["is_default"]) == (

@@ -162,6 +162,8 @@ async def _rejection_email(
         # One link per decision type: an earlier one gets the new token, so this email's works.
         existing.token_hash = token_hash
         existing.expires_at = expires_at
+        # A new decision: the candidate may ask for this one to be reviewed too (ASMT-008).
+        existing.requested_at = None
     else:
         links.add(
             ReviewLink(

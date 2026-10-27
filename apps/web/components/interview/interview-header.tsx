@@ -7,13 +7,16 @@ import type { InterviewCompany } from "@/lib/interview";
 
 /**
  * "{Company} · interviews with FastHyr" (frames DemoDeviceCheck and DemoInterview), with the
- * live interview's time remaining and status on the right (`children`).
+ * live interview's time remaining and status on the right (`children`). The review request page
+ * (S-03) passes its own `tagline`.
  */
 export function InterviewHeader({
   company,
+  tagline = t("interview.interviewsWith"),
   children,
 }: {
   company: InterviewCompany;
+  tagline?: string;
   children?: ReactNode;
 }) {
   return (
@@ -25,7 +28,7 @@ export function InterviewHeader({
             <span className="font-semibold break-words text-ink">{company.name}</span>
             <span className={children ? "max-lg:hidden" : undefined}>
               {" · "}
-              {t("interview.interviewsWith")}{" "}
+              {tagline}{" "}
               <span className="inline-flex items-center gap-1 align-bottom">
                 <TurnMark size={14} />
                 <span className="font-display font-semibold text-ink">{t("site.name")}</span>

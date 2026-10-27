@@ -61,3 +61,39 @@ def test_email(*, site_url: str, branding: Branding) -> RenderedEmail:
         banner_url=branding.banner_url,
         logo_url=branding.logo_url,
     )
+
+
+DECISION_NAMES = {"resume": "résumé screen", "interview": "interview"}
+
+
+def review_request(
+    *,
+    site_url: str,
+    profile_url: str,
+    workspace_name: str,
+    candidate_name: str,
+    job_title: str,
+    decision_type: str,
+    by_person: bool,
+) -> RenderedEmail:
+    """A candidate asked for a person to review a rejection (ASMT-008, ADR-015): to the pipeline
+    owner, with a link to the candidate's profile, where the request is resolved. The candidate's
+    message stays on the profile."""
+    decision = (
+        "your team's decision"
+        if by_person
+        else f"the automated {DECISION_NAMES.get(decision_type, 'screening')} decision"
+    )
+    return render(
+        subject=f"Review requested: {candidate_name}, {job_title}",
+        preheader=f"{candidate_name} asked for a person to look at their application again.",
+        heading="A candidate asked for a review",
+        body_html=(
+            f"<p>{escape(candidate_name)} asked for a person to review {decision} on their "
+            f"application for {escape(job_title)} in {escape(workspace_name)}.</p>"
+            "<p>Open their profile to read their message, then uphold the decision or change "
+            "it.</p>"
+        ),
+        button=Button("Open their profile", profile_url),
+        site_url=site_url,
+    )

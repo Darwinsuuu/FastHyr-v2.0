@@ -22,6 +22,7 @@ Templates (MSG-001): each workspace has one `email_templates` row per key, made 
 | `reject_interview` | Not moving forward — interview | Stage `did_not_pass`, or TA Reject after interview | `did_not_pass`: 3 business days after interview; TA reject: immediately | pipeline toggle / Reject dialog checkbox |
 | `role_closed` | Role closed *(new)* | Pipeline closed with "let candidates know" ticked | Immediately, to candidates with no final outcome email | Close dialog |
 | `review_received` | Human review received *(new)* | Candidate submits a review request | Immediately | always |
+| `review_upheld` | Review outcome *(new)* | A person upholds a review request while the decision still stands (ASMT-008) | Immediately | always |
 
 After the résumé screen (SCREEN-003, `services/post_screen.py`): a pass gets `interview_invitation` at once with `[Interview.link]` (`{SITE_URL}/interview/{token}`) and `[Interview.expiry]` (the link's last day, 11:59 PM in the workspace time zone); a fail gets `reject_resume` 2 business days after `screened_at` when the pipeline's toggle is on, with `[Review.link]` (`{SITE_URL}/review-request/{token}`, a `review_links` row valid 30 days after the send time).
 
@@ -30,6 +31,8 @@ Interview emails (INTV-007, `services/interview_lifecycle.py`): the link token i
 After scoring (ASMT-001, `services/scoring.py`): `did_not_pass` schedules `reject_interview` 3 business days after the interview completed, with `[Review.link]` (a `review_links` row with `decision_type = interview`, valid 30 days after the send time), when the pipeline's "Email candidates after their interview" (`email_post_interview`) is on; the wizard shows that toggle as "Interview results".
 
 When a TA rejects a candidate who has not finished an interview, the email uses `reject_resume`; after a finished interview it uses `reject_interview`. Advance and reject (ASMT-007, `services/decisions.py`) send their email at once, after moving the stage, so the stage change cancels only the emails that were waiting; a TA rejection carries `[Review.link]` like every rejection (a `review_links` row of the matching decision type, valid 30 days; an earlier link of that type gets the new token).
+
+Human review requests (ASMT-008, `services/review_requests.py`): the request sends `review_received` to the candidate at once (dedupe key per request) and the `review_request` system email to the team. Upholding sends `review_upheld` (the "Request sent" page promises the outcome by email; never the team's note), unless the application has moved on since; overriding a résumé decision sends `interview_invitation` (and the reminder with the pipeline's toggle) through `interview_lifecycle.issue_link()`; overriding an interview decision sends nothing until the team advances or rejects.
 
 Scheduling (MSG-003): `services/candidate_emails.schedule()` renders the workspace's template for one application (candidate first and last name are the first and last word of the name they gave; job title; company) plus the values only the caller knows (`Interview.link`, `Interview.expiry`, `Review.link`), and stores it with the application's current stage and a dedupe key (`{key}:{application}:{stage}` unless the caller gives one), so a retried job never schedules a second copy. Callers check the pipeline toggles themselves.
 
@@ -50,7 +53,7 @@ Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via Fa
 |---|---|
 | Member invite | Admin invites or resends (link `{site}/join/{token}` + code, expires in 7 days); from "FastHyr" (FND-010) |
 | Password reset / email verification | Supabase Auth via Resend SMTP (branded templates in Supabase config) |
-| Human review request to TA | Candidate requests review → pipeline owner |
+| Human review request to TA (`review_request`) | Candidate requests review → pipeline owner while still a member, else the workspace's Admins; links to the candidate's profile on `APP_URL` (ASMT-008) |
 | Pipeline paused (out of credits) / running low | Credits service → pipeline owner + Admins |
 | Payment failed | Stripe webhook → Admins |
 | Contact form | → hello@fasthyr.com |

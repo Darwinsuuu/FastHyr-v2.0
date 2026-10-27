@@ -45,7 +45,8 @@ jobs:
   api:
     name: API and database
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The suite passed 15 minutes on hosted runners in October 2026 (develop's own run too).
+    timeout-minutes: 30
     services:
       # The arq job queue (FND-008); job tests run the real worker against it.
       redis:

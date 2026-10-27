@@ -65,7 +65,11 @@ export interface Remaining {
 }
 
 /** The "Days remaining" column: days left while open, when it opens, or when it ended. */
-export function remaining(item: PipelineListItem, now: Date, timeZone: string): Remaining {
+export function remaining(
+  item: Pick<PipelineListItem, "status" | "opens_at" | "closes_at" | "ended_at">,
+  now: Date,
+  timeZone: string,
+): Remaining {
   const at = (value: string | null | undefined) => (value ? new Date(value) : null);
   if (isOpen(item.status)) {
     const closes = at(item.closes_at);
@@ -119,8 +123,9 @@ export function creditPercent(
   return Math.min(100, Math.round((item.credits_used / item.credits_reserved) * 100));
 }
 
-/** Row menu entries per status (frame PipelinesV2). `wired` entries work now; the lifecycle
- * actions arrive with PIPE-005, Copy apply link with PIPE-006 and Top up with BILL-006. */
+/** Row menu entries per status (frame PipelinesV2). Lifecycle actions run through
+ * lib/pipelines/actions.ts (PIPE-005); Copy apply link waits for PIPE-006 and Top up for
+ * BILL-006 (`PENDING_ACTIONS`). */
 export type RowAction =
   | "open"
   | "copyLink"
@@ -134,6 +139,7 @@ export type RowAction =
   | "cancel"
   | "topUp"
   | "viewResults"
+  | "duplicate"
   | "archive";
 
 export type RowMenuEntry = RowAction | "separator";
@@ -151,11 +157,15 @@ export function menuFor(status: Status): RowMenuEntry[] {
     case "draft":
       return ["continueSetup"];
     default:
-      return ["viewResults", "separator", "archive"];
+      // Not in the frame's list menu: duplicating an ended pipeline is how a role reopens.
+      return ["viewResults", "duplicate", "separator", "archive"];
   }
 }
 
 export const DESTRUCTIVE_ACTIONS: RowAction[] = ["close", "cancel"];
+
+/** Shown but not usable yet: Copy apply link arrives with PIPE-006, Top up with BILL-006. */
+export const PENDING_ACTIONS: RowAction[] = ["copyLink", "topUp"];
 
 /** Where a link entry goes; null for actions that aren't links. */
 export function actionHref(action: RowAction, pipelineId: string): string | null {
@@ -194,13 +204,23 @@ export const ACTION_PERMISSION: Record<RowAction, Action> = {
   close: "change_pipeline_status",
   cancel: "change_pipeline_status",
   archive: "change_pipeline_status",
+  duplicate: "edit_pipelines",
   topUp: "top_up_pipeline",
 };
 
 /** The row menu a role gets: entries it can't use are left out, and so are separators that
  * would end up first, last or doubled. */
 export function menuForRole(status: Status, allowed: (action: Action) => boolean): RowMenuEntry[] {
-  const entries = menuFor(status).filter(
+  return forRole(menuFor(status), allowed);
+}
+
+/** `entries` without what the role can't use, and without separators that would end up first,
+ * last or doubled. */
+export function forRole(
+  menu: RowMenuEntry[],
+  allowed: (action: Action) => boolean,
+): RowMenuEntry[] {
+  const entries = menu.filter(
     (entry) => entry === "separator" || allowed(ACTION_PERMISSION[entry]),
   );
   return entries.filter(

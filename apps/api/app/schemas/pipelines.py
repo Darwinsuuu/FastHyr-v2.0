@@ -128,6 +128,12 @@ class PublishRequest(BaseModel):
     confirm: Literal["I understand"]
 
 
+class CloseRequest(BaseModel):
+    """`notify` sends the "Role closed" email to candidates who haven't heard back (PIPE-005)."""
+
+    notify: bool = False
+
+
 class TopUpRequest(BaseModel):
     """Top-up amounts the pipeline menus offer (FR-BILL-04)."""
 
@@ -252,3 +258,9 @@ class PipelineList(BaseModel):
     to_review: int
     # The workspace's time zone, for "Closes today", "Opens tomorrow" and "Closed 2 Sep".
     timezone: str
+
+
+class ClosedPipeline(Pipeline):
+    """A pipeline just closed by hand, with how many candidates got the "Role closed" email."""
+
+    notified: int

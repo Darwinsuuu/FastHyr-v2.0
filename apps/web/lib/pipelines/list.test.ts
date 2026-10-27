@@ -98,6 +98,12 @@ describe("menuForRole", () => {
     const allowed = (action: Parameters<typeof can>[1]) => can("hiring_manager", action);
     expect(menuForRole("live", allowed)).toEqual(["open", "copyLink", "viewSetup"]);
     expect(menuForRole("closed", allowed)).toEqual(["viewResults"]);
+    expect(menuForRole("closed", (action) => can("recruiter", action))).toEqual([
+      "viewResults",
+      "duplicate",
+      "separator",
+      "archive",
+    ]);
     expect(menuForRole("draft", allowed)).toEqual([]);
   });
 });

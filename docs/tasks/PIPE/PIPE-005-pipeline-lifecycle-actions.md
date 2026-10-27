@@ -4,7 +4,7 @@
 |---|---|
 | Epic | PIPE — Pipelines |
 | Milestone | M2 Pipelines |
-| Status | Backlog |
+| Status | Done |
 | Size | M |
 | Depends on | [PIPE-004](../PIPE/PIPE-004-pipelines-list.md), [FND-010](../FND/FND-010-email-infrastructure-resend.md) |
 | Requirements | FR-PIPE-07 |
@@ -27,10 +27,10 @@ TA users pause, resume, close, cancel, archive, start now and duplicate pipeline
 - —
 
 ## Acceptance criteria
-- [ ] Each action matches its dialog copy and resulting state
-- [ ] Close with notify queues `role_closed` emails to candidates without a final outcome
-- [ ] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
-- [ ] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
+- [x] Each action matches its dialog copy and resulting state
+- [x] Close with notify queues `role_closed` emails to candidates without a final outcome
+- [x] Built mobile first and checked at 360, 768, 1024 and 1440 px ([`design/RESPONSIVE.md`](../../design/RESPONSIVE.md))
+- [x] [Definition of Done](../../process/DEFINITION_OF_DONE.md) satisfied
 
 ## Notes and edge cases
 - Until MSG-001 lands, the role-closed email uses the default template file shipped with the API
@@ -41,7 +41,28 @@ _(Important functional tests only — write them after the feature works; see [`
 - Tenancy test for any new endpoint
 
 ## Implementation plan
-_(Filled in by the implementer before coding; approved by the product owner.)_
+Plan auto-approved (owner's standing rule: no plan approvals).
+
+PIPE-001 already built the state machine and every lifecycle route, so this task is mostly the web, plus the close email.
+
+1. **API: close with notify.** `POST /v1/pipelines/{id}/close` takes an optional body `{notify: bool}` (default false, so old callers keep working). With `notify`, `services/pipelines.close()` schedules `role_closed` for each application that hasn't heard back, in the same transaction as the close, then enqueues them after commit (like "Re-invite all"). The response is the pipeline plus `notified` (how many emails). Audit `pipeline.closed` gains `notified`.
+   **"Haven't heard back"** (the dialog's words; NOTIFICATIONS.md "no final outcome email") means the candidate has nothing more coming from the pipeline unless the team acts, and no outcome email sent or waiting:
+   - Ready for review (waiting on the team);
+   - Didn't pass or résumé not a match, when no rejection email was sent or is waiting (the pipeline's toggle was off);
+   - Invited with an interview link that has expired (`interviews.status = expired`);
+   - Résumé unreadable or failed to process (`resume_status` `unreadable` / `error`).
+   Left out: anyone still able to go on (résumé being screened, a live interview link, mid-interview, being scored, since closing lets them finish), advanced and rejected (the team decided, including choosing not to email), anyone with a `next_stage`, `reject_resume`, `reject_interview`, `review_upheld` or `role_closed` email that isn't cancelled or failed, deleted candidates. The stage doesn't change: everyone stays in the pipeline with their results. Dedupe key `role_closed:{application}`.
+2. **Web, shared:** `lib/pipelines/actions.ts` (which dialog or call each action is, the copy values, the API call per action) and `components/pipelines/pipeline-actions.tsx` with `usePipelineActions()`: Pause, Close (checkbox, ticked by default), Cancel, Archive dialogs as in frame PipelinesV2 on the kit `ConfirmDialog`; Start now also confirms (it locks the setup and can't be undone; not in the frame); Resume runs at once; Duplicate makes the draft and opens its wizard. Success shows a toast and refreshes the list, the pipeline, the dashboard and the credit summary; a `409` shows its message in the dialog.
+3. **Pipelines list:** the row menu entries become live (Copy apply link waits for PIPE-006 and Top up for BILL-006, both stay disabled). Closed and cancelled rows also get "Duplicate as new pipeline" (the frame's Setup tab offers it; on the list it's the quickest way to reopen a role).
+4. **Pipeline details header:** a "More actions" menu next to Share apply link with the same entries for the status (minus Open) plus Duplicate; archiving from there goes back to `/pipelines`.
+5. **Tests:** API: close with notify emails exactly the right applications and enqueues them, without notify sends nothing, 409 on a closed pipeline; tenancy (another workspace's pipeline is 404). Web unit: menus per status and role, dialog values. Playwright: close with notify from the list.
+6. Docs: API.md, NOTIFICATIONS.md, AGENTS.md status, BOARD.md (PIPE-005 Done).
 
 ## Log
-_(Branch name, decisions, deviations, PR links, review files.)_
+- Branch `feature/pipe-005-taxpj5`. Plan auto-approved per the owner's rule.
+- "Haven't heard back" read as in the plan (nothing more coming unless the team acts, and no outcome email sent or waiting). On the seed's Senior Backend Engineer that's 104 of 142, mostly Didn't pass / not a match, because the seed has no rejection emails; with the rejection toggles on (the default) those candidates are left out.
+- Deviations from the frame: Start now asks first (it locks the setup); "Duplicate as new pipeline" is also on closed and cancelled rows of the list and in the details header's "More actions" menu (the frame has it on the Setup tab, PIPE-009). Top up stays disabled (billing goes last).
+- Hand-tested at 360, 768, 1024 and 1440 px against the seed: pause, resume, close with notify (Mailpit received the emails), cancel, start now, archive and duplicate from the list, and the header menu.
+- The "Role closed" template comes from MSG-001, so the note about a default file shipped with the API no longer applies.
+- CI's `pnpm audit` went red on new advisories in existing dependencies (critical Next.js RCE in 16.3.8, plus zod, undici, vite, @vitest/mocker). The owner chose to fix it in this PR: `next` and `eslint-config-next` 16.4.3, `jsdom` 30.1.3, `vitest` 5.0.5, `vite` 8.3.5 as a direct dev dependency (vitest's peer was stuck on 8.3.1), and transitive `zod`/`undici` refreshed. The audit is clean; lint, unit tests and the build pass.
+- After that, pip-audit failed on new advisories too: Pillow 12.3.0 → 13.0.0 (`pyproject.toml` floor raised) and certifi refreshed. The image, company profile, integrity and recording tests pass on Pillow 13.

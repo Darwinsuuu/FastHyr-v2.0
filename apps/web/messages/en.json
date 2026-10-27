@@ -1347,7 +1347,8 @@
         "cancel": "Cancel pipeline",
         "topUp": "Top up credits",
         "viewResults": "View results",
-        "archive": "Archive"
+        "archive": "Archive",
+        "duplicate": "Duplicate as new pipeline"
       },
       "noun": {
         "one": "pipeline",
@@ -1554,6 +1555,83 @@
       "emptyFilter": "No candidates in this stage right now.",
       "noMatches": "No candidates match “{query}”.",
       "shortlistNote": "You see candidates who are ready for review, flagged or advanced."
+    },
+    "actions": {
+      "pause": {
+        "title": "Pause {title}?",
+        "body": "While it's paused, the apply link won't accept new applicants. Everything else keeps going, and you can resume any time.",
+        "countdownTitle": "The countdown doesn't stop.",
+        "countdownBody": "This pipeline still closes on schedule ({when}), paused or not.",
+        "blockedTitle": "New applicants are blocked.",
+        "blockedBody": "Anyone who clicks Apply will see that the role isn't taking applications right now.",
+        "carryOnTitle": "Current candidates carry on.",
+        "carryOnBody": {
+          "one": "The {count} person who already applied can still finish their interview.",
+          "other": "The {count} people who already applied can still finish their interviews."
+        },
+        "confirm": "Pause pipeline",
+        "keep": "Keep it live"
+      },
+      "close": {
+        "title": "Close {title}?",
+        "body": "Its apply link will stop accepting new applicants right away. Candidates who are already mid-interview can still finish, and everyone who applied stays in the pipeline with their results.",
+        "notify": "Let candidates who haven't heard back know the role has closed.",
+        "notifyHint": "Uses your \"Role closed\" email template.",
+        "confirm": "Close pipeline",
+        "keep": "Keep it open"
+      },
+      "cancel": {
+        "title": "Cancel {title}?",
+        "body": "It won't open, and its apply link will never accept applicants. Its reserved credits go back to your free credits. You can't undo this, but you can duplicate the setup into a new pipeline later.",
+        "confirm": "Cancel pipeline",
+        "keep": "Keep it scheduled"
+      },
+      "archive": {
+        "title": "Archive {title}?",
+        "body": "It moves out of your pipelines list. Its candidates, interview results and reports are kept and still show up on the Candidates page.",
+        "confirm": "Archive pipeline",
+        "keep": "Keep it"
+      },
+      "startNow": {
+        "title": "Start {title} now?",
+        "body": "Its apply link starts accepting applicants right away instead of on {date}, and it runs its full length from today. Its setup locks once it opens, so every candidate is assessed the same way.",
+        "bodyNoDate": "Its apply link starts accepting applicants right away, and it runs its full length from today. Its setup locks once it opens, so every candidate is assessed the same way.",
+        "confirm": "Start now",
+        "keep": "Keep the date"
+      },
+      "facts": {
+        "applied": "Candidates who applied",
+        "toReview": "Still waiting on your review",
+        "daysLeft": "Days that were left",
+        "wasOpening": "Was going to open",
+        "creditsReturned": "Credits returned",
+        "candidates": "Candidates",
+        "status": "Status"
+      },
+      "done": {
+        "started": "{title} is live",
+        "startedNoCredits": "{title} opened, but it's out of credits, so it's paused",
+        "paused": "{title} is paused",
+        "resumed": "{title} is live again",
+        "resumedNoCredits": "{title} is out of credits, so it stays paused",
+        "closed": "{title} is closed",
+        "closedNotified": {
+          "one": "{title} is closed. We're letting {count} candidate know.",
+          "other": "{title} is closed. We're letting {count} candidates know."
+        },
+        "cancelled": {
+          "one": "{title} is cancelled. {count} credit went back to your free credits.",
+          "other": "{title} is cancelled. {count} credits went back to your free credits."
+        },
+        "archived": "{title} is archived",
+        "duplicated": "Copied {title} into a new draft"
+      },
+      "failed": {
+        "moved": "This pipeline changed since the page loaded, so we've refreshed it. Check its status and try again.",
+        "missing": "We couldn't find this pipeline. It may have been archived or moved to a department you can't see.",
+        "other": "That didn't work. Check your connection and try again."
+      },
+      "moreActions": "More actions"
     }
   },
   "interview": {

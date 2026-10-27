@@ -4,11 +4,12 @@ import { ClockIcon, DotsThreeVerticalIcon, ShieldCheckIcon } from "@phosphor-ico
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type RefObject, useRef, useState } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
 import { FlowBand } from "@/components/charts/flow-band";
 import { NewPipelineButton } from "@/components/pipelines/new-pipeline-button";
+import { usePipelineActions } from "@/components/pipelines/pipeline-actions";
 import { Avatar } from "@/components/ui/avatar";
 import { IconButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,6 +28,7 @@ import { formatNumber } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { plural, t } from "@/lib/i18n";
 import { can } from "@/lib/permissions";
+import { isLifecycleAction, type LifecycleAction } from "@/lib/pipelines/actions";
 import {
   actionHref,
   creditPercent,
@@ -38,6 +40,7 @@ import {
   menuForRole,
   PAGE_SIZES,
   type PageSize,
+  PENDING_ACTIONS,
   PIPELINE_TABS,
   type PipelineListItem,
   type PipelineTab,
@@ -93,6 +96,7 @@ export function PipelinesPage() {
   });
   const data = query.data;
   const timeZone = data?.timezone ?? "UTC";
+  const actions = usePipelineActions({ timeZone });
   const firstName = user.name.trim().split(/\s+/)[0] || user.name;
 
   const columns: Column<PipelineListItem>[] = [
@@ -220,7 +224,7 @@ export function PipelinesPage() {
             columns={columns}
             rowKey={(item) => item.id}
             card={(item) => <PipelineCard item={item} now={now} timeZone={timeZone} />}
-            rowMenu={(item) => <RowMenu item={item} />}
+            rowMenu={(item) => <RowMenu item={item} onAction={actions.run} />}
             empty={empty}
             footer={
               data.total > 0 && (
@@ -241,6 +245,7 @@ export function PipelinesPage() {
           />
         )}
       </section>
+      {actions.dialogs}
     </div>
   );
 }
@@ -465,8 +470,19 @@ function PipelineCard({
   );
 }
 
-function RowMenu({ item }: { item: PipelineListItem }) {
+function RowMenu({
+  item,
+  onAction,
+}: {
+  item: PipelineListItem;
+  onAction: (
+    action: LifecycleAction,
+    item: PipelineListItem,
+    returnFocusTo: RefObject<HTMLButtonElement | null>,
+  ) => void;
+}) {
   const router = useRouter();
+  const trigger = useRef<HTMLButtonElement>(null);
   const { workspace } = useShell();
   const title = titleOf(item);
   const entries = menuForRole(item.status, (action) => can(workspace.role, action));
@@ -477,11 +493,12 @@ function RowMenu({ item }: { item: PipelineListItem }) {
     return {
       label: t(`pipelines.list.actions.${entry}`),
       destructive: DESTRUCTIVE_ACTIONS.includes(entry),
-      // Pause, close and the other lifecycle actions arrive with PIPE-005, Copy apply link
-      // with PIPE-006 and Top up with BILL-006; until then they show but can't be picked.
-      disabled: href === null,
+      // Copy apply link arrives with PIPE-006 and Top up with BILL-006; until then they show
+      // but can't be picked.
+      disabled: PENDING_ACTIONS.includes(entry),
       onSelect: () => {
         if (href) router.push(href);
+        else if (isLifecycleAction(entry)) onAction(entry, item, trigger);
       },
     };
   });
@@ -490,6 +507,7 @@ function RowMenu({ item }: { item: PipelineListItem }) {
       title={title}
       trigger={
         <IconButton
+          ref={trigger}
           label={t("pipelines.list.actionsFor", { title })}
           icon={<DotsThreeVerticalIcon weight="bold" className="size-5" />}
           className="md:size-9"

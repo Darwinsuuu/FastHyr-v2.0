@@ -1,5 +1,10 @@
 # Checks every PR (FND-006, DEPLOYMENT.md §3). Each job maps to make targets a contributor can run
 # locally, so a red job can be reproduced with the same command.
+#
+# Actions minutes are limited, so PRs get only the fast jobs (Web, API, API client, Secrets). The
+# database suite and Playwright run on pushes to develop, release and master, and on a manual run
+# (Actions → CI → Run workflow) for any branch. On a PR those two jobs report "skipped", which the
+# branch ruleset's required checks accept.
 name: CI
 
 on:
@@ -7,11 +12,18 @@ on:
     branches: [develop, release, master]
   push:
     branches: [develop, release, master]
+    # Docs-only pushes run nothing. Not on pull_request: required checks that never report would
+    # block the merge.
+    paths-ignore:
+      - docs/**
+      - "**/*.md"
   workflow_dispatch:
 
+# A newer commit on the same PR or branch cancels the run in progress; it checks everything the
+# older one would have.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -39,11 +51,30 @@ jobs:
         run: make lint-web
       - name: Unit tests (make test-web)
         run: make test-web
+      # On pushes and manual runs the e2e job builds the app anyway.
       - name: Build
+        if: github.event_name == 'pull_request'
         run: pnpm --filter web build
+
+  api-unit:
+    name: API
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          node: "false"
+      - name: Ruff and mypy (make lint-api)
+        run: make lint-api
+      # No database or Redis here: the integration and tenancy tests skip, the unit tests run.
+      - name: Unit tests (make test-api)
+        run: make test-api
 
   api:
     name: API and database
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     # The suite passed 15 minutes on hosted runners in October 2026 (develop's own run too).
     timeout-minutes: 30
@@ -97,9 +128,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: ./.github/actions/setup
+      # No dependency install: pnpm audit reads the lockfile and pip-audit reads uv.lock.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          python: "false"
+          node-version: 24
       - uses: astral-sh/setup-uv@v6
       - name: Gitleaks (whole history, allowlist in .gitleaks.toml)
         run: |
@@ -119,6 +152,7 @@ jobs:
 
   e2e:
     name: End-to-end (Playwright)
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

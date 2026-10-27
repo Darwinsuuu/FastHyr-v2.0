@@ -22,6 +22,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings
 from app.core.context import RequestContext
 from app.core.errors import (
     InvalidTransitionError,
@@ -30,6 +31,8 @@ from app.core.errors import (
     UnknownDepartmentError,
 )
 from app.core.slugs import slugify, unique_slug
+from app.emails.defaults import TemplateKey
+from app.jobs.queue import JobQueue
 from app.models import Pipeline as PipelineRow
 from app.repositories.audit import AuditRepository
 from app.repositories.company_profiles import workspace_timezone
@@ -39,9 +42,11 @@ from app.repositories.pipelines import (
     PipelineRepository,
     due_to_close,
     due_to_open,
+    not_heard_back,
     out_of_credit_pipeline_ids,
 )
 from app.schemas.pipelines import (
+    ClosedPipeline,
     Pipeline,
     PipelineDetail,
     PipelineList,
@@ -52,7 +57,7 @@ from app.schemas.pipelines import (
     PipelineTab,
     PipelineTabCounts,
 )
-from app.services import credits
+from app.services import candidate_emails, credits, emails
 
 # Action → the statuses it can start from (WORKFLOW.md §2). `open` is the cron at `opens_at`.
 TRANSITIONS: dict[str, frozenset[str]] = {
@@ -496,13 +501,37 @@ async def close(
     ctx: RequestContext,
     pipeline_id: uuid.UUID,
     *,
+    settings: Settings,
+    queue: JobQueue,
+    notify: bool = False,
     now: datetime | None = None,
-) -> Pipeline:
-    """Closed by hand; the unused reserve returns to the free credits. The optional "Role
-    closed" email to candidates comes with PIPE-005 and MSG-003."""
+) -> ClosedPipeline:
+    """Closed by hand; the unused reserve returns to the free credits. With `notify` ("Let
+    candidates who haven't heard back know", PIPE-005) every application in `not_heard_back()`
+    gets the workspace's "Role closed" email at once, written in the same transaction and sent
+    after the commit. Nobody's stage changes."""
+    now = _now(now)
     pipeline = await _repo(session, ctx).lock(pipeline_id)
-    await _close(session, pipeline, "manual", _now(now), ctx.user_id)
-    return await _done(session, pipeline)
+    _check_transition(pipeline, "close")
+    messages = []
+    if notify:
+        for application_id in await not_heard_back(session, ctx.workspace_id, pipeline.id):
+            scheduled = await candidate_emails.schedule(
+                session,
+                settings,
+                workspace_id=ctx.workspace_id,
+                application_id=application_id,
+                key=TemplateKey.ROLE_CLOSED,
+                at=now,
+                dedupe_key=f"{TemplateKey.ROLE_CLOSED.value}:{application_id}",
+            )
+            if scheduled.created:
+                messages.append(scheduled.message)
+    await _close(session, pipeline, "manual", now, ctx.user_id, notified=len(messages))
+    closed = await _done(session, pipeline)
+    for message in messages:
+        await emails.enqueue(queue, message)
+    return ClosedPipeline(**closed.model_dump(), notified=len(messages))
 
 
 async def _close(
@@ -511,6 +540,7 @@ async def _close(
     reason: str,
     now: datetime,
     actor_id: uuid.UUID | None,
+    **audit: Any,
 ) -> None:
     _check_transition(pipeline, "close")
     released = await credits.release(
@@ -521,7 +551,7 @@ async def _close(
     # On schedule it ended on its date, even when the cron runs late.
     scheduled_end = pipeline.closes_at if reason == "schedule" else None
     pipeline.ended_at = min(now, scheduled_end) if scheduled_end else now
-    _audit(session, pipeline, "closed", actor_id, reason=reason, credits_released=released)
+    _audit(session, pipeline, "closed", actor_id, reason=reason, credits_released=released, **audit)
 
 
 async def cancel(

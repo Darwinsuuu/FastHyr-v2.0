@@ -11,14 +11,17 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ColumnElement, Select, and_, case, func, or_, select
+from sqlalchemy import ColumnElement, Select, and_, case, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFoundError
 from app.models import (
     Application,
+    Candidate,
     CompanyProfile,
     Department,
+    EmailMessage,
+    Interview,
     Pipeline,
     Profile,
     Workspace,
@@ -313,6 +316,60 @@ async def out_of_credit_pipeline_ids(
             Pipeline.status == "paused_no_credits",
             Pipeline.credits_used < Pipeline.credits_reserved,
         )
+    )
+    return rows.all()
+
+
+# Emails that tell a candidate how their application ended (or will, once due).
+OUTCOME_EMAILS = ("next_stage", "reject_resume", "reject_interview", "review_upheld", "role_closed")
+
+
+async def not_heard_back(
+    session: AsyncSession, workspace_id: uuid.UUID, pipeline_id: uuid.UUID
+) -> Sequence[uuid.UUID]:
+    """Applications the "Role closed" email goes to when a pipeline closes (PIPE-005): nothing
+    more will happen for them unless the team acts, and no outcome email went or is waiting.
+
+    That is Ready for review; Didn't pass or résumé not a match with no rejection email (the
+    pipeline's toggle was off); invited with an expired link; or a résumé that couldn't be read.
+    Anyone who can still go on (being screened, a live link, mid-interview, being scored) is left
+    to finish, and advanced or rejected candidates were decided by a person."""
+    current_interview = and_(
+        Interview.workspace_id == Application.workspace_id,
+        Interview.application_id == Application.id,
+        Interview.superseded_by.is_(None),
+    )
+    expired_link = exists().where(current_interview, Interview.status == "expired")
+    outcome_email = exists().where(
+        EmailMessage.workspace_id == Application.workspace_id,
+        EmailMessage.application_id == Application.id,
+        EmailMessage.template_key.in_(OUTCOME_EMAILS),
+        EmailMessage.status.not_in(("cancelled", "failed")),
+    )
+    waiting = or_(
+        Application.stage.in_(("ready_for_review", "did_not_pass", "resume_not_match")),
+        and_(Application.stage == "invited", expired_link),
+        and_(
+            Application.stage == "processing_resume",
+            Application.resume_status.in_(("unreadable", "error")),
+        ),
+    )
+    rows = await session.scalars(
+        select(Application.id)
+        .join(
+            Candidate,
+            (Candidate.workspace_id == Application.workspace_id)
+            & (Candidate.id == Application.candidate_id),
+        )
+        .where(
+            Application.workspace_id == workspace_id,
+            Application.pipeline_id == pipeline_id,
+            Candidate.deleted_at.is_(None),
+            Candidate.email_undeliverable_at.is_(None),
+            waiting,
+            ~outcome_email,
+        )
+        .order_by(Application.applied_at)
     )
     return rows.all()
 

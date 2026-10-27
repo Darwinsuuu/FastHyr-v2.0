@@ -1,17 +1,19 @@
 "use client";
 
-import { ArrowLeftIcon, LinkSimpleIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, DotsThreeVerticalIcon, LinkSimpleIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, type RefObject, useEffect, useRef } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { usePipelineActions } from "@/components/pipelines/pipeline-actions";
 import { PipelineCandidatesTab } from "@/components/pipelines/pipeline-candidates";
 import { PipelineDashboardTab } from "@/components/pipelines/pipeline-dashboard";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, IconButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Menu, type MenuEntry } from "@/components/ui/menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PipelineStatusPill } from "@/components/ui/status-pill";
 import { Tabs } from "@/components/ui/tabs";
@@ -20,6 +22,12 @@ import { keys } from "@/lib/api/keys";
 import { t } from "@/lib/i18n";
 import { can } from "@/lib/permissions";
 import {
+  headerMenuFor,
+  isLifecycleAction,
+  type LifecycleAction,
+  type PipelineSummary,
+} from "@/lib/pipelines/actions";
+import {
   DETAIL_TABS,
   type DetailTab,
   openedLabel,
@@ -27,6 +35,7 @@ import {
   parseTab,
   tabHref,
 } from "@/lib/pipelines/detail";
+import { actionHref, DESTRUCTIVE_ACTIONS, PENDING_ACTIONS } from "@/lib/pipelines/list";
 
 /** Pipeline details (frame PipelineView, FR-PIPE-11): the header and the tabs. The Dashboard
  * tab is PIPE-007 and Candidates PIPE-008; Ask Ava (AVA-002) and Setup (PIPE-009) fill in later. */
@@ -62,6 +71,10 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
       ),
     enabled: Boolean(pipeline) && !toWizard,
   });
+  const actions = usePipelineActions({
+    timeZone: dashboard.data?.timezone ?? "UTC",
+    onArchived: () => router.push("/pipelines"),
+  });
 
   if (query.isError) {
     const notFound = query.error instanceof ApiError && query.error.status === 404;
@@ -84,7 +97,23 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
     <Page>
       <div className="flex flex-col gap-3">
         <BackLink />
-        <Header pipeline={pipeline} timeZone={dashboard.data?.timezone} />
+        <Header
+          pipeline={pipeline}
+          timeZone={dashboard.data?.timezone}
+          actions={
+            dashboard.data && (
+              <ActionsMenu
+                summary={{
+                  ...pipeline,
+                  candidates: dashboard.data.kpis.candidates,
+                  to_review: dashboard.data.kpis.ready_for_review,
+                }}
+                archived={Boolean(pipeline.archived_at)}
+                onAction={actions.run}
+              />
+            )
+          }
+        />
       </div>
       <Tabs
         label={t("pipelines.detail.tabsLabel")}
@@ -107,6 +136,7 @@ export function PipelineDetailPage({ pipelineId }: { pipelineId: string }) {
             ),
         }))}
       />
+      {actions.dialogs}
     </Page>
   );
 }
@@ -131,7 +161,15 @@ function BackLink() {
   );
 }
 
-function Header({ pipeline, timeZone }: { pipeline: PipelineDetail; timeZone?: string }) {
+function Header({
+  pipeline,
+  timeZone,
+  actions,
+}: {
+  pipeline: PipelineDetail;
+  timeZone?: string;
+  actions?: ReactNode;
+}) {
   const owner = pipeline.owner;
   const ownerName = owner?.name || owner?.email;
   const opened = timeZone ? openedLabel(pipeline, timeZone) : null;
@@ -178,17 +216,69 @@ function Header({ pipeline, timeZone }: { pipeline: PipelineDetail; timeZone?: s
           )}
         </div>
       </div>
-      {/* The share window (8 sources, posting hints) arrives with PIPE-006. */}
-      <Button
-        variant="secondary"
-        icon={<LinkSimpleIcon aria-hidden="true" className="size-5" />}
-        disabled
-        title={t("pipelines.detail.shareSoon")}
-        className="self-start md:self-auto"
-      >
-        {t("pipelines.detail.share")}
-      </Button>
+      <div className="flex items-center gap-2 self-start md:self-auto">
+        {/* The share window (8 sources, posting hints) arrives with PIPE-006. */}
+        <Button
+          variant="secondary"
+          icon={<LinkSimpleIcon aria-hidden="true" className="size-5" />}
+          disabled
+          title={t("pipelines.detail.shareSoon")}
+        >
+          {t("pipelines.detail.share")}
+        </Button>
+        {actions}
+      </div>
     </header>
+  );
+}
+
+/** Pause, close, duplicate and the rest for this pipeline (PIPE-005), as on the list's row. */
+function ActionsMenu({
+  summary,
+  archived,
+  onAction,
+}: {
+  summary: PipelineSummary;
+  archived: boolean;
+  onAction: (
+    action: LifecycleAction,
+    summary: PipelineSummary,
+    returnFocusTo: RefObject<HTMLButtonElement | null>,
+  ) => void;
+}) {
+  const router = useRouter();
+  const { workspace } = useShell();
+  const trigger = useRef<HTMLButtonElement>(null);
+  const entries = headerMenuFor(summary.status, archived, (action) => can(workspace.role, action));
+  if (entries.length === 0) return null;
+  const items: MenuEntry[] = entries.map((entry) => {
+    if (entry === "separator") return "separator";
+    const href = actionHref(entry, summary.id);
+    return {
+      label: t(`pipelines.list.actions.${entry}`),
+      destructive: DESTRUCTIVE_ACTIONS.includes(entry),
+      // Copy apply link arrives with PIPE-006 and Top up with BILL-006.
+      disabled: PENDING_ACTIONS.includes(entry),
+      onSelect: () => {
+        if (href) router.push(href);
+        else if (isLifecycleAction(entry)) onAction(entry, summary, trigger);
+      },
+    };
+  });
+  return (
+    <Menu
+      title={summary.title || t("pipelines.list.untitled")}
+      trigger={
+        <IconButton
+          ref={trigger}
+          // Outlined like the Share button beside it.
+          className="border border-line-strong bg-surface-raised text-ink hover:border-ink"
+          label={t("pipelines.actions.moreActions")}
+          icon={<DotsThreeVerticalIcon weight="bold" className="size-5" />}
+        />
+      }
+      items={items}
+    />
   );
 }
 

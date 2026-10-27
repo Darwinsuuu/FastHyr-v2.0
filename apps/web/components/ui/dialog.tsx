@@ -144,6 +144,8 @@ export interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
   children?: ReactNode;
   side?: "ta" | "candidate";
+  /** Where focus goes on close when the dialog opened from a menu item (see `Dialog`). */
+  returnFocusTo?: RefObject<HTMLElement | null>;
 }
 
 /** Asks before an action. The confirm button names the action ("Close pipeline"), never "OK". */
@@ -159,6 +161,7 @@ export function ConfirmDialog({
   children,
   side = "ta",
   confirmDisabled,
+  returnFocusTo,
 }: ConfirmDialogProps & { confirmDisabled?: boolean }) {
   const [busy, setBusy] = useState(false);
 
@@ -182,6 +185,7 @@ export function ConfirmDialog({
       description={description}
       size="sm"
       dismissible={!busy}
+      returnFocusTo={returnFocusTo}
       footer={
         <>
           <Button

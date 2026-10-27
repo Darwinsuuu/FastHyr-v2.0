@@ -14,6 +14,8 @@ from app.core.permissions import Action
 from app.schemas.analytics import PipelineDashboard
 from app.schemas.pipeline_candidates import CandidateFilter, PipelineCandidates
 from app.schemas.pipelines import (
+    ClosedPipeline,
+    CloseRequest,
     Pipeline,
     PipelineDetail,
     PipelineList,
@@ -134,10 +136,20 @@ async def resume_pipeline(pipeline_id: uuid.UUID, ctx: StatusChanger, session: S
     return await pipeline_service.resume(session, ctx, pipeline_id)
 
 
-@router.post("/{pipeline_id}/close", response_model=Pipeline, responses=CONFLICT)
-async def close_pipeline(pipeline_id: uuid.UUID, ctx: StatusChanger, session: Session) -> Pipeline:
-    """The unused reserve returns to the free credits."""
-    return await pipeline_service.close(session, ctx, pipeline_id)
+@router.post("/{pipeline_id}/close", response_model=ClosedPipeline, responses=CONFLICT)
+async def close_pipeline(
+    pipeline_id: uuid.UUID,
+    ctx: StatusChanger,
+    session: Session,
+    queue: JobQueueDep,
+    settings: SettingsDep,
+    body: CloseRequest | None = None,
+) -> ClosedPipeline:
+    """The unused reserve returns to the free credits. With `notify`, candidates who haven't
+    heard back get the "Role closed" email now (`notified` says how many); stages don't change."""
+    return await pipeline_service.close(
+        session, ctx, pipeline_id, settings=settings, queue=queue, notify=bool(body and body.notify)
+    )
 
 
 @router.post("/{pipeline_id}/cancel", response_model=Pipeline, responses=CONFLICT)

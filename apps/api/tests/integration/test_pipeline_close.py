@@ -105,10 +105,16 @@ def test_closing_with_notify_tells_only_candidates_who_havent_heard_back(
     set_stage(tenancy, mid_interview, "interview_in_progress")
 
     other = tenancy.client("b", Role.ADMIN)
-    assert other.post(f"/v1/pipelines/{pipeline_id}/close", json={"notify": True}).status_code == 404
+    assert (
+        other.post(f"/v1/pipelines/{pipeline_id}/close", json={"notify": True}).status_code == 404
+    )
 
     closed = ok(admin(tenancy).post(f"/v1/pipelines/{pipeline_id}/close", json={"notify": True}))
-    assert (closed["status"], closed["closed_reason"], closed["notified"]) == ("closed", "manual", 1)
+    assert (closed["status"], closed["closed_reason"], closed["notified"]) == (
+        "closed",
+        "manual",
+        1,
+    )
 
     [email] = role_closed(tenancy, pipeline_id)
     assert (email["application_id"], email["status"]) == (ready, "scheduled")

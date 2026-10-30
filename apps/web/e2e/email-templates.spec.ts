@@ -25,12 +25,13 @@ test("an Admin edits, resets, restores and tests a rejection email", async ({ pa
 
   await subject.fill("About your [Job.title] application, ");
   const message = page.getByRole("textbox", { name: "Message" });
+  const chips = message.locator("[data-parameter]");
+  const before = await chips.count();
   await message.click();
-  await page.keyboard.press("Control+End");
-  await page.keyboard.press("Enter");
   await page.keyboard.type("Thanks again, ");
   await page.getByRole("button", { name: /\[Candidate\.firstname\]/ }).click();
-  await expect(message.locator("[data-parameter]").last()).toHaveText("[Candidate.firstname]");
+  await expect(chips).toHaveCount(before + 1);
+  await expect(message).toContainText("Thanks again, [Candidate.firstname]");
 
   await page.getByRole("button", { name: "Send test to me" }).click();
   const test = page.getByRole("dialog");

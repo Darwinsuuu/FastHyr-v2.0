@@ -4,7 +4,7 @@
 |---|---|
 | Epic | AVA — Ask Ava |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | L |
 | Depends on | [ASMT-001](../ASMT/ASMT-001-interview-scoring.md), [WS-005](../WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md), [FND-013](../FND/FND-013-openai-integration-layer.md) |
 | Requirements | FR-AVA-01, FR-AVA-02, FR-AVA-03, FR-AVA-04, FR-AVA-05 |

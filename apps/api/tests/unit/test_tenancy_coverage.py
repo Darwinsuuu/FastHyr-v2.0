@@ -42,4 +42,4 @@ def test_workspace_routes_are_tenancy_cases_or_caller_only() -> None:
 def test_cases_name_the_parameters_their_paths_take() -> None:
     for case in CASES:
         names = {part[1:-1] for part in case.path.split("/") if part.startswith("{")}
-        assert names == set(case.params), case
+        assert names == set(case.params) | set(case.fixed), case

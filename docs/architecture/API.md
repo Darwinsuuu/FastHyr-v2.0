@@ -84,6 +84,8 @@ Candidate routes accept only a Google or Microsoft session (ADR-014); any other 
 ### Email templates
 | `GET /email-templates` · `GET/PUT /email-templates/{key}` · `POST /email-templates/{key}/reset` · `GET /email-templates/{key}/versions` · `POST /email-templates/{key}/versions/{vid}/restore` · `POST /email-templates/{key}/test` | Admin, Recruiter |
 
+`{key}` is a template key (NOTIFICATIONS.md §1); anything else, or a version of another template, is 404. `PUT` takes `{subject, body_html}` and answers `422 email_template_invalid` with one `errors` entry per problem; reset and restore save a new version (history is never rewritten); versions come newest first with `kind` (`edit`, `reset`, `restore`); `test` takes the wording on screen `{subject, body_html}`, saved or not, and returns `202 {message_id, to_email, subject}` (MSG-002).
+
 ### Billing (Admin unless noted)
 | `GET /billing/summary` | plan, credits, batches, payment method, billing details |
 | `POST /billing/subscribe` `{plan}` · `POST /billing/change-plan` `{plan}` | Checkout / subscription update |

@@ -29,15 +29,16 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.slugs import slugify
-from app.emails.defaults import TemplateKey
+from app.emails.defaults import DEFAULTS, TemplateKey
 from app.models import (
     Application,
     CompanyProfile,
     Department,
+    EmailTemplateVersion,
     HumanReviewRequest,
     Invite,
     MemberDepartment,
@@ -469,16 +470,53 @@ EDITED_INVITATION = (
 )
 
 
+# Change history for the editor (MSG-002): (template, editor, days ago, subject, body or None
+# for the default body), oldest first. The invitation ends on Maria's wording above.
+TEMPLATE_EDITS = (
+    (TemplateKey.INTERVIEW_INVITATION, "dana", 18, "Next step: your interview for [Job.title]",
+     None),
+    (TemplateKey.INTERVIEW_INVITATION, "maria", 10, "You're invited to interview with "
+     "[Company.name]", EDITED_INVITATION),
+    (TemplateKey.REJECT_RESUME, "maria", 12, "An update on your [Job.title] application", None),
+    (TemplateKey.NEXT_STAGE, "dana", 7, "Good news about your [Job.title] application",
+     "<p>Hi [Candidate.firstname],</p><p>Thank you for interviewing for the [Job.title] role at "
+     "[Company.name]. We'd like to move you to the next stage of our hiring process.</p>"
+     "<p>A member of our hiring team will email you within two business days to set up a "
+     "conversation.</p><p>The [Company.name] hiring team</p>"),
+)  # fmt: skip
+
+
 async def seed_email_templates(session: AsyncSession, workspace_id: uuid.UUID) -> None:
     await email_templates.ensure_defaults(session, workspace_id)
-    maria = next(user for user in USERS if user.key == "maria")
-    await email_templates.save(
-        session,
-        workspace_id,
-        maria.id,
-        TemplateKey.INTERVIEW_INVITATION,
-        subject="You're invited to interview with [Company.name]",
-        body_html=EDITED_INVITATION,
+    users = {user.key: user for user in USERS}
+    now = datetime.now(UTC)
+    for key, editor, days_ago, subject, body in TEMPLATE_EDITS:
+        template = await email_templates.save(
+            session,
+            workspace_id,
+            users[editor].id,
+            key,
+            subject=subject,
+            body_html=body or DEFAULTS[key].body_html,
+        )
+        await session.execute(
+            update(EmailTemplateVersion)
+            .where(
+                EmailTemplateVersion.template_id == template.id,
+                EmailTemplateVersion.subject == template.subject,
+                EmailTemplateVersion.body_html == template.body_html,
+            )
+            .values(created_at=now - timedelta(days=days_ago))
+        )
+    # "Edited {date}" on the list matches the history (the updated_at trigger would say today).
+    await session.execute(text("set local session_replication_role = replica"))
+    await session.execute(
+        text(
+            "update email_templates t set updated_at = (select max(created_at) from "
+            "email_template_versions v where v.template_id = t.id) "
+            "where workspace_id = :workspace_id and not is_default"
+        ),
+        {"workspace_id": workspace_id},
     )
     await session.commit()
 

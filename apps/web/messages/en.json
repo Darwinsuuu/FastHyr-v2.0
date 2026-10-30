@@ -1086,6 +1086,7 @@
         "passMarkValue": "{value} / 100",
         "passMarkHint": "Candidates at or above this score are marked \"Recommended\". You always make the final call.",
         "messages": "Candidate messages",
+        "editTemplates": "Edit templates",
         "rejectMail": "Email candidates whose résumé isn't a match",
         "rejectMailHint": "Sent the next working day with your \"Résumé not a match\" template.",
         "resultMail": "Email candidates after their interview",
@@ -2287,6 +2288,193 @@
         "stage": "This candidate has moved on since the page loaded, so the decision can only be upheld. Refresh the page.",
         "failed": "That didn't save. Try again."
       }
+    }
+  },
+  "emailTemplates": {
+    "eyebrow": "Workspace admin",
+    "title": "Email templates",
+    "intro": "Every template comes ready to use. Edit the wording to match your company’s voice.",
+    "infoTitle": "Default templates, your words",
+    "infoBody": "FastHyr sends these automatically at each step, so every candidate hears back. You can edit the subject and message; use parameters to personalise them:",
+    "filtersLabel": "Template types",
+    "filters": {
+      "all": "All",
+      "invitations": "Invitations",
+      "reminders": "Reminders",
+      "advancement": "Advancement",
+      "rejections": "Rejections",
+      "updates": "Updates"
+    },
+    "category": {
+      "invitation": "Invitation",
+      "reminder": "Reminder",
+      "confirmation": "Confirmation",
+      "advancement": "Advancement",
+      "rejection": "Rejection",
+      "update": "Update"
+    },
+    "subjectLabel": "Subject:",
+    "usingDefault": "Using the default template",
+    "editedOn": "Edited {date}",
+    "editedBy": "by {name}",
+    "edit": "Edit template",
+    "editLabel": "Edit {name}",
+    "loadFailed": "We couldn’t load your email templates. Refresh the page to try again.",
+    "empty": "No templates of this type.",
+    "templates": {
+      "interview_invitation": {
+        "name": "Interview invitation",
+        "description": "Invites candidates who passed the résumé screen to take their AI interview.",
+        "timing": "Right after the résumé passes screening"
+      },
+      "interview_reminder": {
+        "name": "Interview reminder",
+        "description": "Nudges candidates who haven’t started their interview before the link expires.",
+        "timing": "24 hours before the invite expires"
+      },
+      "finish_interview": {
+        "name": "Finish your interview",
+        "description": "Helps candidates who left partway through come back and complete it.",
+        "timing": "When an interview is left unfinished"
+      },
+      "interview_received": {
+        "name": "Interview received",
+        "description": "Thanks candidates for their interview and tells them a person will review it.",
+        "timing": "Right after the interview"
+      },
+      "next_stage": {
+        "name": "Moving to the next stage",
+        "description": "Tells candidates they’re moving forward and what happens next.",
+        "timing": "When you advance a candidate"
+      },
+      "reject_resume": {
+        "name": "Not moving forward — résumé",
+        "description": "Lets applicants know kindly that their résumé wasn’t a match this time.",
+        "timing": "2 business days after résumé screening"
+      },
+      "reject_interview": {
+        "name": "Not moving forward — interview",
+        "description": "Thanks candidates for interviewing and closes the loop respectfully.",
+        "timing": "3 business days after the interview"
+      },
+      "role_closed": {
+        "name": "Role closed",
+        "description": "Lets candidates who haven’t heard back know the role has closed.",
+        "timing": "When you close a pipeline and choose to let candidates know"
+      },
+      "review_received": {
+        "name": "Human review received",
+        "description": "Confirms a candidate’s request for a person to review a decision.",
+        "timing": "When a candidate asks for a person to review a decision"
+      },
+      "review_upheld": {
+        "name": "Review outcome",
+        "description": "Tells candidates a person reviewed the decision and kept it.",
+        "timing": "When your team keeps a decision after a review request"
+      }
+    },
+    "parameters": {
+      "Candidate": {
+        "firstname": "Candidate’s first name",
+        "lastname": "Candidate’s last name"
+      },
+      "Job": {
+        "title": "Role they applied for"
+      },
+      "Company": {
+        "name": "Your company name"
+      },
+      "Interview": {
+        "link": "Their personal interview link",
+        "expiry": "Date the interview link expires"
+      },
+      "Review": {
+        "link": "Link to ask for a human review"
+      }
+    },
+    "editor": {
+      "breadcrumb": "Breadcrumb",
+      "sentWhen": "Sent {timing}",
+      "reset": "Reset to default",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Template saved",
+      "saveFailed": "We couldn’t save this template. Try again.",
+      "notFound": "This email template doesn’t exist.",
+      "backToList": "Back to email templates",
+      "contentLabel": "Template content",
+      "subject": "Subject line",
+      "message": "Message",
+      "toolbar": "Formatting",
+      "bold": "Bold",
+      "italic": "Italic",
+      "link": "Link",
+      "bulletList": "Bulleted list",
+      "insertParameter": "Insert parameter",
+      "linkTo": "Link to",
+      "addLink": "Add link",
+      "removeLink": "Remove link",
+      "linkCancel": "Cancel",
+      "linkInvalid": "Enter a web address that starts with https:// or an email address.",
+      "parametersNote": "Parameters are replaced with each candidate’s details when the email is sent.",
+      "reviewLine": "Want a person to review this decision?",
+      "reviewLineHint": "This line is always included so candidates can ask for a human review.",
+      "lastEdited": "Last edited {date} by {name}",
+      "usingDefault": "Using FastHyr’s default wording",
+      "sendTest": "Send test to me",
+      "paramsTitle": "Parameters",
+      "paramsHint": "Click one to insert it where your cursor is.",
+      "historyTitle": "Change history",
+      "historyEmpty": "No changes yet. This template uses FastHyr’s default wording.",
+      "historyCurrent": "Current",
+      "change": {
+        "edited_both": "edited the subject and message",
+        "edited_subject": "changed the subject line",
+        "edited_message": "edited the message",
+        "reset": "reset the template to default",
+        "restored": "restored an earlier version",
+        "saved": "edited the template"
+      },
+      "someone": "A former member",
+      "viewingOld": "You’re viewing the version from {when}. Editing is off until you restore it.",
+      "backToCurrent": "Back to current",
+      "restore": "Restore this version",
+      "restored": "Version restored",
+      "restoreFailed": "We couldn’t restore this version. Try again.",
+      "unsaved": "You have unsaved changes.",
+      "problems": {
+        "subject_missing": "Add a subject line.",
+        "subject_too_long": "Keep the subject to 200 characters.",
+        "body_html_missing": "Add a message.",
+        "body_html_too_long": "Shorten the message.",
+        "unknown_parameter": "{parameter} can’t be used in this email. Use one of the parameters listed.",
+        "invalid": "Check this field."
+      }
+    },
+    "resetDialog": {
+      "title": "Reset to FastHyr’s default?",
+      "body": "Your subject line and message will be replaced with the default “{name}” template. Emails already sent aren’t affected, and your current version stays in Change history if you want it back.",
+      "keep": "Keep my version",
+      "confirm": "Reset to default",
+      "done": "Template reset to default",
+      "failed": "We couldn’t reset this template. Try again."
+    },
+    "testDialog": {
+      "title": "Send a test email",
+      "sentTitle": "Test email sent",
+      "to": "To",
+      "you": "(you)",
+      "subject": "Subject",
+      "sample": "Sample details",
+      "note": "Parameters are filled in with sample details so you can see what a candidate would get.",
+      "sentNote": "Sent to {email}. It can take a minute to arrive, so check your spam folder if you don’t see it.",
+      "send": "Send test",
+      "sending": "Sending…",
+      "cancel": "Cancel",
+      "done": "Done",
+      "failed": "We couldn’t send the test email. Try again.",
+      "fixFirst": "Fix the problems in the template first."
     }
   }
 }

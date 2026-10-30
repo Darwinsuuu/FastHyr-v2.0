@@ -129,3 +129,43 @@
     transform: scaleY(1);
   }
 }
+
+/* The email template editor's message (frame EditEmailTemplate): the email's own spacing, and
+   parameters as chips. Tiptap renders this HTML, so it is styled here rather than per element. */
+@layer components {
+  .fh-message {
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--color-ink);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .fh-message > * + * {
+    margin-top: 14px;
+  }
+  .fh-message ul {
+    list-style: disc;
+    padding-left: 22px;
+  }
+  .fh-message li + li {
+    margin-top: 4px;
+  }
+  .fh-message a {
+    color: var(--color-evergreen);
+    text-decoration: underline;
+  }
+  .fh-parameter {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--color-evergreen-soft);
+    color: var(--color-evergreen);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .fh-message .ProseMirror-selectednode.fh-parameter,
+  .fh-parameter.ProseMirror-selectednode {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+}

@@ -9,7 +9,7 @@ How it works (FND-010):
 
 ## 1. Candidate emails (workspace templates, editable)
 
-Templates (MSG-001): each workspace has one `email_templates` row per key, made from FastHyr's defaults in `app/emails/defaults.py` when the workspace is created (older workspaces get them the first time `services/email_templates.py` reads them). Saves go through `email_templates.save()`, which checks parameters, cleans the body and adds an `email_template_versions` row. Candidate emails are rendered with `app/emails/candidate.render_template()`, which adds the review line to rejections, makes link parameters clickable and refuses to render a parameter that has no value.
+Templates (MSG-001): each workspace has one `email_templates` row per key, made from FastHyr's defaults in `app/emails/defaults.py` when the workspace is created (older workspaces get them the first time `services/email_templates.py` reads them). Saves go through `email_templates.save()`, which checks parameters, cleans the body and adds an `email_template_versions` row (`note` = `edit`, `reset` or `restore`); `is_default` is true while the wording equals the default, so a reset template reads "Using the default template" again. The editor (MSG-002, `/settings/email-templates`) edits, resets, restores and tests them; every change is audited (`email_template.edited|reset|restored`, key and version only). Candidate emails are rendered with `app/emails/candidate.render_template()`, which adds the review line to rejections, makes link parameters clickable and refuses to render a parameter that has no value.
 
 | Key | Name (UI) | Trigger | Timing | Controlled by |
 |---|---|---|---|---|
@@ -59,7 +59,7 @@ Jinja2 layout: company banner (or logo), body, footer ("Sent by {Company} via Fa
 | Pipeline paused (out of credits) / running low | Credits service → pipeline owner + Admins |
 | Payment failed | Stripe webhook → Admins |
 | Contact form | → hello@fasthyr.com |
-| Test email | "Send test to me" in template editor (sample data: Bea Garcia · Senior Backend Engineer · workspace name); a plain system test is `POST /v1/dev/test-email` (local and development) |
+| Test email | "Send test to me" in the template editor (`POST /v1/email-templates/{key}/test`, MSG-002): the wording on screen, saved or not, rendered like a candidate email (branding, review line on rejections) with sample data (Bea Garcia · Senior Backend Engineer · company name, sample interview and review links) and sent to the caller only (`template_key = test`); a plain system test is `POST /v1/dev/test-email` (local and development) |
 
 ## 5. Deliverability and logging
 - `mail.fasthyr.com` with SPF, DKIM, DMARC (p=quarantine after warm-up).

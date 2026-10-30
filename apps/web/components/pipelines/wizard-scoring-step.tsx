@@ -1,5 +1,8 @@
 "use client";
 
+import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import Link from "next/link";
+
 import type { StepProps } from "@/components/pipelines/wizard-role-step";
 import { Field } from "@/components/ui/field";
 import { Slider } from "@/components/ui/slider";
@@ -93,9 +96,20 @@ export function ScoringStep({ form, update, tried }: StepProps) {
       </Field>
 
       <section className="flex flex-col gap-3 rounded-md border border-line p-4 md:p-5">
-        <h3 className="text-[15px] leading-5 font-[650] text-ink">
-          {t("pipelines.wizard.scoring.messages")}
-        </h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-[15px] leading-5 font-[650] text-ink">
+            {t("pipelines.wizard.scoring.messages")}
+          </h3>
+          {/* A new tab, so the wizard's unsaved steps stay as they are. */}
+          <Link
+            href="/settings/email-templates"
+            target="_blank"
+            className="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-semibold text-evergreen md:min-h-0"
+          >
+            {t("pipelines.wizard.scoring.editTemplates")}
+            <ArrowSquareOutIcon aria-hidden="true" className="size-4" />
+          </Link>
+        </div>
         <div className="flex flex-col divide-y divide-line">
           <Toggle
             label={t("pipelines.wizard.scoring.rejectMail")}

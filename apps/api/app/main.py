@@ -17,6 +17,7 @@ from app.api.routers import (
     credits,
     departments,
     dev,
+    email_templates,
     integrity_flags,
     invites,
     jobs,
@@ -103,6 +104,7 @@ def create_app(
     v1.include_router(me.router)
     v1.include_router(workspaces.router)
     v1.include_router(departments.router)
+    v1.include_router(email_templates.router)
     v1.include_router(company_profile.router)
     v1.include_router(company_profile.public_router)
     v1.include_router(analytics.router)

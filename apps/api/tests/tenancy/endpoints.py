@@ -19,8 +19,7 @@ in the wrong one, or when an entry names a route that is gone. Adding an endpoin
 No database here: the unit check imports this module.
 """
 
-import uuid
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -33,6 +32,8 @@ Route = tuple[str, str]  # (method, path as registered)
 # Path parameters → the world resource they name (see `test_endpoints.World`).
 PIPELINE = {"pipeline_id": "pipeline"}
 APPLICATION = {"application_id": "application"}
+# The template the world edits (`test_endpoints.build_shortlist`).
+TEMPLATE = {"key": "interview_invitation"}
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,8 @@ class Case:
     params: dict[str, str] = field(default_factory=dict)
     json: Any = None
     query: dict[str, str] = field(default_factory=dict)
+    # Path parameters that aren't resources, such as an email template's key.
+    fixed: dict[str, str] = field(default_factory=dict)
     # A list or aggregate: data the caller can't see must not change the response.
     listing: bool = False
     # Limited to the caller's departments (SECURITY.md §2). False for workspace-wide settings.
@@ -72,6 +75,9 @@ CASES: list[Case] = [
     Case("GET", "/v1/candidates/dashboard", listing=True, shortlist=True),
     Case("GET", "/v1/credits/summary", listing=True, departments=False),
     Case("GET", "/v1/departments", listing=True, departments=False),
+    Case("GET", "/v1/email-templates", listing=True, departments=False),
+    Case("GET", "/v1/email-templates/{key}/versions", fixed=TEMPLATE, listing=True,
+         departments=False),
     Case("GET", "/v1/invites", listing=True, departments=False),
     Case("GET", "/v1/members", listing=True, departments=False),
     Case("GET", "/v1/pipelines", listing=True, query={"tab": "all"}),
@@ -118,6 +124,8 @@ CASES: list[Case] = [
     Case("DELETE", "/v1/members/{member_id}", {"member_id": "member"}, departments=False),
     Case("POST", "/v1/invites/{invite_id}/resend", {"invite_id": "invite"}, departments=False),
     Case("DELETE", "/v1/invites/{invite_id}", {"invite_id": "invite"}, departments=False),
+    Case("POST", "/v1/email-templates/{key}/versions/{version_id}/restore",
+         {"version_id": "template_version"}, fixed=TEMPLATE, departments=False),
     # Report jobs: the member who asked for one, only.
     Case("GET", "/v1/jobs/{job_id}", {"job_id": "job"}, departments=False),
     Case("DELETE", "/v1/jobs/{job_id}", {"job_id": "job"}, departments=False),
@@ -125,11 +133,17 @@ CASES: list[Case] = [
 
 BODY_IDS = "IDs in the body: test_ids_from_another_workspace_in_bodies_are_refused"
 
+TEMPLATE_ONLY = "the caller's workspace's own template of that key; test_email_templates.py"
+
 CALLER_ONLY: dict[Route, str] = {
     ("POST", "/v1/pipelines"): f"creates a draft in the caller's workspace; {BODY_IDS}",
     ("POST", "/v1/invites"): f"invites into the caller's workspace; {BODY_IDS}",
     ("POST", "/v1/departments"): "creates a department in the caller's workspace",
     ("PUT", "/v1/workspace/company-profile"): "the caller's workspace's own profile",
+    ("GET", "/v1/email-templates/{key}"): TEMPLATE_ONLY,
+    ("PUT", "/v1/email-templates/{key}"): TEMPLATE_ONLY,
+    ("POST", "/v1/email-templates/{key}/reset"): TEMPLATE_ONLY,
+    ("POST", "/v1/email-templates/{key}/test"): f"{TEMPLATE_ONLY}; sent to the caller only",
     ("POST", "/v1/workspace/company-profile/branding-upload"): (
         "an upload URL under the caller's workspace's branding folder"
     ),
@@ -233,5 +247,5 @@ def routes(app: FastAPI) -> list[RouteInfo]:
     return found
 
 
-def fill(path: str, values: dict[str, uuid.UUID]) -> str:
+def fill(path: str, values: Mapping[str, object]) -> str:
     return path.format(**{name: str(value) for name, value in values.items()})

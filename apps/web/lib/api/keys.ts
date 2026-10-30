@@ -8,6 +8,11 @@ export const keys = {
   workspace: (workspaceId: string) => ["ws", workspaceId] as const,
   departments: (workspaceId: string) => ["ws", workspaceId, "departments"] as const,
   companyProfile: (workspaceId: string) => ["ws", workspaceId, "company-profile"] as const,
+  emailTemplates: (workspaceId: string) => ["ws", workspaceId, "email-templates"] as const,
+  emailTemplate: (workspaceId: string, key: string) =>
+    ["ws", workspaceId, "email-templates", key] as const,
+  emailTemplateVersions: (workspaceId: string, key: string) =>
+    ["ws", workspaceId, "email-templates", key, "versions"] as const,
   members: (workspaceId: string) => ["ws", workspaceId, "members"] as const,
   invites: (workspaceId: string) => ["ws", workspaceId, "invites"] as const,
   pipelines: (workspaceId: string) => ["ws", workspaceId, "pipelines"] as const,

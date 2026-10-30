@@ -1,6 +1,7 @@
 """Email templates of one workspace and their saved versions (MSG-001). Only
 services/email_templates.py calls this."""
 
+import uuid
 from collections.abc import Iterable, Sequence
 
 from sqlalchemy import select
@@ -17,6 +18,18 @@ class EmailTemplateRepository(WorkspaceRepository[EmailTemplate]):
     async def list_all(self) -> Sequence[EmailTemplate]:
         rows = await self.session.scalars(self._scoped().order_by(EmailTemplate.key))
         return rows.all()
+
+    async def get_version(
+        self, template: EmailTemplate, version_id: uuid.UUID
+    ) -> EmailTemplateVersion | None:
+        row: EmailTemplateVersion | None = await self.session.scalar(
+            select(EmailTemplateVersion).where(
+                EmailTemplateVersion.workspace_id == self.workspace_id,
+                EmailTemplateVersion.template_id == template.id,
+                EmailTemplateVersion.id == version_id,
+            )
+        )
+        return row
 
     async def get_by_key(self, key: str, *, lock: bool = False) -> EmailTemplate | None:
         statement = self._scoped().where(EmailTemplate.key == key)

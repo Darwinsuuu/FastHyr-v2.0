@@ -140,7 +140,17 @@ def build_shortlist(tenancy: Tenancy, world: World) -> None:
         workspace.id,
         tenancy.member("a", Role.ADMIN).user_id,
     )
+    ok(
+        admin(tenancy).put(
+            "/v1/email-templates/interview_invitation",
+            json={"subject": "Interview with [Company.name]", "body_html": "<p>Hi there.</p>"},
+        )
+    )
+    [version] = ok(admin(tenancy).get("/v1/email-templates/interview_invitation/versions"))[
+        "versions"
+    ]
     world.inside |= {
+        "template_version": uuid.UUID(version["id"]),
         "pipeline": engineering,
         "application": ready,
         "flag": flag(tenancy, flagged),
@@ -189,7 +199,7 @@ def call(
     tenancy: Tenancy, workspace: str, role: Role, case: Case, ids: dict[str, uuid.UUID]
 ) -> Any:
     return tenancy.client(workspace, role).request(
-        case.method, fill(case.path, ids), params=case.query, json=case.json
+        case.method, fill(case.path, {**case.fixed, **ids}), params=case.query, json=case.json
     )
 
 

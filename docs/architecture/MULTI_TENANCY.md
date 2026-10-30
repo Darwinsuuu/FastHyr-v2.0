@@ -30,8 +30,10 @@ Jobs use a **system context** bound to the workspace of the entity being process
 
 ## 4. Testing
 - `tests/tenancy/` has a fixture (`tenancy`, in `tests/tenancy/harness.py`) with two workspaces (A, B) and members of each role, signed in through Supabase Auth. For **every** endpoint, a parametrised test asserts that a member of A gets `404` (not `403`, to avoid leaking existence) for B's resources and never sees B's rows in lists or aggregates.
-- A CI check fails if a new router endpoint has no tenancy test entry.
+- Every route is listed in `tests/tenancy/endpoints.py` (WS-005): a `Case` for each workspace endpoint, `CALLER_ONLY` for workspace endpoints with nothing of another workspace to reach (with the reason), or `OUTSIDE_WORKSPACE` for account, candidate, public and webhook routes (with the rule that limits them). `tests/unit/test_tenancy_coverage.py` fails, in the pull-request CI job, when a route has no entry or sits in the wrong group.
+- `tests/tenancy/test_endpoints.py` runs every `Case` on one world in workspace A (Engineering, Sales and No-department pipelines with applications in every stage, flags and review requests): workspace B gets 404 for A's resources (403 only where its role may not take the action at all); the Engineering Recruiter and Hiring manager get 404 for Sales and No-department resources; the Hiring manager gets 404 for applications outside the shortlist; and lists and aggregates are snapshotted before the hidden data is added and must not change. IDs of another workspace or department in request bodies are `422 unknown_department`.
 - Department-scope tests: a recruiter in Engineering cannot see Sales pipelines, candidates only in Sales pipelines, or No-department pipelines.
+- The web mirrors the rules for display only: every page under `app/ta/(app)` is wrapped in `RequireAccess` (or `PagePlaceholder`) with its nav item's action, checked by `apps/web/lib/page-access.test.ts`.
 
 ## 5. Cross-workspace things that are allowed
 - A user's list of workspaces (`GET /me/workspaces`).

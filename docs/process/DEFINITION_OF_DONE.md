@@ -8,7 +8,7 @@ A task is Done only when **every applicable item** is true. Reviewers check this
 - [ ] Copy follows `design/VOICE_AND_TONE.md`; strings live in `messages/en.json`.
 
 ## Correctness and safety
-- [ ] **Tenancy:** every new endpoint is workspace-scoped through repositories and has a tenancy test (cross-workspace → 404; department scope respected).
+- [ ] **Tenancy:** every new endpoint is workspace-scoped through repositories and has a tenancy entry in `apps/api/tests/tenancy/endpoints.py` (a `Case` runs the cross-workspace 404, department and shortlist checks; `test_tenancy_coverage.py` fails without one).
 - [ ] **Permissions** match `architecture/SECURITY.md`; UI hides what the API forbids.
 - [ ] No personal data in URLs, logs or Sentry.
 - [ ] Inputs validated server-side; errors return problem+json with a stable `code`.

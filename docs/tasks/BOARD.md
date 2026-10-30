@@ -11,11 +11,11 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | Milestone | Tasks | Done |
 |---|---|---|
 | M0 Foundation | 14 | 14 |
-| M1 Access | 12 | 11 |
+| M1 Access | 12 | 12 |
 | M2 Pipelines | 7 | 6 |
 | M3 Intake | 12 | 11 |
 | M4 AI interview | 8 | 7 |
-| M5 Review | 18 | 6 |
+| M5 Review | 18 | 9 |
 | M6 Billing & analytics | 7 | 0 |
 | M7 Public site & demo | 6 | 0 |
 | M8 Launch readiness | 6 | 0 |
@@ -52,7 +52,7 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [WS-002](WS/WS-002-departments.md) | Departments | S | DASH-001 | Done | #15 |
 | [WS-003](WS/WS-003-manage-members.md) | Manage members | M | WS-002 | Done | #16 |
 | [WS-004](WS/WS-004-member-invites.md) | Member invites | M | WS-003, FND-010 | Done | #17 |
-| [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Ready | |
+| [WS-005](WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) | Permission matrix and department scoping end to end | M | WS-003 | Done | #62 |
 | [DASH-001](DASH/DASH-001-app-shell.md) | App shell | M | FND-012, AUTH-003 | Done | #14 |
 | [BILL-002](BILL/BILL-002-credit-ledger-service.md) | Credit ledger service | L | FND-003 | Done | #13 |
 
@@ -114,11 +114,11 @@ Statuses: `Backlog` · `Ready` · `In progress` · `In review` · `Blocked` · `
 | [ASMT-004](ASMT/ASMT-004-candidate-profile-header-and-overview-tab.md) | Candidate profile — header and Overview tab | L | ASMT-001, PIPE-008 | Done | #55 |
 | [ASMT-005](ASMT/ASMT-005-candidate-profile-resume-tab.md) | Candidate profile — Résumé tab | M | ASMT-004, SCREEN-002 | Ready | |
 | [ASMT-006](ASMT/ASMT-006-candidate-profile-ai-interview-tab.md) | Candidate profile — AI interview tab | M | ASMT-004, INTV-008 | Ready | |
-| [ASMT-007](ASMT/ASMT-007-advance-and-reject-actions.md) | Advance and reject actions | M | PIPE-008, MSG-003 | Ready | |
+| [ASMT-007](ASMT/ASMT-007-advance-and-reject-actions.md) | Advance and reject actions | M | PIPE-008, MSG-003 | Done | #57 |
 | [ASMT-008](ASMT/ASMT-008-human-review-requests.md) | Human review requests | M | ASMT-007, SCREEN-003 | Done | |
 | [ASMT-009](ASMT/ASMT-009-candidate-report-pdf-and-resume-download.md) | Candidate report PDF and résumé download | M | ASMT-004, PIPE-010 | Backlog | |
-| [CAND-001](CAND/CAND-001-candidates-pool-list-and-profile-drawer.md) | Candidates pool — list and profile drawer | M | ASMT-001, WS-005 | Backlog | |
-| [AVA-001](AVA/AVA-001-ava-backend-scoped-assistant.md) | Ava backend (scoped assistant) | L | ASMT-001, WS-005, FND-013 | Backlog | |
+| [CAND-001](CAND/CAND-001-candidates-pool-list-and-profile-drawer.md) | Candidates pool — list and profile drawer | M | ASMT-001, WS-005 | Ready | |
+| [AVA-001](AVA/AVA-001-ava-backend-scoped-assistant.md) | Ava backend (scoped assistant) | L | ASMT-001, WS-005, FND-013 | Ready | |
 | [AVA-002](AVA/AVA-002-ava-ui.md) | Ava UI | M | AVA-001, PIPE-007, CAND-001 | Backlog | |
 
 ## M6 Billing & analytics

@@ -4,7 +4,7 @@
 |---|---|
 | Epic | CAND — Candidates pool |
 | Milestone | M5 Review |
-| Status | Backlog |
+| Status | Ready |
 | Size | M |
 | Depends on | [ASMT-001](../ASMT/ASMT-001-interview-scoring.md), [WS-005](../WS/WS-005-permission-matrix-and-department-scoping-end-to-en.md) |
 | Requirements | FR-CAND-01, FR-CAND-02, FR-CAND-04 |

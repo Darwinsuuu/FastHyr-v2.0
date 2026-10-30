@@ -30,6 +30,7 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           { "context": "Web", "integration_id": 15368 },
+          { "context": "API", "integration_id": 15368 },
           { "context": "API and database", "integration_id": 15368 },
           { "context": "API client up to date", "integration_id": 15368 },
           { "context": "Secrets and audits", "integration_id": 15368 },

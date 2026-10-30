@@ -89,6 +89,15 @@ class PipelineRepository(WorkspaceRepository[Pipeline]):
     async def get(self, pipeline_id: uuid.UUID) -> Pipeline:
         return await self._get_or_404(pipeline_id)
 
+    async def workspace_slug(self) -> str:
+        """The workspace's slug, the first part of every apply link."""
+        slug = await self.session.scalar(
+            select(Workspace.slug).where(Workspace.id == self.workspace_id)
+        )
+        if slug is None:
+            raise NotFoundError()
+        return slug
+
     async def detail(self, pipeline_id: uuid.UUID) -> PipelineDetailRow:
         """The pipeline with its department name and owner's profile; 404 outside scope."""
         row = (

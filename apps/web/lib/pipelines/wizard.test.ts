@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyLink,
+  applyLinks,
   blockedHint,
   closeDate,
   defaultDepartment,
@@ -18,6 +19,7 @@ import {
   saveErrorKey,
   setupFromForm,
   startOfDay,
+  SHARE_SOURCES,
 } from "@/lib/pipelines/wizard";
 
 const filled = {
@@ -126,6 +128,12 @@ describe("scoring, schedule and publishing (PIPE-003)", () => {
     expect(applyLink("https://fasthyr.com", "acme", "support-lead", "linkedin")).toBe(
       "https://fasthyr.com/apply/acme/support-lead?source=linkedin",
     );
+  });
+
+  it("builds one tagged link per source for the share tiles", () => {
+    const links = applyLinks("https://fasthyr.com", "acme", "support-lead");
+    expect(Object.keys(links)).toEqual([...SHARE_SOURCES]);
+    expect(links.careers).toBe("https://fasthyr.com/apply/acme/support-lead?source=careers");
   });
 });
 

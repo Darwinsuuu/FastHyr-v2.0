@@ -1234,7 +1234,13 @@
           "label": "Other",
           "hint": "Use this for emails, referrals or any place not listed. It shows up as “Other” in analytics."
         }
-      }
+      },
+      "eyebrow": "Share apply link",
+      "title": "Where will you post {title}?",
+      "body": "Click where you’ll post it and we’ll copy a tagged link, so you can see which job board your applicants come from.",
+      "loading": "Loading the apply links",
+      "loadFailed": "We couldn't load the apply links. Check your connection and try again.",
+      "retry": "Try again"
     },
     "list": {
       "eyebrow": "Pipelines · {date}",
@@ -1379,7 +1385,6 @@
         "voice_only": "Voice-only interview"
       },
       "share": "Share apply link",
-      "shareSoon": "Sharing from this page is coming soon.",
       "tabsLabel": "Pipeline sections",
       "tabs": {
         "dashboard": "Dashboard",

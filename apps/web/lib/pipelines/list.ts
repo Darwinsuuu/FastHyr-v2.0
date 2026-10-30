@@ -124,8 +124,8 @@ export function creditPercent(
 }
 
 /** Row menu entries per status (frame PipelinesV2). Lifecycle actions run through
- * lib/pipelines/actions.ts (PIPE-005); Copy apply link waits for PIPE-006 and Top up for
- * BILL-006 (`PENDING_ACTIONS`). */
+ * lib/pipelines/actions.ts (PIPE-005), Copy apply link opens the share modal (PIPE-006) and Top
+ * up waits for BILL-006 (`PENDING_ACTIONS`). */
 export type RowAction =
   | "open"
   | "copyLink"
@@ -164,8 +164,8 @@ export function menuFor(status: Status): RowMenuEntry[] {
 
 export const DESTRUCTIVE_ACTIONS: RowAction[] = ["close", "cancel"];
 
-/** Shown but not usable yet: Copy apply link arrives with PIPE-006, Top up with BILL-006. */
-export const PENDING_ACTIONS: RowAction[] = ["copyLink", "topUp"];
+/** Shown but not usable yet: Top up arrives with BILL-006. */
+export const PENDING_ACTIONS: RowAction[] = ["topUp"];
 
 /** Where a link entry goes; null for actions that aren't links. */
 export function actionHref(action: RowAction, pipelineId: string): string | null {

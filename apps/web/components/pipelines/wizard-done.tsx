@@ -6,9 +6,10 @@ import Link from "next/link";
 import { ShareTiles } from "@/components/pipelines/share-tiles";
 import { WizardNote } from "@/components/pipelines/wizard-note";
 import { Button } from "@/components/ui/button";
+import { env } from "@/lib/env";
 import { formatDayLong } from "@/lib/format";
 import { t } from "@/lib/i18n";
-import type { Pipeline } from "@/lib/pipelines/wizard";
+import { applyLinks, type Pipeline } from "@/lib/pipelines/wizard";
 
 /** After publishing (frame NewPipeline done state, FR-PIPE-06): share the link, then move on. */
 export function WizardDone({
@@ -60,7 +61,10 @@ export function WizardDone({
         )}
       </div>
       {pipeline.slug && (
-        <ShareTiles workspaceSlug={workspaceSlug} pipelineSlug={pipeline.slug} className="pb-2" />
+        <ShareTiles
+          links={applyLinks(env.siteUrl, workspaceSlug, pipeline.slug)}
+          className="pb-2"
+        />
       )}
       <div className="flex flex-col gap-2.5 sm:flex-row">
         <Link

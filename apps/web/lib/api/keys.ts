@@ -19,6 +19,8 @@ export const keys = {
     ["ws", workspaceId, "analytics", "pipelines-flow", range] as const,
   pipeline: (workspaceId: string, pipelineId: string) =>
     ["ws", workspaceId, "pipelines", pipelineId] as const,
+  pipelineShareLinks: (workspaceId: string, pipelineId: string) =>
+    ["ws", workspaceId, "pipelines", pipelineId, "share-links"] as const,
   pipelineDashboard: (workspaceId: string, pipelineId: string) =>
     ["ws", workspaceId, "pipelines", pipelineId, "dashboard"] as const,
   pipelineCandidates: (

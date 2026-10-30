@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, type RefObject, useCallback, useState } from "react";
 
 import { useShell } from "@/components/app-shell/shell-context";
+import { ShareDialog } from "@/components/pipelines/share-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
@@ -35,7 +36,8 @@ export interface PipelineActionsOptions {
 
 /** Pause, resume, close, cancel, archive, start now and duplicate a pipeline (PIPE-005,
  * FR-PIPE-07). `run(action, pipeline)` asks first where the frame does (and before Start now),
- * then calls the API, refreshes what changed and says what happened. Render `dialogs` once. */
+ * then calls the API, refreshes what changed and says what happened. `share(pipeline)` opens the
+ * share modal (PIPE-006). Render `dialogs` once. */
 export function usePipelineActions({ timeZone, onArchived }: PipelineActionsOptions) {
   const { workspace } = useShell();
   const router = useRouter();
@@ -44,6 +46,10 @@ export function usePipelineActions({ timeZone, onArchived }: PipelineActionsOpti
   const [pending, setPending] = useState<{
     action: LifecycleAction;
     summary: PipelineSummary;
+    returnFocusTo?: RefObject<HTMLElement | null>;
+  } | null>(null);
+  const [sharing, setSharing] = useState<{
+    summary: Pick<PipelineSummary, "id" | "title">;
     returnFocusTo?: RefObject<HTMLElement | null>;
   } | null>(null);
   const [notify, setNotify] = useState(true);
@@ -121,7 +127,25 @@ export function usePipelineActions({ timeZone, onArchived }: PipelineActionsOpti
     [perform, refresh, toast],
   );
 
-  const dialogs = pending ? (
+  /** Opens the share modal for the pipeline; focus goes back to `returnFocusTo` after. */
+  const share = useCallback(
+    (
+      summary: Pick<PipelineSummary, "id" | "title">,
+      returnFocusTo?: RefObject<HTMLElement | null>,
+    ) => setSharing({ summary, returnFocusTo }),
+    [],
+  );
+
+  const shareDialog = sharing ? (
+    <ShareDialog
+      pipelineId={sharing.summary.id}
+      title={summaryTitle(sharing.summary)}
+      returnFocusTo={sharing.returnFocusTo}
+      onOpenChange={(open) => !open && setSharing(null)}
+    />
+  ) : null;
+
+  const actionDialog = pending ? (
     <ActionDialog
       action={pending.action}
       summary={pending.summary}
@@ -145,7 +169,14 @@ export function usePipelineActions({ timeZone, onArchived }: PipelineActionsOpti
     />
   ) : null;
 
-  return { run, dialogs };
+  const dialogs = (
+    <>
+      {actionDialog}
+      {shareDialog}
+    </>
+  );
+
+  return { run, share, dialogs };
 }
 
 type ConfirmedAction = "startNow" | "pause" | "close" | "cancel" | "archive";
